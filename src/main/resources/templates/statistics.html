@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard</title>
+
+    <style th:replace="blocks/linkAdminLTE"></style>
+    <div th:replace="blocks/links"></div>
+    <script th:src="@{/js/app.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+
+<body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
+<div class="wrapper">
+
+    <div th:replace="blocks/navbar"></div>
+    <div th:replace="blocks/sidebarContainer"></div>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <div class="content-header">
+            <div class="container-fluid">
+                <h1 class="m-0">Dashboard</h1>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+
+        </section>
+    </div>
+</div>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script th:src="@{/js/validation.js}"></script>
+
+<script>
+</script>
+
+
+</main>
+</body>
+</html>

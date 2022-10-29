@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Profile</title>
+
+    <style th:replace="blocks/linkAdminLTE"></style>
+    <div th:replace="blocks/links"></div>
+    <script th:src="@{/js/app.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+
+<body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
+<div class="wrapper">
+
+    <div th:replace="blocks/navbar"></div>
+    <div th:replace="blocks/sidebarContainer"></div>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <div class="content-header">
+            <div class="container-fluid">
+                <h1 class="m-0">Profile</h1>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+            <div class="container">
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group mt-2">
+                            <label>Photo:</label>
+                            <img src="" id="image" style="height: 100px; display: none;"/>
+                            <input onchange="showImage()" id="file" type="file" name="photo" class="form-control">
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Name:</label>
+                            <input id="name" type="text" maxlength="50" name="name" placeholder="Enter name" class="form-control">
+                            <p id='nameMessage' style="color: red"></p>
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Surname:</label>
+                            <input id="surname" type="text" maxlength="50" name="surname" placeholder="Enter surname" class="form-control">
+                            <p id='surnameMessage' style="color: red"></p>
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Lastname:</label>
+                            <input id="lastname" type="text" maxlength="50" name="lastname" placeholder="Enter lastname" class="form-control">
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Birthday:</label>
+                            <input id="birthday" type="date" maxlength="50" name="birthday" class="form-control">
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Phone:</label>
+                            <input id="phone" type="text" maxlength="50" name="phone" placeholder="Enter phone number" class="form-control">
+                            <p id='phoneMessage' style="color: red"></p>
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Viber:</label>
+                            <input id="viber" type="text" maxlength="50" name="viber" placeholder="Enter viber number" class="form-control">
+                            <p id='viberMessage' style="color: red"></p>
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Telegram:</label>
+                            <input id="telegram" type="text" maxlength="50" name="telegram" placeholder="Enter telegram username" class="form-control">
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Email:</label>
+                            <input id="username" type="text" maxlength="50" name="username" placeholder="Enter email" class="form-control">
+                            <p id='usernameMessage' style="color: red"></p>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group mt-2">
+                            <label>Password:</label>
+                            <input id="password" type="password" maxlength="50" name="password" placeholder="Enter password" class="form-control">
+                            <p id='passwordMessage' style="color: red"></p>
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>New password:</label>
+                            <input id="firstPassword" type="password" maxlength="50" name="firstPassword" placeholder="Enter new password" class="form-control">
+                            <p id='firstPasswordMessage' style="color: red"></p>
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Repeat password:</label>
+                            <input id="secondPassword" type="password" maxlength="50" name="secondPassword" placeholder="Repeat password" class="form-control">
+                            <p id='secondPasswordMessage' style="color: red"></p>
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>About me:</label>
+                            <div class="card-body">
+                                <textarea id="summernote" style="display: none;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="save()" class="btn btn-success popup-with-form">Save</button>
+            </div>
+        </section>
+    </div>
+</div>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script src="https://unpkg.com/imask"></script>
+
+<script>
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",2));
+    let url = window.location.protocol+"//"+ window.location.host +context+"/img/users/";
+    let User = {};
+
+    $(document).ready(function() {
+        updatePage();
+        summernote();
+    });
+
+    function save(){
+        let name = document.getElementById('name');
+        let surname = document.getElementById('surname');
+        let lastname = document.getElementById('lastname');
+        let birthday = document.getElementById('birthday');
+        let phone = document.getElementById('phone');
+        let viber = document.getElementById('viber');
+        let telegram = document.getElementById('telegram');
+        let username = document.getElementById('username');
+        let password = document.getElementById('password');
+        let firstPassword = document.getElementById('firstPassword');
+        let secondPassword = document.getElementById('secondPassword');
+        let profile = {};
+        profile.id = User.id;
+        profile.name = name.value;
+        profile.surname = surname.value;
+        profile.lastname = lastname.value;
+        profile.birthday = birthday.value;
+        profile.phone = phone.value;
+        profile.viber = viber.value;
+        profile.telegram = telegram.value;
+        profile.aboutMe = $("#summernote").summernote("code");
+        profile.username = username.value;
+        profile.password = password.value;
+        profile.firstPassword = firstPassword.value;
+        profile.secondPassword = secondPassword.value;
+        let formData = new FormData();
+        let file = document.getElementById("file");
+        formData.append('file', file.files[0]);
+        formData.append('profile', new Blob([JSON.stringify(profile)], {type : 'application/json'}));
+        $.ajax({
+            type: 'post',
+            url: '../updateProfile',
+            contentType: false,
+            processData: false,
+            data: formData,
+            dataType: "json",
+            success: function (validation) {
+                if (validation == null) {
+                    validationMessage(validation);
+                    updatePage(currentPage, size, sortingField, sortingDirection)
+                    closePopup();
+                    console.log('success /updateProfile');
+                } else {
+                    validationMessage(validation);
+                }
+            },
+            error: function () {
+                console.log('error /updateProfile');
+            }
+        });
+
+    }
+
+    function validationMessage(validation){
+
+        if(validation?.name ?? false){
+            document.getElementById('nameMessage').innerHTML = validation.name;
+            document.getElementById('name').style.border = "1px solid red";
+        } else {
+            document.getElementById('nameMessage').innerHTML = "";
+            document.getElementById('name').style.border = "1px solid green";
+        }
+        if(validation?.surname ?? false){
+            document.getElementById('surnameMessage').innerHTML = validation.surname;
+            document.getElementById('surname').style.border = "1px solid red";
+        } else {
+            document.getElementById('surnameMessage').innerHTML = "";
+            document.getElementById('surname').style.border = "1px solid green";
+        }
+        if(validation?.viber ?? false){
+            document.getElementById('viberMessage').innerHTML = validation.viber;
+            document.getElementById('viber').style.border = "1px solid red";
+        } else {
+            document.getElementById('viberMessage').innerHTML = "";
+            document.getElementById('viber').style.border = "1px solid green";
+        }
+        if(validation?.phone ?? false){
+            document.getElementById('phoneMessage').innerHTML = validation.phone;
+            document.getElementById('phone').style.border = "1px solid red";
+        } else {
+            document.getElementById('phoneMessage').innerHTML = "";
+            document.getElementById('phone').style.border = "1px solid green";
+        }
+        if(validation?.username ?? false){
+            document.getElementById('usernameMessage').innerHTML = validation.username;
+            document.getElementById('username').style.border = "1px solid red";
+        } else {
+            document.getElementById('usernameMessage').innerHTML = "";
+            document.getElementById('username').style.border = "1px solid green";
+        }
+        if(validation?.password ?? false){
+            document.getElementById('passwordMessage').innerHTML = validation.password;
+            document.getElementById('password').style.border = "1px solid red";
+        } else {
+            document.getElementById('passwordMessage').innerHTML = "";
+            document.getElementById('password').style.border = "1px solid green";
+            let firstPassword = document.getElementById('firstPassword');
+            let secondPassword = document.getElementById('secondPassword');
+            if (firstPassword.value !== ''){
+                if(validation?.firstPassword ?? false){
+                    document.getElementById('firstPasswordMessage').innerHTML = validation.firstPassword;
+                    firstPassword.style.border = "1px solid red";
+                } else {
+                    document.getElementById('firstPasswordMessage').innerHTML = "";
+                    firstPassword.style.border = "1px solid green";
+                }
+            } else {
+                document.getElementById('firstPasswordMessage').innerHTML = "";
+                firstPassword.style.border = "1px solid grey";
+            }
+            if (firstPassword.value !== ''){
+                if(validation?.secondPassword ?? false){
+                    document.getElementById('secondPasswordMessage').innerHTML = validation.secondPassword;
+                    secondPassword.style.border = "1px solid red";
+                } else {
+                    document.getElementById('secondPasswordMessage').innerHTML = "";
+                    secondPassword.style.border = "1px solid green";
+                }
+            } else {
+                document.getElementById('secondPasswordMessage').innerHTML = "";
+                secondPassword.style.border = "1px solid grey";
+            }
+        }
+    }
+
+    function updatePage(){
+        $.ajax({
+            type: 'get',
+            url: '../getProfile',
+            dataType: "json",
+            success: function (profile) {
+                console.log('success /getProfile');
+                User = profile;
+                let name = document.getElementById('name');
+                let surname = document.getElementById('surname');
+                let lastname = document.getElementById('lastname');
+                let birthday = document.getElementById('birthday');
+                let phone = document.getElementById('phone');
+                let viber = document.getElementById('viber');
+                let telegram = document.getElementById('telegram');
+                let username = document.getElementById('username');
+                name.value = profile.name;
+                surname.value = profile.surname;
+                lastname.value = profile.lastname;
+                birthday.value = moment(profile.birthday).format('YYYY-MM-DD');
+                phone.value = profile.phone;
+                viber.value = profile.viber;
+                telegram.value = profile.telegram;
+                username.value = profile.username;
+                $("#summernote").summernote("code", profile.aboutMe);
+                if (profile.photo !== null) {
+                    let image = document.getElementById("image");
+                    image.src = url + profile.photo;
+                    image.style.display = "block";
+                }
+                mask();
+            },
+            error: function() {
+                console.log('error /getProfile');
+            }
+        });
+    }
+
+    function showImage() {
+        let image = document.getElementById("image");
+        let file = document.getElementById("file");
+        image.src = URL.createObjectURL(file.files[0]);
+        image.style.display = "block";
+    }
+
+    function mask(){
+        let phone = document.getElementById('phone');
+        let viber = document.getElementById('viber');
+        let maskOptions = {
+            mask: '+38(000)000-00-00',
+            lazy: false
+        }
+        let mask1 = new IMask(phone, maskOptions);
+        let mask2 = new IMask(viber, maskOptions);
+    }
+
+    function summernote(){
+        // Summernote
+        console.log('hello');
+        $('#summernote').summernote();
+    }
+
+</script>
+
+<script th:src="@{/plugins/summernote/summernote-bs4.min.js}"></script>
+
+</main>
+</body>
+</html>

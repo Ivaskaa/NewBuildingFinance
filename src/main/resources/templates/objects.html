@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Objects</title>
+
+    <style th:replace="blocks/linkAdminLTE"></style>
+    <div th:replace="blocks/links"></div>
+    <script th:src="@{/js/app.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+
+<body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
+<div class="wrapper">
+
+    <div th:replace="blocks/navbar"></div>
+    <div th:replace="blocks/sidebarContainer"></div>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <div class="content-header">
+            <div class="container-fluid">
+                <h1 class="m-0">Objects</h1>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+            <label>
+                <select id="sizeSelect" style="width: 50px; " onchange="changeSize()" name='status' class='form-control'>
+                    <option value=10 selected>10</option>
+                    <option value=20>20</option>
+                </select>
+            </label>
+
+            <button onclick="openPopup('add')" class="btn btn-success popup-with-form">Add</button>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">
+<!--                        <label>-->
+<!--                            <input class="form-control">-->
+<!--                        </label>-->
+                        <div onclick="sort('id')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Id</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div onclick="sort('house')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">House</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div onclick="sort('section')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Section</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div onclick="sort('address')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Address</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div onclick="sort('status')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Status</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div onclick="sort('agency')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">% agency</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div onclick="sort('manager')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">% manager</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Edit</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Delete</p>
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+                <tbody id="list">
+                <!-- list -->
+                </tbody>
+            </table>
+            <nav>
+                <ul id="choose-page" class="pagination">
+                    <!-- pagination buttons -->
+                </ul>
+            </nav>
+        </section>
+    </div>
+    <div id="popup" class="modal">
+        <!-- popup -->
+    </div>
+</div>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script th:src="@{/js/validation.js}"></script>
+
+<script>
+    let modal = document.getElementById("popup");
+
+    let currentPage = 1;
+    let size = 10;
+    let sortingField = 'id';
+    let sortingDirection = 'ASC';  // DESC
+
+    let totalPage;
+    let IdForUpdating;
+
+    $(document).ready(function() {
+        updatePage(currentPage, size, sortingField, sortingDirection);
+    });
+
+    function sort(field){
+        if(sortingDirection === 'ASC'){
+            sortingDirection = 'DESC';
+        } else {
+            sortingDirection = 'ASC';
+        }
+        sortingField = field;
+        updatePage(currentPage, size, sortingField, sortingDirection);
+    }
+
+    function openPopup(style){
+        modal.style.display = "block";
+        $("#popup").append($(
+            "<div class=\"modal-content\">\n" +
+            "           <span onclick=\"closePopup()\" class=\"close\">&times;</span>\n" +
+            "           <form class=\"mt-2\">\n" +
+            "               <div class=\"form-group mt-2\">\n" +
+            "                   <label>House:</label>\n" +
+            "                   <input id=\"house\" type=\"text\" maxlength=\"50\" name=\"house\"\n" +
+            "                           placeholder=\"Enter house name\" class=\"form-control\">\n" +
+            "                   <p id='houseMessage' style=\"color: red\"></p>" +
+            "               </div>\n" +
+            "               <div class=\"form-group mt-2\">\n" +
+            "                   <label>Section:</label>\n" +
+            "                   <input id=\"section\" type=\"text\" maxlength=\"50\" name=\"section\"\n" +
+            "                              placeholder=\"Enter section\" class=\"form-control\">\n" +
+            "                   <p id='sectionMessage' style=\"color: red\"></p>" +
+            "               </div>\n" +
+            "               <div class=\"form-group mt-2\">\n" +
+            "                   <label>Address:</label>\n" +
+            "                   <input id=\"address\" type=\"text\" maxlength=\"200\" name=\"address\"\n" +
+            "                              placeholder=\"Enter address\" class=\"form-control\">\n" +
+            "                   <p id='addressMessage' style=\"color: red\"></p>" +
+            "               </div>\n" +
+            "               <div class=\"form-group mt-2\">\n" +
+            "                   <label>Status:</label>\n" +
+            "                   <select id='status' name='status' class='form-control'>" +
+            "                   </select>" +
+            "                   <p id='statusMessage' style=\"color: red\"></p>" +
+            "               </div>\n" +
+            "               <div id=\"size\">\n" +
+            "                   <div class=\"row\">\n" +
+            "                       <div class=\"col\">\n" +
+            "                           <div class=\"form-group mt-2\">\n" +
+            "                               <label>% agency:</label>\n" +
+            "                               <input id='agency' value='0' type=\"number\" min='0' max='100' placeholder=\"Enter % agency\" class=\"form-control\">\n" +
+            "                               <p id='agencyMessage' style=\"color: red\"></p>" +
+            "                           </div>\n" +
+            "                       </div>\n" +
+            "                       <div class=\"col\">\n" +
+            "                           <div class=\"form-group mt-2\">\n" +
+            "                               <label>% manager:</label>\n" +
+            "                               <input id='manager' value='0' type=\"number\" min='0' max='100' placeholder=\"Enter % manager\" class=\"form-control\">\n" +
+            "                               <p id='managerMessage' style=\"color: red\"></p>" +
+            "                           </div>\n" +
+            "                       </div>\n" +
+            "                   </div>\n" +
+            "               </div>\n" +
+            "               <div class=\"d-flex flex-nowrap mt-2\">\n" +
+            "                   <label class=\"m-1\">Active:</label>\n" +
+            "                   <div class=\"form-check form-switch m-1\">\n" +
+            "                       <input id=\"active\" type=\"checkbox\" name=\"active\" class=\"form-check-input\" checked=\"checked\" role=\"switch\">\n" +
+            "                   </div>\n" +
+            "               </div>\n" +
+            "               <button onclick=\"save('"  + style + "')\" type=\"button\" class=\"btn btn-success mt-2\">Save</button>\n" +
+            "           </form>\n" +
+            "       </div>"
+        ));
+        getStatusObject();
+    }
+
+    function closePopup(){
+        modal.style.display = "none";
+        $("#popup").empty();
+    }
+
+    function getStatusObject(){
+        $.ajax({
+            type: 'get',
+            url: '../objects/getStatusObject',
+            dataType: "json",
+            async: false,
+            success: function (data){
+                console.log('success /getStatusObject');
+                $("#status").append($("" +
+                    "<option value='" + null + "'>Choose status</option>"
+                ));
+                data.forEach((object) =>{
+                    $("#status").append($("" +
+                        "<option value='" + object.first + "'> " + object.second + "</option>"
+                    ));
+                })
+            },
+            error: function() {
+                console.log('error /getStatusObject');
+            }
+        });
+    }
+
+    function save(style){
+        let house = document.getElementById('house');
+        let section = document.getElementById('section');
+        let address = document.getElementById('address');
+        let status = $('#status').val();
+        let agency = document.getElementById('agency');
+        let manager = document.getElementById('manager');
+        let active = document.getElementById('active');
+        let object = {};
+        object.house = house.value;
+        object.section = section.value;
+        object.address = address.value;
+        object.status = status;
+        object.agency = agency.value;
+        object.manager = manager.value;
+        object.active = active.checked;
+
+        console.log(object);
+        if(style === 'add') {
+            $.ajax({
+                type: 'post',
+                url: '../objects/addObject',
+                data: JSON.stringify(object),
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    let validation = JSON.parse(data);
+                    if (validation == null) {
+                        updatePage(currentPage, size, sortingField, sortingDirection)
+                        closePopup();
+                        console.log('success /addObject');
+                    } else {
+                        validationMessage(validation);
+                    }
+                },
+                error: function () {
+                    console.log('error /addObject');
+                }
+            });
+        }
+
+        if(style === 'edit') {
+            object.id = IdForUpdating;
+            $.ajax({
+                type: 'post',
+                url: '../objects/updateObject',
+                data: JSON.stringify(object),
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    let validation = JSON.parse(data);
+                    if (validation == null) {
+                        updatePage(currentPage, size, sortingField, sortingDirection)
+                        closePopup();
+                        console.log('success /updateObject');
+                    } else {
+                        validationMessage(validation);
+                    }
+                },
+                error: function () {
+                    console.log('error /updateObject');
+                }
+            });
+        }
+    }
+
+    function validationMessage(validation){
+        if(validation?.house ?? false){
+            document.getElementById('houseMessage').innerHTML = validation.house;
+            document.getElementById('house').style.border = "1px solid red";
+        } else {
+            document.getElementById('houseMessage').innerHTML = "";
+            document.getElementById('house').style.border = "1px solid green";
+        }
+        if(validation?.section ?? false){
+            document.getElementById('sectionMessage').innerHTML = validation.section;
+            document.getElementById('section').style.border = "1px solid red";
+        }else {
+            document.getElementById('sectionMessage').innerHTML = "";
+            document.getElementById('section').style.border = "1px solid green";
+        }
+        if(validation?.address ?? false){
+            document.getElementById('addressMessage').innerHTML = validation.address;
+            document.getElementById('address').style.border = "1px solid red";
+        }else {
+            document.getElementById('addressMessage').innerHTML = "";
+            document.getElementById('address').style.border = "1px solid green";
+        }
+        if(validation?.status ?? false){
+            document.getElementById('statusMessage').innerHTML = validation.status;
+            document.getElementById('status').style.border = "1px solid red";
+        }else {
+            document.getElementById('statusMessage').innerHTML = "";
+            document.getElementById('status').style.border = "1px solid green";
+        }
+        if(validation?.agency ?? false){
+            document.getElementById('agencyMessage').innerHTML = validation.agency;
+            document.getElementById('agency').style.border = "1px solid red";
+        }else {
+            document.getElementById('agencyMessage').innerHTML = "";
+            document.getElementById('agency').style.border = "1px solid green";
+        }
+        if(validation?.manager ?? false){
+            document.getElementById('managerMessage').innerHTML = validation.manager;
+            document.getElementById('manager').style.border = "1px solid red";
+        }else {
+            document.getElementById('managerMessage').innerHTML = "";
+            document.getElementById('manager').style.border = "1px solid green";
+        }
+    }
+
+
+    function updatePage(currentPage, size, sortingField, sortingDirection){
+        let data = {
+            page: currentPage,
+            size: size,
+            field: sortingField,
+            direction: sortingDirection
+        }
+        $.ajax({
+            type: 'get',
+            url: '../objects/getObjects',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                totalPage = data.totalPages;
+                if(currentPage > totalPage){
+                    currentPage--;
+                    updatePage(currentPage, size, sortingField, sortingDirection);
+                }
+                updateList(data)
+                console.log('success /getObjects');
+            },
+            error: function() {
+                console.log('error /getObjects');
+            }
+        });
+    }
+
+    function updateList(data) {
+        $("#list").empty();
+        data.content.forEach((object) => {
+            $("#list").append($("" +
+                "<tr>" +
+                "<td>" +
+                "<p>" + object.id + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.house + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.section + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.address + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.status + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.agency + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.manager + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<button onclick='editForm(" + object.id + ")' class=\"btn btn-warning\" type=\"button\">Edit</button>" +
+                "</td>" +
+                "<td>" +
+                "<button onclick='deleteObject(" + object.id + ")' class=\"btn btn-danger\" type=\"button\">Delete</button>" +
+                "</td>" +
+                "</tr>"
+            ));
+        })
+        paginationButton();
+    }
+
+    function editForm(id){
+        IdForUpdating = id;
+        openPopup('edit');
+        let data = { id: id };
+        $.ajax({
+            type: 'get',
+            url: '../objects/getObjectById',
+            data: data,
+            dataType: "json",
+            success: function (object){
+                console.log('success /getObjectById');
+                let house = document.getElementById('house');
+                house.value = object.house;
+                let section = document.getElementById('section');
+                section.value = object.section;
+                let address = document.getElementById('address');
+                address.value = object.address;
+
+                let status = document.getElementById('status');
+                for (let i = 0; i < status.options.length; i++) {
+                    if (status.options[i].value === object.status) status.options[i].selected = true;
+                }
+
+                let agency = document.getElementById('agency');
+                agency.value = object.agency;
+                let manager = document.getElementById('manager');
+                manager.value = object.manager;
+                let active = document.getElementById('active');
+                active.checked = object.active;
+            },
+            error: function() {
+                console.log('error /getObjectById');
+            }
+        });
+    }
+
+    function deleteObject(id){
+        let data = { id: id };
+        $.ajax({
+            type: 'post',
+            url: '../objects/deleteObjectById',
+            data: data,
+            dataType: "json",
+            success: function (success){
+                console.log(success + ' /deleteObjectById');
+                updatePage(currentPage, size, sortingField, sortingDirection)
+            },
+            error: function() {
+                console.log('error /deleteObjectById');
+            }
+        });
+    }
+
+    function changeSize(){
+        size = $('#sizeSelect').val();
+        currentPage = 1;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+
+    function paginationButton(){
+        $("#choose-page").empty();
+        if(totalPage > 1){
+            if(currentPage !== 1){
+                $("#choose-page").append($("" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goFirstPage()' style='height: 40px'>First</button>" +
+                    "</div>" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goPreviousPage()' style='height: 40px'>\<\<</a>" +
+                    "</div>"
+                ));
+            } else {
+                $("#choose-page").append($("" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goFirstPage()' style='height: 40px'>First</button>" +
+                    "</div>" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goPreviousPage()' style='height: 40px'>\<\<</a>" +
+                    "</div>"
+                ));
+            }
+            let start = currentPage - 2;
+            let finish = currentPage + 2;
+            for(let i = start; i <= finish; i++) {
+                if(i > 0 && i <= totalPage) {
+                    if (currentPage === i) {
+                        $("#choose-page").append($("" +
+                            "<div class='page-item active'>" +
+                            "<button onclick='goToPage(" + i + ")' class='page-link' tabIndex=\"-1\" style='height: 40px; width: 40px'>" + i + "</button>" +
+                            "</div>"
+                        ));
+                    } else {
+                        $("#choose-page").append($("" +
+                            "<div class='page-item'>" +
+                            "<button onclick='goToPage(" + i + ")' class='page-link' tabIndex=\"-1\" style='height: 40px; width: 40px'>" + i + "</button>" +
+                            "</div>"
+                        ));
+                    }
+                }
+            }
+            if(currentPage !== totalPage) {
+                $("#choose-page").append($("" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goNextPage()' style='height: 40px'>\>\></button>" +
+                    "</div>" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goLastPage()' style='height: 40px'>Last</a>" +
+                    "</div>"
+                ));
+            } else {
+                $("#choose-page").append($("" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goNextPage()' style='height: 40px'>\>\></button>" +
+                    "</div>" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goLastPage()' style='height: 40px'>Last</a>" +
+                    "</div>"
+                ));
+            }
+        }
+    }
+
+    function goFirstPage(){
+        currentPage = 1;
+        updatePage(currentPage, size, sortingField, sortingDirection);
+    }
+
+    function goPreviousPage(){
+        currentPage--;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+
+    function goToPage(i){
+        currentPage = i;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+    function goNextPage(){
+        currentPage++;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+    function goLastPage(){
+        currentPage = totalPage;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+</script>
+
+</main>
+</body>
+</html>

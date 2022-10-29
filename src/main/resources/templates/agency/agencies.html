@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Agencies</title>
+
+    <style th:replace="blocks/linkAdminLTE"></style>
+    <div th:replace="blocks/links"></div>
+    <script th:src="@{/js/app.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+
+<body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
+<div class="wrapper">
+
+    <div th:replace="blocks/navbar"></div>
+    <div th:replace="blocks/sidebarContainer"></div>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <div class="content-header">
+            <div class="container-fluid">
+                <h1 class="m-0">Agencies</h1>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+            <label>
+                <select id="sizeSelect" style="width: 50px; " onchange="changeSize()" name='status' class='form-control'>
+                    <option value=10 selected>10</option>
+                    <option value=20>20</option>
+                </select>
+            </label>
+
+            <a th:href="@{/agencies/agency/0}" class="btn btn-success popup-with-form">Add</a>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">
+                        <label>
+                            <input id="name" oninput="search()" type="text" class="form-control" style="width: 130px">
+                        </label>
+                        <div onclick="sort('name')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Name</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <input id="director" oninput="search()" type="text" class="form-control" style="width: 130px">
+                        </label>
+                        <div onclick="sort('realtors.name')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Director</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <input id="phone" oninput="search()" type="text" class="form-control" style="width: 130px">
+                        </label>
+                        <div onclick="sort('realtors.phone')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Phone</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <input id="email" oninput="search()" type="text" class="form-control" style="width: 130px">
+                        </label>
+                        <div onclick="sort('realtors.email')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Email</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <input id="count" oninput="search()" type="number" class="form-control" style="width: 130px">
+                        </label>
+                        <div onclick="sort('count')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Сount sold</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Edit</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Delete</p>
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+                <tbody id="list">
+                <!-- list -->
+                </tbody>
+            </table>
+            <nav>
+                <ul id="choose-page" class="pagination">
+                    <!-- pagination buttons -->
+                </ul>
+            </nav>
+        </section>
+    </div>
+</div>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script th:src="@{/js/validation.js}"></script>
+
+<script>
+
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",2));
+    let url = window.location.protocol+"//"+ window.location.host + context;
+
+    let currentPage = 1;
+    let size = 10;
+    let sortingField = 'id';
+    let sortingDirection = 'ASC';  // DESC
+
+    let searchName;
+    let searchDirector;
+    let searchPhone;
+    let searchEmail;
+    let searchCount;
+
+    let totalPage;
+
+    $(document).ready(function() {
+        search();
+    });
+
+    function sort(field){
+        if(sortingDirection === 'ASC'){
+            sortingDirection = 'DESC';
+        } else {
+            sortingDirection = 'ASC';
+        }
+        sortingField = field;
+        updatePage(currentPage, size, sortingField, sortingDirection);
+    }
+
+    function search(){
+        searchName = document.getElementById('name').value;
+        searchDirector = document.getElementById('director').value;
+        searchPhone = document.getElementById('phone').value;
+        searchEmail = document.getElementById('email').value;
+        searchCount = document.getElementById('count').value;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+
+    function updatePage(currentPage, size, sortingField, sortingDirection){
+        let data = {
+            page: currentPage,
+            size: size,
+            field: sortingField,
+            direction: sortingDirection,
+            name: searchName,
+            director: searchDirector,
+            phone: searchPhone,
+            email: searchEmail,
+            count: searchCount,
+        }
+        $.ajax({
+            type: 'get',
+            url: '../agencies/getAgencies',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                totalPage = data.totalPages;
+                if(currentPage > totalPage){
+                    currentPage--;
+                    updatePage(currentPage, size, sortingField, sortingDirection);
+                }
+                updateList(data)
+                console.log('success /getFlats');
+            },
+            error: function() {
+                console.log('error /getFlats');
+            }
+        });
+    }
+
+    function updateList(data) {
+        $("#list").empty();
+        data.content.forEach((object) => {
+            let editUrl = url + '/agencies/agency/' + object.id;
+            let directorName = object?.directorName ?? 'Without director';
+            let directorPhone = object?.directorPhone ?? 'Without director';
+            let directorEmail = object?.directorEmail ?? 'Without director';
+            $("#list").append($("" +
+                "<tr>" +
+                "<td>" +
+                "<p>" + object.name + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + directorName + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + directorPhone + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + directorEmail + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.count + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<a href='" + editUrl + "' class=\"btn btn-warning\" type=\"button\">Edit</a>" +
+                "</td>" +
+                "<td>" +
+                "<button onclick='deleteObject(" + object.id + ")' class=\"btn btn-danger\" type=\"button\">Delete</button>" +
+                "</td>" +
+                "</tr>"
+            ));
+        })
+        paginationButton();
+    }
+
+    function deleteObject(id){
+        let data = { id: id };
+        $.ajax({
+            type: 'post',
+            url: '../agencies/deleteAgencyById',
+            data: data,
+            dataType: "json",
+            success: function (success){
+                console.log('success /deleteAgencyById');
+                updatePage(currentPage, size, sortingField, sortingDirection)
+            },
+            error: function() {
+                console.log('error /deleteAgencyById');
+            }
+        });
+    }
+
+    function changeSize(){
+        size = $('#sizeSelect').val();
+        currentPage = 1;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+
+    function paginationButton(){
+        $("#choose-page").empty();
+        console.log(totalPage)
+        if(totalPage > 1){
+            if(currentPage !== 1){
+                $("#choose-page").append($("" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goFirstPage()' style='height: 40px'>First</button>" +
+                    "</div>" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goPreviousPage()' style='height: 40px'>\<\<</a>" +
+                    "</div>"
+                ));
+            } else {
+                $("#choose-page").append($("" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goFirstPage()' style='height: 40px'>First</button>" +
+                    "</div>" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goPreviousPage()' style='height: 40px'>\<\<</a>" +
+                    "</div>"
+                ));
+            }
+            let start = currentPage - 2;
+            let finish = currentPage + 2;
+            for(let i = start; i <= finish; i++) {
+                if(i > 0 && i <= totalPage) {
+                    if (currentPage === i) {
+                        $("#choose-page").append($("" +
+                            "<div class='page-item active'>" +
+                            "<button onclick='goToPage(" + i + ")' class='page-link' tabIndex=\"-1\" style='height: 40px; width: 40px'>" + i + "</button>" +
+                            "</div>"
+                        ));
+                    } else {
+                        $("#choose-page").append($("" +
+                            "<div class='page-item'>" +
+                            "<button onclick='goToPage(" + i + ")' class='page-link' tabIndex=\"-1\" style='height: 40px; width: 40px'>" + i + "</button>" +
+                            "</div>"
+                        ));
+                    }
+                }
+            }
+            if(currentPage !== totalPage) {
+                $("#choose-page").append($("" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goNextPage()' style='height: 40px'>\>\></button>" +
+                    "</div>" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goLastPage()' style='height: 40px'>Last</a>" +
+                    "</div>"
+                ));
+            } else {
+                $("#choose-page").append($("" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goNextPage()' style='height: 40px'>\>\></button>" +
+                    "</div>" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goLastPage()' style='height: 40px'>Last</a>" +
+                    "</div>"
+                ));
+            }
+        }
+    }
+
+    function goFirstPage(){
+        currentPage = 1;
+        updatePage(currentPage, size, sortingField, sortingDirection);
+    }
+
+    function goPreviousPage(){
+        currentPage--;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+
+    function goToPage(i){
+        currentPage = i;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+    function goNextPage(){
+        currentPage++;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+    function goLastPage(){
+        currentPage = totalPage;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+</script>
+
+</main>
+</body>
+</html>

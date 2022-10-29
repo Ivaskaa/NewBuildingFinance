@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Currency</title>
+
+    <style th:replace="blocks/linkAdminLTE"></style>
+    <div th:replace="blocks/links"></div>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+
+<body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
+<div class="wrapper">
+
+    <div th:replace="blocks/navbar"></div>
+    <div th:replace="blocks/sidebarContainer"></div>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <div class="content-header">
+            <div class="container-fluid">
+                <h1 class="m-0">Currency</h1>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+            <div class="row">
+                <div class="col">
+                    <div class="container">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th scope="col">
+                                <div>
+                                    <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Name</p>
+                                </div>
+                            </th>
+                            <th scope="col">
+                                <div>
+                                    <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Currency</p>
+                                </div>
+                            </th>
+                            <th scope="col">
+                                <div>
+                                    <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Ehchange rate</p>
+                                </div>
+                            </th>
+                            <th scope="col">
+                                <div>
+                                    <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Edit</p>
+                                </div>
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody id="list">
+                        <!-- list -->
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="container">
+                        <div th:each="el : ${currency}">
+                            <p th:if="${el.name.equals('USD')}" th:text="'1 UAH = ' + ${el.price} + ' USD'"></p>
+                            <p th:if="${el.name.equals('EUR')}" th:text="'1 UAH = ' + ${el.price} + ' EUR'"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <nav>
+                <ul id="choose-page" class="pagination">
+                    <!-- pagination buttons -->
+                </ul>
+            </nav>
+        </section>
+    </div>
+    <div id="popup" class="modal">
+        <!-- popup -->
+    </div>
+</div>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script th:src="@{/js/validation.js}"></script>
+
+<script>
+    let modal = document.getElementById("popup");
+
+    let stompClient = null;
+
+    let IdForUpdating;
+
+    $(document).ready(function() {
+        updatePage();
+        connect();
+    });
+
+    function connect() {
+        let socket = new SockJS('/gs-guide-websocket');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function (frame) {
+            stompClient.subscribe('/topic/greetings', function (data) {
+                let currency = JSON.parse(data.body);
+                document.getElementById(currency.id).innerHTML = currency.name + ': ' + currency.price;
+                updatePage();
+            });
+        });
+    }
+
+    function openPopup(style){
+        modal.style.display = "block";
+        $("#popup").append($(
+            "<div class=\"modal-content\">\n" +
+            "           <span onclick=\"closePopup()\" class=\"close\">&times;</span>\n" +
+            "           <form class=\"mt-2\">\n" +
+            "               <div class=\"form-group mt-2\">\n" +
+            "                   <label>Cash Register:</label>\n" +
+            "                   <input id=\"cashRegister\" type=\"text\" maxlength=\"50\" name=\"cashRegister\"\n" +
+            "                           placeholder=\"Enter cashRegister\" class=\"form-control\">\n" +
+            "                   <p id='cashRegisterMessage' style=\"color: red\"></p>" +
+            "               </div>\n" +
+            "               <div class=\"form-group mt-2\">\n" +
+            "                   <label>Currency:</label>\n" +
+            "                   <input id=\"name\" type=\"text\" maxlength=\"50\" name=\"name\"\n" +
+            "                              placeholder=\"Enter currency\" class=\"form-control\" disabled>\n" +
+            "                   <p id='nameMessage' style=\"color: red\"></p>" +
+            "               </div>\n" +
+            "               <div class=\"form-group mt-2\">\n" +
+            "                   <label>Rate in relation to UAH:</label>\n" +
+            "                   <input id=\"price\" oninput='checkDouble(this)' type='text' maxlength=\"10\" name=\"price\"\n" +
+            "                              placeholder=\"Enter relation\" class=\"form-control\">\n" +
+            "                   <p id='priceMessage' style=\"color: red\"></p>" +
+            "               </div>\n" +
+            "               <button onclick=\"save('"  + style + "')\" type=\"button\" class=\"btn btn-success mt-2\">Save</button>\n" +
+            "           </form>\n" +
+            "       </div>"
+        ));
+    }
+
+    function closePopup(){
+        modal.style.display = "none";
+        $("#popup").empty();
+    }
+
+    function sendCurrency() {
+        let object = {};
+        object.id = IdForUpdating;
+        object.cashRegister = document.getElementById('cashRegister').value;
+        object.name = document.getElementById('name').value;
+        object.price = document.getElementById('price').value;
+        stompClient.send("/app/hello", {}, JSON.stringify(object));
+    }
+
+
+    function save(style){
+        let object = {};
+        object.cashRegister = document.getElementById('cashRegister').value;
+        object.name = document.getElementById('name').value;
+        object.price = document.getElementById('price').value;
+
+        if(style === 'edit') {
+            object.id = IdForUpdating;
+            $.ajax({
+                type: 'post',
+                url: '../settings/updateCurrency',
+                data: JSON.stringify(object),
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    let validation = JSON.parse(data);
+                    if (validation == null) {
+                        sendCurrency();
+                        updatePage()
+                        closePopup();
+                        console.log('success /updateCurrency');
+                    } else {
+                        validationMessage(validation);
+                    }
+                },
+                error: function () {
+                    console.log('error /updateCurrency');
+                }
+            });
+        }
+    }
+
+    function checkDouble(input) {
+        input.value = input.value.replace(/[^\.\d]/g, '');
+        if (input.value.includes('.')) {
+            if (input.value.indexOf(".") !== '-1') {
+                input.value = input.value.substring(0, input.value.indexOf(".") + 3);
+            }
+        }
+    }
+
+    function validationMessage(validation){
+        if(validation?.cashRegister ?? false){
+            document.getElementById('cashRegisterMessage').innerHTML = validation.cashRegister;
+            document.getElementById('cashRegister').style.border = "1px solid red";
+        } else {
+            document.getElementById('cashRegisterMessage').innerHTML = "";
+            document.getElementById('cashRegister').style.border = "1px solid green";
+        }
+        if(validation?.name ?? false){
+            document.getElementById('nameMessage').innerHTML = validation.name;
+            document.getElementById('name').style.border = "1px solid red";
+        }else {
+            document.getElementById('nameMessage').innerHTML = "";
+            document.getElementById('name').style.border = "1px solid green";
+        }
+        if(validation?.price ?? false){
+            document.getElementById('priceMessage').innerHTML = validation.price;
+            document.getElementById('price').style.border = "1px solid red";
+        }else {
+            document.getElementById('priceMessage').innerHTML = "";
+            document.getElementById('price').style.border = "1px solid green";
+        }
+    }
+
+    function updatePage(){
+        console.log('hello');
+        $.ajax({
+            type: 'get',
+            url: '../settings/getCurrencies',
+            dataType: "json",
+            success: function (data){
+                console.log('success /getCurrencies');
+                updateList(data);
+            },
+            error: function() {
+                console.log('error /getCurrencies');
+            }
+        });
+    }
+
+    function updateList(data) {
+        $("#list").empty();
+        data.forEach((object) => {
+            $("#list").append($("" +
+                "<tr>" +
+                "<td>" +
+                "<p>" + object.cashRegister + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.name + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.price + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<button onclick='editForm(" + object.id + ")' class=\"btn btn-warning\" type=\"button\">Edit</button>" +
+                "</td>" +
+                "</tr>"
+            ));
+        })
+    }
+
+    function editForm(id){
+        IdForUpdating = id;
+        openPopup('edit');
+        let data = { id: id };
+        $.ajax({
+            type: 'get',
+            url: '../settings/getCurrencyById',
+            data: data,
+            dataType: "json",
+            success: function (object){
+                console.log('success /getCurrencyById');
+                // object.cashRegister = document.getElementById('cashRegister').value;
+                // object.name = document.getElementById('name').value;
+                // object.price = document.getElementById('price').value;
+
+                let cashRegister = document.getElementById('cashRegister');
+                cashRegister.value = object.cashRegister;
+                let name = document.getElementById('name');
+                name.value = object.name;
+                let price = document.getElementById('price');
+                price.value = object.price;
+                if (object.name === 'UAH'){
+                    price.disabled = true;
+                }
+            },
+            error: function() {
+                console.log('error /getCurrencyById');
+            }
+        });
+    }
+</script>
+
+</main>
+</body>
+</html>

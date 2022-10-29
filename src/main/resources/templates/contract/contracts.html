@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Contracts</title>
+
+    <style th:replace="blocks/linkAdminLTE"></style>
+    <div th:replace="blocks/links"></div>
+    <script th:src="@{/js/app.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+
+<body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
+<div class="wrapper">
+
+    <div th:replace="blocks/navbar"></div>
+    <div th:replace="blocks/sidebarContainer"></div>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <div class="content-header">
+            <div class="container-fluid">
+                <h1 class="m-0">Contracts</h1>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+            <label>
+                <select id="sizeSelect" style="width: 50px; " onchange="changeSize()" name='status' class='form-control'>
+                    <option value=10 selected>10</option>
+                    <option value=20>20</option>
+                </select>
+            </label>
+
+            <a th:href="@{/contracts/contract/0}" class="btn btn-success popup-with-form">Add</a>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">
+                        <label>
+                            <input id="id" oninput="search()" type="number" min="1" max="1000000" class="form-control" style="width: 130px">
+                        </label>
+                        <div onclick="sort('id')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Number</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+
+                        <div onclick="sort('date')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Date</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <input id="flatNumber" oninput="search()" type="number" min="1" max="1000000" class="form-control" style="width: 80px">
+                        </label>
+                        <div onclick="sort('flat.number')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Flat number</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <select id="object" onchange="search()" class="form-control" style="width: 130px">
+                                <option th:value="null" selected>Empty</option>
+                                <option th:each="el : ${objects}" th:value="${el.id}" th:text="${el.house} + '(' + ${el.section} + ')'"></option>
+                            </select>
+                        </label>
+                        <div onclick="sort('object')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Object</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <input id="buyer" oninput="search()" type="text" class="form-control" style="width: 80px">
+                        </label>
+                        <div onclick="sort('buyer')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Buyer</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <input id="comment" oninput="search()" type="text" class="form-control" style="width: 80px">
+                        </label>
+                        <div onclick="sort('comment')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Comment</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Edit</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Delete</p>
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+                <tbody id="list">
+                <!-- list -->
+                </tbody>
+            </table>
+            <nav>
+                <ul id="choose-page" class="pagination">
+                    <!-- pagination buttons -->
+                </ul>
+            </nav>
+        </section>
+    </div>
+</div>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script th:src="@{/js/validation.js}"></script>
+
+<script>
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
+    let url =window.location.protocol+"//"+ window.location.host +context;
+
+    let currentPage = 1;
+    let size = $('#sizeSelect').val();
+    let sortingField = 'id';
+    let sortingDirection = 'ASC';  // DESC
+
+    let searchId;
+    let searchDateStart;
+    let searchDateFin;
+    let searchFlatNumber;
+    let searchObjectId;
+    let searchBuyer;
+    let searchComment;
+
+    let totalPage;
+
+    $(document).ready(function() {
+        search();
+    });
+
+    function sort(field){
+        if(sortingDirection === 'ASC'){
+            sortingDirection = 'DESC';
+        } else {
+            sortingDirection = 'ASC';
+        }
+        sortingField = field;
+        updatePage(currentPage, size, sortingField, sortingDirection);
+    }
+
+    function search(){
+        searchId = document.getElementById('id').value;
+        searchObjectId = $('#object').val();
+        searchFlatNumber = document.getElementById('flatNumber').value;
+        searchBuyer = document.getElementById('buyer').value;
+        searchComment = document.getElementById('comment').value;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+
+    function updatePage(currentPage, size, sortingField, sortingDirection){
+        let data = {
+            page: currentPage,
+            size: size,
+            field: sortingField,
+            direction: sortingDirection,
+            id: searchId,
+            dateStart: searchDateStart,
+            dateFin: searchDateFin,
+            flatNumber: searchFlatNumber,
+            objectId: searchObjectId,
+            buyerName: searchBuyer,
+            comment: searchComment,
+        }
+        $.ajax({
+            type: 'get',
+            url: url + '/contracts/getContracts',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                totalPage = data.totalPages;
+                if(currentPage > totalPage){
+                    if (currentPage !== 1) {
+                        currentPage--;
+                        updatePage(currentPage, size, sortingField, sortingDirection);
+                    }
+                }
+                updateList(data)
+                console.log('success /getContracts');
+            },
+            error: function() {
+                console.log('error /getContracts');
+            }
+        });
+
+    }
+
+    function updateList(data) {
+        $("#list").empty();
+        data.content.forEach((object) => {
+            let editUrl = url + '/contracts/contract/' + object.id;
+            $("#list").append($("" +
+                "<tr>" +
+                "<td>" +
+                "<p>" + object.id + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.date + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.flatNumber + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.object + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.buyer + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.comment + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<a href='" + editUrl + "' class=\"btn btn-warning\" type=\"button\">Edit</a>" +
+                "</td>" +
+                "<td>" +
+                "<button onclick='deleteObject(" + object.id + ")' class=\"btn btn-danger\" type=\"button\">Delete</button>" +
+                "</td>" +
+                "</tr>"
+            ));
+        })
+        paginationButton();
+    }
+
+    function deleteObject(id){
+        let data = { id: id };
+        $.ajax({
+            type: 'post',
+            url: '../contracts/deleteContractById',
+            data: data,
+            dataType: "json",
+            success: function (success){
+                console.log(success + ' /deleteContractById');
+                updatePage(currentPage, size, sortingField, sortingDirection)
+            },
+            error: function() {
+                console.log('error /deleteContractById');
+            }
+        });
+    }
+
+    function changeSize(){
+        size = $('#sizeSelect').val();
+        currentPage = 1;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+
+    function paginationButton(){
+        $("#choose-page").empty();
+        if(totalPage > 1){
+            if(currentPage !== 1){
+                $("#choose-page").append($("" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goFirstPage()' style='height: 40px'>First</button>" +
+                    "</div>" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goPreviousPage()' style='height: 40px'>\<\<</a>" +
+                    "</div>"
+                ));
+            } else {
+                $("#choose-page").append($("" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goFirstPage()' style='height: 40px'>First</button>" +
+                    "</div>" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goPreviousPage()' style='height: 40px'>\<\<</a>" +
+                    "</div>"
+                ));
+            }
+            let start = currentPage - 2;
+            let finish = currentPage + 2;
+            for(let i = start; i <= finish; i++) {
+                if(i > 0 && i <= totalPage) {
+                    if (currentPage === i) {
+                        $("#choose-page").append($("" +
+                            "<div class='page-item active'>" +
+                            "<button onclick='goToPage(" + i + ")' class='page-link' tabIndex=\"-1\" style='height: 40px; width: 40px'>" + i + "</button>" +
+                            "</div>"
+                        ));
+                    } else {
+                        $("#choose-page").append($("" +
+                            "<div class='page-item'>" +
+                            "<button onclick='goToPage(" + i + ")' class='page-link' tabIndex=\"-1\" style='height: 40px; width: 40px'>" + i + "</button>" +
+                            "</div>"
+                        ));
+                    }
+                }
+            }
+            if(currentPage !== totalPage) {
+                $("#choose-page").append($("" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goNextPage()' style='height: 40px'>\>\></button>" +
+                    "</div>" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goLastPage()' style='height: 40px'>Last</a>" +
+                    "</div>"
+                ));
+            } else {
+                $("#choose-page").append($("" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goNextPage()' style='height: 40px'>\>\></button>" +
+                    "</div>" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goLastPage()' style='height: 40px'>Last</a>" +
+                    "</div>"
+                ));
+            }
+        }
+    }
+
+    function goFirstPage(){
+        currentPage = 1;
+        updatePage(currentPage, size, sortingField, sortingDirection);
+    }
+
+    function goPreviousPage(){
+        currentPage--;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+
+    function goToPage(i){
+        currentPage = i;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+    function goNextPage(){
+        currentPage++;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+    function goLastPage(){
+        currentPage = totalPage;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+</script>
+
+</main>
+</body>
+</html>

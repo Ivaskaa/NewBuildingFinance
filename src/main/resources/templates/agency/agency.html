@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Agency</title>
+
+    <style th:replace="blocks/linkAdminLTE"></style>
+    <div th:replace="blocks/links"></div>
+    <script th:src="@{/js/app.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+
+<body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
+<div class="wrapper">
+
+    <div th:replace="blocks/navbar"></div>
+    <div th:replace="blocks/sidebarContainer"></div>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <div class="content-header">
+            <div class="container-fluid">
+                <h1 class="m-0">Agency</h1>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+            <button id="descriptionButton" onclick="changePage(this)" class="btn btn-dark">Description</button>
+            <button id="salesButton" onclick="maybeSave(this)" class="btn btn-dark">Sales</button>
+            <button id="commissionsButton" onclick="maybeSave(this)" class="btn btn-dark">Commissions</button>
+            <div id="descriptionPage">
+
+                <div class="content-header">
+                    <div class="container-fluid">
+                        <h1 class="m-0">Description</h1>
+                    </div>
+                </div>
+
+                <div class="form-group mt-2">
+                    <label>Agency name:</label>
+                    <input id="name" type="text" maxlength="50"
+                           name="name" placeholder="Enter name" class="form-control">
+                    <p id='nameMessage' style="color: red"></p>
+                </div>
+                <div class="form-group mt-2">
+                    <label>Description:</label>
+                    <textarea id="description" placeholder="Enter description" class="form-control"></textarea>
+                </div>
+
+                <div class="content-header">
+                    <div class="container-fluid">
+                        <h1 class="m-0">Realtors</h1>
+                    </div>
+                </div>
+
+                <button id="realtorButton" onclick="maybeSave(this)" class="btn btn-success popup-with-form">Add realtor</button>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">
+                            <div onclick="sort('name')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Surname Name</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div onclick="sort('phone')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Phone</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div onclick="sort('email')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Email</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div onclick="sort('director')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Director</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Edit</p>
+                        </th>
+                        <th scope="col">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Delete</p>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody id="list">
+                    <!-- list -->
+                    </tbody>
+                </table>
+
+                <nav>
+                    <ul id="choose-page" class="pagination">
+                        <!-- pagination buttons -->
+                    </ul>
+                </nav>
+
+                <button id="save" onclick="save(this)" class="btn btn-success popup-with-form">Save</button>
+                <a th:href="@{/agencies}" class="btn btn-dark popup-with-form">Back</a>
+            </div>
+
+            <div id="salesPage" style="display: none">
+                <div class="content-header">
+                    <div class="container-fluid">
+                        <h1 class="m-0">Sales</h1>
+                    </div>
+                </div>
+            </div>
+
+            <div id="commissionsPage" style="display: none">
+                <div class="content-header">
+                    <div class="container-fluid">
+                        <h1 class="m-0">Commissions</h1>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <div id="popup" class="modal">
+        <!-- popup -->
+    </div>
+</div>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script th:src="@{/js/validation.js}"></script>
+<script src="https://unpkg.com/imask"></script>
+
+<script>
+    let AgencyId = "[[${agencyId}]]";
+    let Agency = {};
+    let IdForUpdating;
+
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",0));
+    let url = window.location.protocol+"//"+ window.location.host + context;
+    console.log(url)
+    // window.location.href = 'redirect-url';
+
+    let modal = document.getElementById("popup");
+
+    let currentPage = 1;
+    let size = 10;
+    let sortingField = 'id';
+    let sortingDirection = 'ASC';  // DESC
+
+    let totalPage;
+
+    $(document).ready(function() {
+        Agency.id = AgencyId;
+        if(AgencyId != 0){
+            getAgencyById(AgencyId);
+            updateRealtors();
+        }
+    });
+
+    function changePage(element){
+        if (element.id === 'descriptionButton'){
+            $("#commissionsPage").hide();
+            $("#salesPage").hide();
+            $("#descriptionPage").show();
+
+        }
+        if (element.id === 'salesButton'){
+            $("#descriptionPage").hide();
+            $("#commissionsPage").hide();
+            $("#salesPage").show();
+        }
+        if (element.id === 'commissionsButton'){
+            $("#descriptionPage").hide();
+            $("#salesPage").hide();
+            $("#commissionsPage").show();
+        }
+    }
+
+    function maybeSave(element){
+        if(element.id === 'salesButton'){
+            if(AgencyId == 0){
+                save(element);
+            } else {
+                changePage(element);
+            }
+        }
+        if(element.id === 'commissionsButton'){
+            if(AgencyId == 0){
+                save(element);
+            } else {
+                changePage(element);
+            }
+        }
+        if(element.id === 'realtorButton'){
+            if(AgencyId == 0){
+                save(element);
+            } else {
+                openPopup("add");
+            }
+        }
+        if(element.id === 'saveButton'){
+            save(element);
+        }
+    }
+
+
+    function save(element){
+        let agency = {};
+        agency.name = document.getElementById('name').value;
+        agency.description = document.getElementById('description').value;
+        if (Agency.id == 0) {
+            $.ajax({
+                type: 'post',
+                url: url + '/agencies/addAgency',
+                data: JSON.stringify(agency),
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    console.log('success /addAgency');
+                    let validation = JSON.parse(data);
+                    if(typeof validation !== "object"){
+                        AgencyId = validation;
+                        Agency.id = AgencyId;
+                        console.log(AgencyId);
+                        if(element.id === 'salesButton'){
+                            changePage(element);
+                        }
+                        if(element.id === 'commissionsButton'){
+                            changePage(element);
+                        }
+                        if(element.id === 'realtorButton'){
+                            openPopup("add");
+                        }
+                        validationMessage(null);
+                    } else {
+                        validationMessage(validation);
+                    }
+                },
+                error: function () {
+                    console.log('error /addAgency');
+                }
+            });
+        } else {
+            agency.id = Agency.id;
+            $.ajax({
+                type: 'post',
+                url: url + '/agencies/updateAgency',
+                data: JSON.stringify(agency),
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    console.log('success /updateAgency');
+                    let validation = JSON.parse(data);
+                    if (validation == null) {
+                        validationMessage(null);
+                    } else {
+                        validationMessage(validation);
+                    }
+                },
+                error: function () {
+                    console.log('error /updateAgency');
+                }
+            });
+        }
+    }
+
+    function validationMessage(validation){
+        if(validation === 1){
+            document.getElementById('nameMessage').innerHTML = "";
+            document.getElementById('name').style.border = "1px solid #ced4da";
+            return;
+        }
+        if(validation?.name ?? false){
+            document.getElementById('nameMessage').innerHTML = validation.name;
+            document.getElementById('name').style.border = "1px solid red";
+        }else {
+            document.getElementById('nameMessage').innerHTML = "";
+            document.getElementById('name').style.border = "1px solid green";
+        }
+        setTimeout(function() {
+            validationMessage(1)
+        }, 5000);
+    }
+
+    function validationMessageRealtor(validation){
+        if(validation?.name ?? false){
+            document.getElementById('realtorNameMessage').innerHTML = validation.name;
+            document.getElementById('realtorName').style.border = "1px solid red";
+        }else {
+            document.getElementById('realtorNameMessage').innerHTML = "";
+            document.getElementById('realtorName').style.border = "1px solid green";
+        }
+        if(validation?.surname ?? false){
+            document.getElementById('realtorSurnameMessage').innerHTML = validation.surname;
+            document.getElementById('realtorSurname').style.border = "1px solid red";
+        }else {
+            document.getElementById('realtorSurnameMessage').innerHTML = "";
+            document.getElementById('realtorSurname').style.border = "1px solid green";
+        }
+        if(validation?.phone ?? false){
+            document.getElementById('realtorPhoneMessage').innerHTML = validation.phone;
+            document.getElementById('realtorPhone').style.border = "1px solid red";
+        }else {
+            document.getElementById('realtorPhoneMessage').innerHTML = "";
+            document.getElementById('realtorPhone').style.border = "1px solid green";
+        }
+        if(validation?.email ?? false){
+            document.getElementById('realtorEmailMessage').innerHTML = validation.email;
+            document.getElementById('realtorEmail').style.border = "1px solid red";
+        }else {
+            document.getElementById('realtorEmailMessage').innerHTML = "";
+            document.getElementById('realtorEmail').style.border = "1px solid green";
+        }
+    }
+
+    function getAgencyById(){
+        let data = { id: AgencyId };
+        $.ajax({
+            type: 'get',
+            url: url +'/agencies/getAgencyById',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                Agency = data;
+                console.log('success /getAgencyById');
+                document.getElementById('name').value = Agency.name;
+                document.getElementById('description').value = Agency.description;
+            },
+            error: function() {
+                console.log('error /getAgencyById');
+            }
+        });
+    }
+
+    function updateList(data) {
+        $("#list").empty();
+        data.content.forEach((object) => {
+            $("#list").append($("" +
+                "<tr>" +
+                "<td>" +
+                "<p>" + object.name + " " + object.surname + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.phone + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.email + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<c>" + object.director + "</c>" +
+                "</td>" +
+                "<td>" +
+                "<button onclick='editForm(" + object.id + ")' class=\"btn btn-warning\" type=\"button\">Edit</button>" +
+                "</td>" +
+                "<td>" +
+                "<button onclick='deleteObject(" + object.id + ")' class=\"btn btn-danger\" type=\"button\">Delete</button>" +
+                "</td>" +
+                "</tr>"
+            ));
+        })
+        paginationButton();
+    }
+
+    function updateRealtors(){
+        let data = {
+            page: currentPage,
+            size: size,
+            field: sortingField,
+            direction: sortingDirection,
+
+            id: parseInt(AgencyId)
+        }
+        $.ajax({
+            type: 'get',
+            url: url + '/agencies/realtors/getRealtorsByAgencyId',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                totalPage = data.totalPages;
+                if(currentPage > totalPage && currentPage > 1){
+                    currentPage--;
+                    updateRealtors();
+                }
+                updateList(data)
+                console.log('success /getRealtorsByAgencyId');
+            },
+            error: function() {
+                console.log('error /getRealtorsByAgencyId');
+            }
+        });
+    }
+
+    function saveRealtor(style){
+        let realtor = {};
+        realtor.name = document.getElementById('realtorName').value;
+        realtor.surname = document.getElementById('realtorSurname').value;
+        realtor.phone = document.getElementById('realtorPhone').value;
+        realtor.email = document.getElementById('realtorEmail').value;
+        realtor.director = document.getElementById('realtorDirector').checked;
+        realtor.agencyId = AgencyId;
+        console.log(style)
+        if (style === 'add') {
+            $.ajax({
+                type: 'post',
+                url: url + '/agencies/realtors/addRealtor',
+                data: JSON.stringify(realtor),
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    console.log('success /addRealtor');
+                    let validation = JSON.parse(data);
+                    if (validation == null) {
+                        closePopup();
+                        updateRealtors();
+                    } else {
+                        validationMessageRealtor(validation);
+                    }
+                },
+                error: function () {
+                    console.log('error /addRealtor');
+                }
+            });
+        }
+        if (style === 'edit') {
+            realtor.id = IdForUpdating;
+            $.ajax({
+                type: 'post',
+                url: url + '/agencies/realtors/updateRealtor',
+                data: JSON.stringify(realtor),
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    console.log('success /updateRealtor');
+                    let validation = JSON.parse(data);
+                    if (validation == null) {
+                        closePopup();
+                        updateRealtors();
+                    } else {
+                        validationMessageRealtor(validation);
+                    }
+                },
+                error: function () {
+                    console.log('error /updateRealtor');
+                }
+            });
+        }
+    }
+
+    function openPopup(style){
+        modal.style.display = "block";
+        $("#popup").append($(
+            "<div class=\"modal-content\">\n" +
+            "           <span onclick=\"closePopup()\" class=\"close\">&times;</span>\n" +
+            "           <form class=\"mt-2\">\n" +
+            "               <div class=\"form-group mt-2\">\n" +
+            "                   <label>Name:</label>\n" +
+            "                   <input id=\"realtorName\" type=\"text\" maxlength=\"50\"\n" +
+            "                           placeholder=\"Enter name\" class=\"form-control\">\n" +
+            "                   <p id='realtorNameMessage' style=\"color: red\"></p>" +
+            "               </div>\n" +
+            "               <div class=\"form-group mt-2\">\n" +
+            "                   <label>Surname:</label>\n" +
+            "                   <input id=\"realtorSurname\" type=\"text\" maxlength=\"50\"\n" +
+            "                              placeholder=\"Enter surname\" class=\"form-control\">\n" +
+            "                   <p id='realtorSurnameMessage' style=\"color: red\"></p>" +
+            "               </div>\n" +
+            "               <div class=\"form-group mt-2\">\n" +
+            "                   <label>Phone:</label>\n" +
+            "                   <input id=\"realtorPhone\" type=\"text\" maxlength=\"20\"\n" +
+            "                              placeholder=\"Enter phone\" class=\"form-control\">\n" +
+            "                   <p id='realtorPhoneMessage' style=\"color: red\"></p>" +
+            "               </div>\n" +
+            "               <div class=\"form-group mt-2\">\n" +
+            "                   <label>Email:</label>\n" +
+            "                   <input id=\"realtorEmail\" type=\"text\" maxlength=\"20\"\n" +
+            "                              placeholder=\"Enter email\" class=\"form-control\">\n" +
+            "                   <p id='realtorEmailMessage' style=\"color: red\"></p>" +
+            "               </div>\n" +
+            "               <div class=\"d-flex flex-nowrap mt-2\">\n" +
+            "                   <label class=\"m-1\">Director:</label>\n" +
+            "                   <div class=\"form-check form-switch m-1\">\n" +
+            "                       <input id=\"realtorDirector\" type=\"checkbox\" class=\"form-check-input\" role=\"switch\">\n" +
+            "                   </div>\n" +
+            "               </div>\n" +
+            "               <button onclick=\"saveRealtor('"  + style + "')\" type=\"button\" class=\"btn btn-success mt-2\">Save</button>\n" +
+            "           </form>\n" +
+            "       </div>"
+        ));
+        mask();
+    }
+
+    function closePopup(){
+        modal.style.display = "none";
+        $("#popup").empty();
+    }
+
+    function editForm(id){
+        IdForUpdating = id;
+        openPopup('edit');
+        let data = { id: id };
+        console.log('hello1');
+        $.ajax({
+            type: 'get',
+            url: url + '/agencies/realtors/getRealtorById',
+            data: data,
+            dataType: "json",
+            success: function (object){
+                console.log('hello2');
+                console.log('success /getRealtorById');
+                document.getElementById('realtorName').value = object.name;
+                document.getElementById('realtorSurname').value = object.surname;
+                document.getElementById('realtorPhone').value = object.phone;
+                document.getElementById('realtorEmail').value = object.email;
+                document.getElementById('realtorEmail').checked = object.director;
+            },
+            error: function() {
+                console.log('error /getRealtorById');
+            }
+        });
+    }
+
+    function paginationButton(){
+        $("#choose-page").empty();
+        if(totalPage > 1){
+            if(currentPage !== 1){
+                $("#choose-page").append($("" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goFirstPage()' style='height: 40px'>First</button>" +
+                    "</div>" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goPreviousPage()' style='height: 40px'>\<\<</a>" +
+                    "</div>"
+                ));
+            } else {
+                $("#choose-page").append($("" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goFirstPage()' style='height: 40px'>First</button>" +
+                    "</div>" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goPreviousPage()' style='height: 40px'>\<\<</a>" +
+                    "</div>"
+                ));
+            }
+            let start = currentPage - 2;
+            let finish = currentPage + 2;
+            for(let i = start; i <= finish; i++) {
+                if(i > 0 && i <= totalPage) {
+                    if (currentPage === i) {
+                        $("#choose-page").append($("" +
+                            "<div class='page-item active'>" +
+                            "<button onclick='goToPage(" + i + ")' class='page-link' tabIndex=\"-1\" style='height: 40px; width: 40px'>" + i + "</button>" +
+                            "</div>"
+                        ));
+                    } else {
+                        $("#choose-page").append($("" +
+                            "<div class='page-item'>" +
+                            "<button onclick='goToPage(" + i + ")' class='page-link' tabIndex=\"-1\" style='height: 40px; width: 40px'>" + i + "</button>" +
+                            "</div>"
+                        ));
+                    }
+                }
+            }
+            if(currentPage !== totalPage) {
+                $("#choose-page").append($("" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goNextPage()' style='height: 40px'>\>\></button>" +
+                    "</div>" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goLastPage()' style='height: 40px'>Last</a>" +
+                    "</div>"
+                ));
+            } else {
+                $("#choose-page").append($("" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goNextPage()' style='height: 40px'>\>\></button>" +
+                    "</div>" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goLastPage()' style='height: 40px'>Last</a>" +
+                    "</div>"
+                ));
+            }
+        }
+    }
+
+    function goFirstPage(){
+        currentPage = 1;
+        updateRealtors();
+    }
+    function goPreviousPage(){
+        currentPage--;
+        updateRealtors()
+    }
+    function goToPage(i){
+        currentPage = i;
+        updateRealtors()
+    }
+    function goNextPage(){
+        currentPage++;
+        updateRealtors()
+    }
+    function goLastPage(){
+        currentPage = totalPage;
+        updateRealtors()
+    }
+
+    function mask(){
+        let element = document.getElementById('realtorPhone');
+        let maskOptions = {
+            mask: '+38(000)000-00-00',
+            lazy: false
+        }
+        let mask = new IMask(element, maskOptions);
+    }
+</script>
+
+</body>
+</html>

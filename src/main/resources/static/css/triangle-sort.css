@@ -1,0 +1,33 @@
+
+
+/*<span class="triangle-sort-NONE"></span>*/
+
+.triangle-sort-NONE{
+    display: none;
+    margin-top: 7px;
+    box-sizing: border-box;
+    width: 0;
+    height: 0;
+    border: 5px solid transparent;
+    border-top-color: black;
+}
+
+.triangle-sort-ASC{
+    margin-top: 7px;
+    display: inline-block;
+    box-sizing: border-box;
+    width: 0;
+    height: 0;
+    border: 5px solid transparent;
+    border-top-color: black;
+}
+
+.triangle-sort-DESC{
+    margin-top: 7px;
+    display: inline-block;
+    box-sizing: border-box;
+    width: 0;
+    height: 0;
+    border: 5px solid transparent;
+    border-bottom-color: black;
+}

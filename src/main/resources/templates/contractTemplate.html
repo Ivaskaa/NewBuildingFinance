@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Contract templates</title>
+
+    <style th:replace="blocks/linkAdminLTE"></style>
+    <div th:replace="blocks/links"></div>
+    <script th:src="@{/js/app.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+
+<body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
+<div class="wrapper">
+
+    <div th:replace="blocks/navbar"></div>
+    <div th:replace="blocks/sidebarContainer"></div>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <div class="content-header">
+            <div class="container-fluid">
+                <h1 class="m-0">Contract templates</h1>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+            <button onclick="openPopup('add')" class="btn btn-success popup-with-form">Add</button>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">
+                        <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Name</p>
+                    </th>
+                    <th scope="col">
+                        <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Main</p>
+                    </th>
+                    <th scope="col">
+                        <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Set main</p>
+                    </th>
+                    <th scope="col">
+                        <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Edit</p>
+                    </th>
+                    <th scope="col">
+                        <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Delete</p>
+                    </th>
+                </tr>
+                </thead>
+                <tbody id="list">
+                <!-- list -->
+                </tbody>
+            </table>
+        </section>
+    </div>
+    <div id="popup" class="modal">
+        <!-- popup -->
+    </div>
+</div>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+
+<script>
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
+    let url = window.location.protocol+"//"+ window.location.host + context;
+    console.log(url);
+
+    let modal = document.getElementById("popup");
+
+    let IdForUpdating;
+
+    $(document).ready(function() {
+        updatePage();
+    });
+
+    function openPopup(style){
+        modal.style.display = "block";
+        $("#popup").append($(
+            "<div class=\"modal-content\">\n" +
+            "           <span onclick=\"closePopup()\" class=\"close\">&times;</span>\n" +
+            "           <form class=\"mt-2\">\n" +
+            "               <div class=\"form-group mt-2\">\n" +
+            "                   <label>Name:</label>\n" +
+            "                   <input id=\"name\" type=\"text\" maxlength=\"50\"\n" +
+            "                           placeholder=\"Enter name\" class=\"form-control\">\n" +
+            "                   <p id='nameMessage' style=\"color: red\"></p>" +
+            "               </div>\n" +
+            "               <div class=\"form-group mt-2\">\n" +
+            "                   <label>Variables:</label>\n" +
+            "                   <select onchange='variable()' id=\"variables\" class=\"form-control\">" +
+            "                       <option value='" + null + "' disabled selected>Choose variable</option>" +
+            "                       <option value='<%BUYERNAME%>'>Buyer name</option>" +
+            "                       <option value='<%BUYERSURNAME%>'>Buyer surname</option>" +
+            "                       <option value='<%BUYERLASTNAME%>'>Buyer lastname</option>" +
+            "                       <option value='<%FLATNUMBER%>'>Flat number</option>" +
+            "                       <option value='<%FLATQUANTITYROOM%>'>Flat quantity room</option>" +
+            "                       <option value='<%FLATFLOR%>'>Flat flor</option>" +
+            "                       <option value='<%FLATPRICE%>'>Flat price</option>" +
+            "                       <option value='<%FLATPSALERICE%>'>Flat sale price</option>" +
+            "                       <option value='<%FLATAREA%>'>Flat area</option>" +
+            "                       <option value='<%CONTRACTNUMBER%>'>Contract number</option>" +
+            "                       <option value='<%OBJECT%>'>Object</option>" +
+            "                       <option value='<%REALTOR%>'>Realtor</option>" +
+            "                       <option value='<%AGENCY%>'>Agency</option>" +
+            "                   </select>" +
+            "                   <p id='nameMessage' style=\"color: red\"></p>" +
+            "               </div>\n" +
+            "               <div class=\"form-group mt-2\">\n" +
+            "                   <label>Text:</label>\n" +
+            "                   <div class=\"card-body\">\n" +
+            "                       <textarea id=\"summernote\" style='display: none;'></textarea>" +
+            "                   </div>" +
+            "                   <p id='summernoteMessage' style=\"color: red\"></p>" +
+            "               </div>\n" +
+            "               <button onclick=\"save('"  + style + "')\" type=\"button\" class=\"btn btn-success mt-2\">Save</button>\n" +
+            "           </form>\n" +
+            "       </div>"
+        ));
+        summernote();
+    }
+
+    function closePopup(){
+        modal.style.display = "none";
+        $("#popup").empty();
+    }
+
+    function save(style){
+        let object = {};
+        object.name = document.getElementById('name').value;
+        object.text = $("#summernote").summernote("code");
+
+        console.log(object);
+        if(style === 'add') {
+            $.ajax({
+                type: 'post',
+                url: url + '/templates/addContractTemplate',
+                data: JSON.stringify(object),
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    let validation = JSON.parse(data);
+                    if (validation == null) {
+                        updatePage()
+                        closePopup();
+                        console.log('success /addContractTemplate');
+                    } else {
+                        validationMessage(validation);
+                    }
+                },
+                error: function () {
+                    console.log('error /addContractTemplate');
+                }
+            });
+        }
+
+        if(style === 'edit') {
+            object.id = IdForUpdating;
+            $.ajax({
+                type: 'post',
+                url: url + '/templates/updateContractTemplate',
+                data: JSON.stringify(object),
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    let validation = JSON.parse(data);
+                    if (validation == null) {
+                        updatePage()
+                        closePopup();
+                        console.log('success /updateContractTemplate');
+                    } else {
+                        validationMessage(validation);
+                    }
+                },
+                error: function () {
+                    console.log('error /updateContractTemplate');
+                }
+            });
+        }
+    }
+
+    function validationMessage(validation){
+        if(validation?.name ?? false){
+            document.getElementById('nameMessage').innerHTML = validation.name;
+            document.getElementById('name').style.border = "1px solid red";
+        } else {
+            document.getElementById('nameMessage').innerHTML = "";
+            document.getElementById('name').style.border = "1px solid green";
+        }
+        if(validation?.text ?? false){
+            document.getElementById('summernoteMessage').innerHTML = validation.text;
+            document.getElementById('summernote').style.border = "1px solid red";
+        }else {
+            document.getElementById('summernoteMessage').innerHTML = "";
+            document.getElementById('summernote').style.border = "1px solid green";
+        }
+    }
+
+    function updatePage(){
+        $.ajax({
+            type: 'get',
+            url: url + '/templates/getContractTemplates',
+            dataType: "json",
+            success: function (data){
+                updateList(data)
+                console.log('success /getContractTemplates');
+            },
+            error: function() {
+                console.log('error /getContractTemplates');
+            }
+        });
+    }
+
+    function updateList(data) {
+        $("#list").empty();
+        data.forEach((object) => {
+            $("#list").append($("" +
+                "<tr>" +
+                "<td>" +
+                "<p>" + object.name + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.main + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<button onclick='setMain(" + object.id + ")' class=\"btn btn-warning\" type=\"button\">Set main</button>" +
+                "</td>" +
+                "<td>" +
+                "<button onclick='editForm(" + object.id + ")' class=\"btn btn-warning\" type=\"button\">Edit</button>" +
+                "</td>" +
+                "<td>" +
+                "<button onclick='deleteObject(" + object.id + ")' class=\"btn btn-danger\" type=\"button\">Delete</button>" +
+                "</td>" +
+                "</tr>"
+            ));
+        })
+        paginationButton();
+    }
+
+    function setMain(id){
+        let data = {id:id};
+        $.ajax({
+            type: 'get',
+            url: url + '/templates/setMainContractTemplate',
+            data: data,
+            dataType: "json",
+            success: function (object){
+                console.log('success /setMainContractTemplate');
+                updatePage();
+            },
+            error: function() {
+                console.log('error /setMainContractTemplate');
+            }
+        });
+    }
+
+    function editForm(id){
+        IdForUpdating = id;
+        openPopup('edit');
+        let data = { id: id };
+        $.ajax({
+            type: 'get',
+            url: url + '/templates/getContractTemplateById',
+            data: data,
+            dataType: "json",
+            success: function (object){
+                console.log('success /getContractTemplateById');
+                document.getElementById('name').value = object.name;
+                $("#summernote").summernote("code", object.text);
+            },
+            error: function() {
+                console.log('error /getContractTemplateById');
+            }
+        });
+    }
+
+    function deleteObject(id){
+        let data = { id: id };
+        $.ajax({
+            type: 'post',
+            url: url + '/templates/deleteContractTemplateById',
+            data: data,
+            dataType: "json",
+            success: function (success){
+                console.log(success + ' /deleteContractTemplateById');
+                updatePage()
+            },
+            error: function() {
+                console.log('error /deleteContractTemplateById');
+            }
+        });
+    }
+
+    function variable() {
+        let variable = $('#variables').val();
+        if (variable != null) {
+            $('#summernote').summernote('editor.insertText', variable);
+        }
+        let select = document.getElementById("variables");
+        let options = select.options;
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].value === 'null') {
+                options[i].selected = true;
+                break;
+            }
+        }
+    }
+
+    function summernote(){
+        // Summernote
+        $('#summernote').summernote({
+            minHeight:100,
+            height:400,
+            placeholder: 'Enter text'
+        })
+        $('#summernote').summernote('code','');
+    }
+
+</script>
+
+<script th:src="@{/plugins/summernote/summernote-bs4.min.js}"></script>
+
+</main>
+</body>
+</html>

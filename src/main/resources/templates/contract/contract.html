@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Contract</title>
+
+    <style th:replace="blocks/linkAdminLTE"></style>
+    <div th:replace="blocks/links"></div>
+    <script th:src="@{/js/app.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+
+<body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
+<div class="wrapper">
+
+    <div th:replace="blocks/navbar"></div>
+    <div th:replace="blocks/sidebarContainer"></div>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <div class="content-header">
+            <div class="container-fluid">
+                <h1 class="m-0">Contract</h1>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+
+            <div class="row">
+                <div class="col">
+                    <div class="form-group mt-2">
+                        <label>Object:</label>
+                        <select onchange="getFlatsByObjectId()" id="object" class="form-control" name="object" >
+                        </select>
+                        <p id='objectMessage' style="color: red"></p>
+                    </div>
+                    <div class="form-group mt-2">
+                        <label>Flat number:</label>
+                        <select onchange="uploadFlatInfo()" id="flat" class="form-control" name="object" >
+                            <option th:value="null" disabled selected>Choose flat</option>
+                        </select>
+                        <p id='flatMessage' style="color: red"></p>
+                    </div>
+                    <div class="form-group mt-2">
+                        <label>Buyer:</label>
+                        <select onchange="uploadBuyerInfo()" id="buyer" class="form-control" name="status" >
+                        </select>
+                        <p id='buyerMessage' style="color: red"></p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group mt-2">
+                        <label>Date:</label>
+                        <input id="date" class="form-control" type="date">
+                        <p id='dateMessage' style="color: red"></p>
+                    </div>
+                    <div class="form-group mt-2">
+                        <label>Status:</label>
+                        <select id="status" class="form-control" name="status" >
+                        </select>
+                        <p id='statusMessage' style="color: red"></p>
+                    </div>
+                    <div class="form-group mt-2">
+                        <label>Template:</label>
+                        <select id="template" class="form-control" name="status" >
+                        </select>
+                        <p id='templateMessage' style="color: red"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <h3>Buyer:</h3>
+                    <div class="form-group mt-2">
+                        <label>Name:</label>
+                        <input id="buyerName" type="text" placeholder='Enter name' class="form-control" maxlength="50">
+                        <p id='buyerNameMessage' style="color: red"></p>
+                    </div>
+                    <div class="form-group mt-2">
+                        <label>Surname:</label>
+                        <input id="buyerSurname" type="text" placeholder='Enter surname' class="form-control" maxlength="50">
+                        <p id='buyerSurnameMessage' style="color: red"></p>
+                    </div>
+                    <div class="form-group mt-2">
+                        <label>Lastname:</label>
+                        <input id="buyerLastname" type="text" placeholder='Enter lastname' class="form-control" maxlength="50">
+                        <p id='buyerLastnameMessage' style="color: red"></p>
+                    </div>
+                    <div class="form-group mt-2">
+                        <label>Address:</label>
+                        <input id="buyerAddress" type="text" placeholder='Enter address' class="form-control" maxlength="50">
+                        <p id='buyerAddressMessage' style="color: red"></p>
+                    </div>
+                    <div class="form-group mt-2">
+                        <label>ID number:</label>
+                        <input id="buyerIdNumber" type="number" placeholder='Enter ID number' class="form-control" min="1" max="1000000000" maxlength="50">
+                        <p id='buyerIdNumberMessage' style="color: red"></p>
+                    </div>
+                    <h3>Buyer passport data:</h3>
+                    <div class='row'>
+                        <div class='col'>
+                            <div class='form-group mt-2'>
+                                <label>Series:</label>
+                                <input id='passportSeries' type='text'  maxlength='50' placeholder='Enter passport series' class='form-control'>
+                                <p id='passportSeriesMessage' style='color: red'></p>
+                            </div>
+                        </div>
+                        <div class='col'>
+                            <div class='form-group mt-2'>
+                                <label>Number:</label>
+                                <input id='passportNumber' type='number' min='0' maxlength='50'
+                                placeholder='Enter passport number' class='form-control'>
+                                <p id='passportNumberMessage' style='color: red'></p>
+                            </div>
+                        </div>
+                        <div class='col'>
+                            <div class='form-group mt-2'>
+                                <label>Who issued:</label>
+                                <input id='passportWhoIssued' type='text' placeholder='Enter who issued' class='form-control'>
+                                <p id='passportWhoIssuedMessage' style='color: red'></p>
+                            </div>
+                        </div>
+                    </div>
+                    <h3>Buyer contacts:</h3>
+                    <div class='form-group mt-2'>
+                        <label>Phone:</label>
+                        <input id='phone' type='text'  maxlength='50' placeholder='Enter phone number' class='form-control'>
+                        <p id='phoneMessage' style='color: red'></p>
+                    </div>
+                    <div class='form-group mt-2'>
+                        <label>Email:</label>
+                        <input id='email' type='text' maxlength='50' placeholder='Enter email' class='form-control'>
+                        <p id='emailMessage' style='color: red'></p>
+                    </div>
+                </div>
+
+                <div class="col">
+                    <h3>Flat:</h3>
+                    <div class="form-group mt-2">
+                        <label>Number:</label>
+                        <input id="flatNumber" type="number" min="1" class="form-control"
+                               placeholder='Enter flat number' maxlength="50">
+                        <p id='flatNumberMessage' style="color: red"></p>
+                    </div>
+                    <div class="form-group mt-2">
+                        <label>Area:</label>
+                        <input id="flatArea" type="number" min="1" class="form-control"
+                               placeholder='Enter flat area' maxlength="50">
+                        <p id='flatAreaMessage' style="color: red"></p>
+                    </div>
+                    <div class="form-group mt-2">
+                        <label>Floor:</label>
+                        <input id="flatFloor" type="number" min="1" class="form-control"
+                               placeholder='Enter flat flor' maxlength="50">
+                        <p id='flatFloorMessage' style="color: red"></p>
+                    </div>
+                    <div class="form-group mt-2">
+                        <label>Address:</label>
+                        <input id="flatAddress" type="text" placeholder='Enter address' class="form-control" maxlength="50">
+                        <p id='flatAddressMessage' style="color: red"></p>
+                    </div>
+                    <div class="form-group mt-2">
+                        <label>Price:</label>
+                        <input id="price" type="number" min="1" class="form-control"
+                               placeholder='Enter contract price' maxlength="50">
+                        <p id='priceMessage' style="color: red"></p>
+                    </div>
+                    <button onclick="printToPdf()" class="btn btn-primary popup-with-form">Print to pdf</button>
+                </div>
+            </div>
+            <div class="form-group mt-2">
+                <label>Comment:</label>
+                <textarea id="comment" class="form-control" maxlength="5000"></textarea>
+                <p id='commentMessage' style="color: red"></p>
+            </div>
+
+            <button id="saveButton" onclick="save()" class="btn btn-success popup-with-form">Save</button>
+            <a th:href="@{/contracts}" class="btn btn-dark popup-with-form">Back</a>
+        </section>
+    </div>
+</div>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script th:src="@{/js/validation.js}"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    let ContractId = "[[${contractId}]]";
+    let FlatId = "[[${flatId}]]";
+    let Contract = {};
+    let Flat = {};
+
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
+    let url = window.location.protocol+"//"+ window.location.host + context;
+
+
+    $(document).ready(function() {
+        Contract.id = ContractId;
+        if(ContractId != 0){
+            getContractById();
+        } else if (FlatId != 0){
+            getFlatById();
+        } else {
+            getObjects();
+            getContractTemplates();
+            getStatuses();
+        }
+        $('#buyer').select2({
+            placeholder: "Choose buyer",
+            minimumInputLength: 3,
+            ajax: {
+                url: url + '/getBuyersByName',
+                dataType: "json",
+                type: "get",
+                delay: 400,
+                processResults: function (data) {
+                    return {
+                        results: $.map(data, function (item) {
+                            return {
+                                text: item.name + " " + item.surname,
+                                id: item.id
+                            };
+                        })
+                    };
+                },
+                cache: true
+            }
+        });
+    })
+
+    function save(){
+        let contract = {};
+        contract.flatId = $("#flat").val();
+        contract.objectId = $("#object").val();
+        contract.contractTemplateId = $("#template").val();
+        contract.status = $("#status").val();
+        contract.buyerId = $("#buyer").val();
+        contract.name = document.getElementById('buyerName').value;
+        contract.surname = document.getElementById('buyerSurname').value;
+        contract.lastname = document.getElementById('buyerLastname').value;
+        contract.buyerAddress = document.getElementById('buyerAddress').value;
+        contract.idNumber = document.getElementById('buyerIdNumber').value;
+        contract.passportSeries = document.getElementById('passportSeries').value;
+        contract.passportNumber = document.getElementById('passportNumber').value;
+        contract.passportWhoIssued = document.getElementById('passportWhoIssued').value;
+        contract.phone = document.getElementById('phone').value;
+        contract.email = document.getElementById('email').value;
+        contract.flatNumber = document.getElementById('flatNumber').value;
+        contract.flatArea = document.getElementById('flatArea').value;
+        contract.flatFloor = document.getElementById('flatFloor').value;
+        contract.flatAddress = document.getElementById('flatAddress').value;
+        contract.price = document.getElementById('price').value;
+        contract.date = document.getElementById('date').value;
+        contract.comment = document.getElementById('comment').value;
+        if (Contract.id == 0) {
+            $.ajax({
+                type: 'post',
+                url: url + '/addContract',
+                data: JSON.stringify(contract),
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    console.log('success /addContract');
+                    let validation = JSON.parse(data);
+                    if (validation.id !== undefined) {
+                        Contract = validation;
+                        console.log(Contract);
+                        validationMessage(null);
+                    } else {
+                        validationMessage(validation);
+                    }
+                },
+                error: function () {
+                    console.log('error /addContract');
+                }
+            });
+        } else {
+            contract.id = Contract.id;
+            $.ajax({
+                type: 'post',
+                url: url + '/updateContract',
+                data: JSON.stringify(contract),
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    console.log('success /updateContract');
+                    let validation = JSON.parse(data);
+                    if (validation == null) {
+                        validationMessage(null);
+                    } else {
+                        validationMessage(validation);
+                    }
+                },
+                error: function () {
+                    console.log('error /updateContract');
+                }
+            });
+        }
+    }
+
+    function validationMessage(validation){
+        if(validation === 1){
+            document.getElementById('flatMessage').innerHTML = "";
+            document.getElementById('flat').style.border = "1px solid #ced4da";
+            document.getElementById('objectMessage').innerHTML = "";
+            document.getElementById('object').style.border = "1px solid #ced4da";
+            document.getElementById('templateMessage').innerHTML = "";
+            document.getElementById('template').style.border = "1px solid #ced4da";
+            document.getElementById('statusMessage').innerHTML = "";
+            document.getElementById('status').style.border = "1px solid #ced4da";
+            document.getElementById('buyerMessage').innerHTML = "";
+            document.getElementById('buyer').style.border = "1px solid #ced4da";
+            document.getElementById('buyerNameMessage').innerHTML = "";
+            document.getElementById('buyerName').style.border = "1px solid #ced4da";
+            document.getElementById('buyerSurnameMessage').innerHTML = "";
+            document.getElementById('buyerSurname').style.border = "1px solid #ced4da";
+            document.getElementById('buyerLastnameMessage').innerHTML = "";
+            document.getElementById('buyerLastname').style.border = "1px solid #ced4da";
+            document.getElementById('buyerAddressMessage').innerHTML = "";
+            document.getElementById('buyerAddress').style.border = "1px solid #ced4da";
+            document.getElementById('buyerIdNumberMessage').innerHTML = "";
+            document.getElementById('buyerIdNumber').style.border = "1px solid #ced4da";
+            document.getElementById('passportSeriesMessage').innerHTML = "";
+            document.getElementById('passportSeries').style.border = "1px solid #ced4da";
+            document.getElementById('passportNumberMessage').innerHTML = "";
+            document.getElementById('passportNumber').style.border = "1px solid #ced4da";
+            document.getElementById('passportWhoIssuedMessage').innerHTML = "";
+            document.getElementById('passportWhoIssued').style.border = "1px solid #ced4da";
+            document.getElementById('phoneMessage').innerHTML = "";
+            document.getElementById('phone').style.border = "1px solid #ced4da";
+            document.getElementById('emailMessage').innerHTML = "";
+            document.getElementById('email').style.border = "1px solid #ced4da";
+            document.getElementById('flatNumberMessage').innerHTML = "";
+            document.getElementById('flatNumber').style.border = "1px solid #ced4da";
+            document.getElementById('flatAreaMessage').innerHTML = "";
+            document.getElementById('flatArea').style.border = "1px solid #ced4da";
+            document.getElementById('flatFloorMessage').innerHTML = "";
+            document.getElementById('flatFloor').style.border = "1px solid #ced4da";
+            document.getElementById('flatAddressMessage').innerHTML = "";
+            document.getElementById('flatAddress').style.border = "1px solid #ced4da";
+            document.getElementById('priceMessage').innerHTML = "";
+            document.getElementById('price').style.border = "1px solid #ced4da";
+            document.getElementById('dateMessage').innerHTML = "";
+            document.getElementById('date').style.border = "1px solid #ced4da";
+            return;
+        }
+        if(validation?.flatId ?? false){
+            document.getElementById('flatMessage').innerHTML = validation.flatId;
+            document.getElementById('flat').style.border = "1px solid red";
+        }else {
+            document.getElementById('flatMessage').innerHTML = "";
+            document.getElementById('flat').style.border = "1px solid green";
+        }
+        if(validation?.objectId ?? false){
+            document.getElementById('objectMessage').innerHTML = validation.objectId;
+            document.getElementById('object').style.border = "1px solid red";
+        }else {
+            document.getElementById('objectMessage').innerHTML = "";
+            document.getElementById('object').style.border = "1px solid green";
+        }
+        if(validation?.contractTemplateId ?? false){
+            document.getElementById('templateMessage').innerHTML = validation.contractTemplateId;
+            document.getElementById('template').style.border = "1px solid red";
+        }else {
+            document.getElementById('templateMessage').innerHTML = "";
+            document.getElementById('template').style.border = "1px solid green";
+        }
+        if(validation?.status ?? false){
+            document.getElementById('statusMessage').innerHTML = validation.status;
+            document.getElementById('status').style.border = "1px solid red";
+        }else {
+            document.getElementById('statusMessage').innerHTML = "";
+            document.getElementById('status').style.border = "1px solid green";
+        }
+        if(validation?.buyerId ?? false){
+            document.getElementById('buyerMessage').innerHTML = validation.buyerId;
+            document.getElementById('buyer').style.border = "1px solid red";
+        } else {
+            document.getElementById('buyerMessage').innerHTML = "";
+            document.getElementById('buyer').style.border = "1px solid green";
+        }
+        if(validation?.name ?? false){
+            document.getElementById('buyerNameMessage').innerHTML = validation.name;
+            document.getElementById('buyerName').style.border = "1px solid red";
+        }else {
+            document.getElementById('buyerNameMessage').innerHTML = "";
+            document.getElementById('buyerName').style.border = "1px solid green";
+        }
+        if(validation?.surname ?? false){
+            document.getElementById('buyerSurnameMessage').innerHTML = validation.surname;
+            document.getElementById('buyerSurname').style.border = "1px solid red";
+        }else {
+            document.getElementById('buyerSurnameMessage').innerHTML = "";
+            document.getElementById('buyerSurname').style.border = "1px solid green";
+        }
+        if(validation?.lastname ?? false){
+            document.getElementById('buyerLastnameMessage').innerHTML = validation.lastname;
+            document.getElementById('buyerLastname').style.border = "1px solid red";
+        }else {
+            document.getElementById('buyerLastnameMessage').innerHTML = "";
+            document.getElementById('buyerLastname').style.border = "1px solid green";
+        }
+        if(validation?.buyerAddress ?? false){
+            document.getElementById('buyerAddressMessage').innerHTML = validation.buyerAddress;
+            document.getElementById('buyerAddress').style.border = "1px solid red";
+        }else {
+            document.getElementById('buyerAddressMessage').innerHTML = "";
+            document.getElementById('buyerAddress').style.border = "1px solid green";
+        }
+        if(validation?.idNumber ?? false){
+            document.getElementById('buyerIdNumberMessage').innerHTML = validation.idNumber;
+            document.getElementById('buyerIdNumber').style.border = "1px solid red";
+        }else {
+            document.getElementById('buyerIdNumberMessage').innerHTML = "";
+            document.getElementById('buyerIdNumber').style.border = "1px solid green";
+        }
+        if(validation?.passportSeries ?? false){
+            document.getElementById('passportSeriesMessage').innerHTML = validation.passportSeries;
+            document.getElementById('passportSeries').style.border = "1px solid red";
+        }else {
+            document.getElementById('passportSeriesMessage').innerHTML = "";
+            document.getElementById('passportSeries').style.border = "1px solid green";
+        }
+        if(validation?.passportNumber ?? false){
+            document.getElementById('passportNumberMessage').innerHTML = validation.passportNumber;
+            document.getElementById('passportNumber').style.border = "1px solid red";
+        }else {
+            document.getElementById('passportNumberMessage').innerHTML = "";
+            document.getElementById('passportNumber').style.border = "1px solid green";
+        }
+        if(validation?.passportWhoIssued ?? false){
+            document.getElementById('passportWhoIssuedMessage').innerHTML = validation.passportWhoIssued;
+            document.getElementById('passportWhoIssued').style.border = "1px solid red";
+        }else {
+            document.getElementById('passportWhoIssuedMessage').innerHTML = "";
+            document.getElementById('passportWhoIssued').style.border = "1px solid green";
+        }
+        if(validation?.phone ?? false){
+            document.getElementById('phoneMessage').innerHTML = validation.phone;
+            document.getElementById('phone').style.border = "1px solid red";
+        }else {
+            document.getElementById('phoneMessage').innerHTML = "";
+            document.getElementById('phone').style.border = "1px solid green";
+        }
+        if(validation?.email ?? false){
+            document.getElementById('emailMessage').innerHTML = validation.email;
+            document.getElementById('email').style.border = "1px solid red";
+        }else {
+            document.getElementById('emailMessage').innerHTML = "";
+            document.getElementById('email').style.border = "1px solid green";
+        }
+        if(validation?.flatNumber ?? false){
+            document.getElementById('flatNumberMessage').innerHTML = validation.flatNumber;
+            document.getElementById('flatNumber').style.border = "1px solid red";
+        }else {
+            document.getElementById('flatNumberMessage').innerHTML = "";
+            document.getElementById('flatNumber').style.border = "1px solid green";
+        }
+        if(validation?.flatArea ?? false){
+            document.getElementById('flatAreaMessage').innerHTML = validation.flatArea;
+            document.getElementById('flatArea').style.border = "1px solid red";
+        }else {
+            document.getElementById('flatAreaMessage').innerHTML = "";
+            document.getElementById('flatArea').style.border = "1px solid green";
+        }
+        if(validation?.flatFloor ?? false){
+            document.getElementById('flatFloorMessage').innerHTML = validation.flatFloor;
+            document.getElementById('flatFloor').style.border = "1px solid red";
+        }else {
+            document.getElementById('flatFloorMessage').innerHTML = "";
+            document.getElementById('flatFloor').style.border = "1px solid green";
+        }
+        if(validation?.flatAddress ?? false){
+            document.getElementById('flatAddressMessage').innerHTML = validation.flatAddress;
+            document.getElementById('flatAddress').style.border = "1px solid red";
+        }else {
+            document.getElementById('flatAddressMessage').innerHTML = "";
+            document.getElementById('flatAddress').style.border = "1px solid green";
+        }
+        if(validation?.price ?? false){
+            document.getElementById('priceMessage').innerHTML = validation.price;
+            document.getElementById('price').style.border = "1px solid red";
+        }else {
+            document.getElementById('priceMessage').innerHTML = "";
+            document.getElementById('price').style.border = "1px solid green";
+        }
+        if(validation?.date ?? false){
+            document.getElementById('dateMessage').innerHTML = validation.date;
+            document.getElementById('date').style.border = "1px solid red";
+        }else {
+            document.getElementById('dateMessage').innerHTML = "";
+            document.getElementById('date').style.border = "1px solid green";
+        }
+        setTimeout(function() {
+            validationMessage(1)
+        }, 4000);
+    }
+
+    function getContractById(){
+        let data = { id: ContractId };
+        $.ajax({
+            type: 'get',
+            url: url +'/getContractById',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                console.log('success /getContractById');
+                Contract = data;
+                document.getElementById('buyerName').value = data.name;
+                document.getElementById('buyerSurname').value = data.surname
+                document.getElementById('buyerLastname').value = data.lastname
+                document.getElementById('buyerAddress').value = data.buyerAddress;
+                document.getElementById('buyerIdNumber').value = data.idNumber;
+                document.getElementById('passportSeries').value = data.passportSeries;
+                document.getElementById('passportNumber').value = data.passportNumber;
+                document.getElementById('passportWhoIssued').value= data.passportWhoIssued;
+                document.getElementById('phone').value = data.phone;
+                document.getElementById('email').value = data.email;
+                document.getElementById('flatNumber').value = data.flatNumber;
+                document.getElementById('flatArea').value = data.flatArea;
+                document.getElementById('flatFloor').value = data.flatFloor;
+                document.getElementById('flatAddress').value = data.flatAddress;
+                document.getElementById('price').value = data.price;
+                document.getElementById('date').value = moment(data.date).format('YYYY-MM-DD');
+                document.getElementById('comment').value = data.comment;
+
+                if(null != data?.buyer?.id ?? false){
+                    $('#buyer').append($("" +
+                        "<option value='" + data?.buyer?.id + "' selected>" + data?.buyer?.name + " " + data?.buyer?.surname + "</option>"))
+                }
+                getObjects();
+                getContractTemplates();
+                getStatuses();
+            },
+            error: function() {
+                console.log('error /getContractById');
+            }
+        });
+    }
+
+
+    function getFlatById(){
+        let data = { id: FlatId };
+        $.ajax({
+            type: 'get',
+            url: url +'/getFlatById',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                console.log('success /getFlatById');
+                Contract.flat = data;
+
+                if(null != data.buyer?.id ?? false){
+                    $('#buyer').append($("" +
+                        "<option value='" + data?.buyer?.id + "' selected>" + data?.buyer?.name + " " + data?.buyer?.surname + "</option>"))
+                }
+
+                getObjects();
+                getContractTemplates();
+                getStatuses();
+                uploadBuyerInfo();
+            },
+            error: function() {
+                console.log('error /getFlatById');
+            }
+        });
+    }
+
+    //upload info
+
+
+    function uploadBuyerInfo(){
+        let data = { id: $("#buyer").val()};
+        $.ajax({
+            type: 'get',
+            url: url +'/getBuyerById',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                let Buyer = data;
+                document.getElementById('buyerName').value = Buyer.name;
+                document.getElementById('buyerSurname').value = Buyer.surname;
+                document.getElementById('buyerLastname').value = Buyer.lastname;
+                document.getElementById('buyerAddress').value = Buyer.address;
+                document.getElementById('buyerIdNumber').value = Buyer.idNumber;
+                document.getElementById('passportSeries').value = Buyer.passportSeries;
+                document.getElementById('passportNumber').value = Buyer.passportNumber;
+                document.getElementById('passportWhoIssued').value = Buyer.passportWhoIssued;
+                document.getElementById('phone').value = Buyer.phone;
+                document.getElementById('email').value = Buyer.email;
+            },
+            error: function() {
+                console.log('error /getContractById');
+            }
+        });
+    }
+
+    function uploadFlatInfo(){
+        let data = { id: $("#flat").val()};
+        $.ajax({
+            type: 'get',
+            url: url +'/getFlatById',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                let Flat = data;
+                document.getElementById('flatNumber').value = Flat.number;
+                document.getElementById('flatArea').value = Flat.area;
+                document.getElementById('flatFloor').value = Flat.floor;
+                document.getElementById('flatAddress').value = Flat?.object?.address ?? '';
+                document.getElementById('price').value = Flat.salePrice;
+            },
+            error: function() {
+                console.log('error /getContractById');
+            }
+        });
+    }
+
+
+    // selects
+
+    function getObjects(){
+        $.ajax({
+            type: 'get',
+            url: url +'/getAllOnSaleObjects',
+            dataType: "json",
+            success: function (data){
+                console.log('success /getAllOnSaleObjects');
+                $("#object").append($("" +
+                    "<option selected disabled value='" + null + "' selected disabled>Choose object</option>"
+                ));
+                data.forEach((object) => {
+                    if (object.id === Contract?.flat?.object?.id ?? null) {
+                        $("#object").append($("" +
+                            "<option selected value='" + object.id + "'> " + object.house + "(" + object.section + ")" + "</option>"
+                        ));
+                        getFlatsByObjectId(object.id);
+                    } else {
+                        $("#object").append($("" +
+                            "<option value='" + object.id + "'> " + object.house + "(" + object.section + ")" + "</option>"
+                        ));
+                    }
+                })
+            },
+            error: function() {
+                console.log('error /getAllOnSaleObjects');
+            }
+        });
+    }
+
+    function getFlatsByObjectId(){
+        let data =
+            {
+                id: $("#object").val(),
+                flatId: Contract?.flat?.id
+            };
+        console.log("/////////////////")
+        console.log(data);
+        $.ajax({
+            type: 'get',
+            url: url + '/getFlatsWithoutContractByObjectId',
+            dataType: "json",
+            data: data,
+            success: function (data) {
+                console.log('success /getFlatsWithoutContractByObjectId');
+                $("#flat").empty();
+                $("#flat").append($("" +
+                    "<option selected disabled value='" + null + "'>Choose flat</option>"
+                ));
+                data.forEach((object) => {
+                    if (object.id === Contract?.flat?.id ?? null) {
+                        $("#flat").append($("" +
+                            "<option selected value='" + object.id + "'> " + object.number + "</option>"
+                        ));
+                        if (ContractId == 0) {
+                            uploadFlatInfo();
+                        }
+                    } else {
+                        $("#flat").append($("" +
+                            "<option value='" + object.id + "'> " + object.number + "</option>"
+                        ));
+                    }
+                })
+            },
+            error: function () {
+                console.log('error /getFlatsWithoutContractByObjectId');
+            }
+        });
+    }
+
+    function getStatuses(){
+        $.ajax({
+            type: 'get',
+            url: url +'/getStatuses',
+            dataType: "json",
+            success: function (data){
+                console.log('success /getStatuses');
+                Statuses = data;
+                $("#status").append($("" +
+                    "<option selected disabled value='" + null + "'>Choose status</option>"
+                ));
+                Statuses.forEach((object) => {
+                    if (object.first === Contract?.status ?? null) {
+                        $("#status").append($("" +
+                            "<option selected value='" + object.first + "'> " + object.second + "</option>"
+                        ));
+                    } else {
+                        $("#status").append($("" +
+                            "<option value='" + object.first + "'> " + object.second + "</option>"
+                        ));
+                    }
+                })
+            },
+            error: function() { console.log('error /getStatuses'); }
+        });
+    }
+
+    function getContractTemplates(){
+        $.ajax({
+            type: 'get',
+            url: url + '/getContractTemplates',
+            dataType: "json",
+            success: function (data){
+                console.log('success /getContractTemplates');
+                $("#template").append($("" +
+                    "<option selected disabled value='" + null + "'>Choose contract template</option>"
+                ));
+                data.forEach((object) => {
+                    if (object.id === Contract?.contractTemplate?.id ?? null) {
+                        $("#template").append($("" +
+                            "<option selected value='" + object.id + "'> " + object.name + "</option>"
+                        ));
+                    } else {
+                        $("#template").append($("" +
+                            "<option value='" + object.id + "'> " + object.name + "</option>"
+                        ));
+                    }
+                })
+            },
+            error: function() { console.log('error /getContractTemplates'); }
+        });
+    }
+
+    // print to pdf
+
+    function printToPdf(){
+        let data = {id : Contract.id};
+        $.ajax({
+            type: 'post',
+            url: url + '/createPdf',
+            dataType: "json",
+            data: data,
+            success: function (data){
+                console.log('success /createPdf');
+            },
+            error: function() { console.log('error /createPdf'); }
+        });
+    }
+
+</script>
+
+</body>
+</html>

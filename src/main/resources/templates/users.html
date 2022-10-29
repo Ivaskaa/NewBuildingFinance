@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Users</title>
+
+    <style th:replace="blocks/linkAdminLTE"></style>
+    <div th:replace="blocks/links"></div>
+    <script th:src="@{/js/app.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+
+<body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
+<div class="wrapper">
+
+    <div th:replace="blocks/navbar"></div>
+    <div th:replace="blocks/sidebarContainer"></div>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <div class="content-header">
+            <div class="container-fluid">
+                <h1 class="m-0">Users</h1>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+            <label>
+                <select id="sizeSelect" style="width: 50px; " onchange="changeSize()" name='status' class='form-control'>
+                    <option value=10 selected>10</option>
+                    <option value=20>20</option>
+                </select>
+            </label>
+
+            <button onclick="openPopup('add')" class="btn btn-success popup-with-form">Add</button>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">
+                        <!--                        <label>-->
+                        <!--                            <input class="form-control">-->
+                        <!--                        </label>-->
+                        <div onclick="sort('name')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">User</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div onclick="sort('role')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Role</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div onclick="sort('phone')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Phone</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div onclick="sort('username')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Email</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div onclick="sort('active')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Active</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Actions</p>
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+                <tbody id="list">
+                <!-- list -->
+                </tbody>
+            </table>
+            <nav>
+                <ul id="choose-page" class="pagination">
+                    <!-- pagination buttons -->
+                </ul>
+            </nav>
+        </section>
+    </div>
+    <div id="popup" class="modal">
+        <!-- popup -->
+    </div>
+</div>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script th:src="@{/js/validation.js}"></script>
+<script src="https://unpkg.com/imask"></script>
+
+<script>
+    let modal = document.getElementById("popup");
+
+    let currentPage = 1;
+    let size = 10;
+    let sortingField = 'id';
+    let sortingDirection = 'ASC';  // DESC
+
+    let totalPage;
+    let IdForUpdating;
+
+    let User;
+
+    $(document).ready(function() {
+        updatePage(currentPage, size, sortingField, sortingDirection);
+    });
+
+    function sort(field){
+        if(sortingDirection === 'ASC'){
+            sortingDirection = 'DESC';
+        } else {
+            sortingDirection = 'ASC';
+        }
+        sortingField = field;
+        updatePage(currentPage, size, sortingField, sortingDirection);
+    }
+
+    function updateList(data) {
+        $("#list").empty();
+        data.content.forEach((object) => {
+            if(object.role.id === 1) {
+                $("#list").append($("" +
+                    "<tr>" +
+                    "<td>" +
+                    "<p>" + object.name + " " + object.surname + "</p>" +
+                    "</td>" +
+                    "<td>" +
+                    "<p>" + object.role.name + "</p>" +
+                    "</td>" +
+                    "<td>" +
+                    "<p>" + object.phone + "</p>" +
+                    "</td>" +
+                    "<td>" +
+                    "<p>" + object.username + "</p>" +
+                    "</td>" +
+                    "<td>" +
+                    "<p>" + object.active + "</p>" +
+                    "</td>" +
+                    "<td>" +
+                    "   <div id='dropdown' class='dropdown'>\n" +
+                    "       <button class='btn btn-secondary dropdown-toggle' type='button' id='dropdownMenuButton' " +
+                    "               data-toggle='dropdown' aria-haspopup='true' aria-expanded='false' disabled>\n" +
+                    "           Actions\n" +
+                    "       </button>\n" +
+                    "       <div class='dropdown-menu' aria-labelledby='dropdownMenuButton'>\n" +
+                    "           <button class='dropdown-item' onclick='editForm(" + object.id + ")'>Edit</button>\n" +
+                    "           <button class='dropdown-item' onclick='deleteObject(" + object.id + ")'>Delete</button>\n" +
+                    "           <button class='dropdown-item' onclick='changeActive(" + object.id + ")'>Change active</button>\n" +
+                    "           <button class='dropdown-item' onclick='resendInvitation(" + object.id + ")'>Resend invitation</button>\n" +
+                    "       </div>\n" +
+                    "   </div>" +
+                    "</td>"
+                ));
+            } else {
+                $("#list").append($("" +
+                    "<tr>" +
+                    "<td>" +
+                    "<p>" + object.name + " " + object.surname + "</p>" +
+                    "</td>" +
+                    "<td>" +
+                    "<p>" + object.role.name + "</p>" +
+                    "</td>" +
+                    "<td>" +
+                    "<p>" + object.phone + "</p>" +
+                    "</td>" +
+                    "<td>" +
+                    "<p>" + object.username + "</p>" +
+                    "</td>" +
+                    "<td>" +
+                    "<p>" + object.active + "</p>" +
+                    "</td>" +
+                    "<td>" +
+                    "   <div id='dropdown' class='dropdown'>\n" +
+                    "       <button class='btn btn-secondary dropdown-toggle' type='button' id='dropdownMenuButton' " +
+                    "               data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>\n" +
+                    "           Actions\n" +
+                    "       </button>\n" +
+                    "       <div class='dropdown-menu' aria-labelledby='dropdownMenuButton'>\n" +
+                    "           <button class='dropdown-item' onclick='editForm(" + object.id + ")'>Edit</button>\n" +
+                    "           <button class='dropdown-item' onclick='deleteObject(" + object.id + ")'>Delete</button>\n" +
+                    "           <button class='dropdown-item' onclick='changeActive(" + object.id + ")'>Active</button>\n" +
+                    "           <button class='dropdown-item' onclick='resendInvitation(" + object.id + ")'>Resend invitation</button>\n" +
+                    "       </div>\n" +
+                    "   </div>" +
+                    "</td>"
+                ));
+            }
+        })
+        paginationButton();
+    }
+
+    function openPopup(style) {
+        modal.style.display = "block";
+        $("#popup").append($(
+            "<div class='modal-content'>\n" +
+            "           <span onclick='closePopup()' class='close'>&times;</span>\n" +
+            "           <form class='mt-2'>\n" +
+            "               <div class='form-group mt-2'>\n" +
+            "                   <label>Name:</label>\n" +
+            "                   <input id='name' type='text' maxlength='50' name='name'\n" +
+            "                           placeholder='Enter name' class='form-control'>\n" +
+            "                   <p id='nameMessage' style='color: red'></p>" +
+            "               </div>\n" +
+            "               <div class='form-group mt-2'>\n" +
+            "                   <label>Surname:</label>\n" +
+            "                   <input id='surname' type='text' maxlength='50' name='surname'\n" +
+            "                           placeholder='Enter surname' class='form-control'>\n" +
+            "                   <p id='surnameMessage' style='color: red'></p>" +
+            "               </div>\n" +
+            "               <div class='form-group mt-2'>\n" +
+            "                   <label>Role:</label>\n" +
+            "                   <select id='role' name='role' class='form-control'>" +
+            "                   </select>" +
+            "                   <p id='roleMessage' style='color: red'></p>" +
+            "               </div>\n" +
+            "               <div class='form-group mt-2'>\n" +
+            "                   <label>Phone:</label>\n" +
+            "                   <input id='phone' type='text' maxlength='20' name='phone'\n" +
+            "                              placeholder='Enter phone' class='form-control'>\n" +
+            "                   <p id='phoneMessage' style='color: red'></p>" +
+            "               </div>\n" +
+            "               <div class='form-group mt-2'>\n" +
+            "                   <label>Email:</label>\n" +
+            "                   <input id='username' type='text' maxlength='250' name='username'\n" +
+            "                              placeholder='Enter email' class='form-control'>\n" +
+            "                   <p id='usernameMessage' style='color: red'></p>" +
+            "               </div>\n" +
+            "               <button onclick='save(\"" + style + "\")' type='button' class='btn btn-success mt-2'>Save</button>\n" +
+            "           </form>\n" +
+            "       </div>"
+        ));
+        if (style === 'add') {
+            User = null;
+        }
+        uploadRoles();
+        mask();
+    }
+
+    function closePopup(){
+        modal.style.display = "none";
+        $("#popup").empty();
+    }
+
+    function save(style){
+        let name = document.getElementById('name');
+        let surname = document.getElementById('surname');
+        let role = $('#role').val();
+        let phone = document.getElementById('phone');
+        let username = document.getElementById('username');
+        let object = {};
+        object.name = name.value;
+        object.surname = surname.value;
+        role != null ? object.role = {id: role} : object.role = null;
+        object.phone = phone.value;
+        object.username = username.value;
+        object.active = false;
+
+        if(style === 'add') {
+            $.ajax({
+                type: 'post',
+                url: '../settings/addUser',
+                data: JSON.stringify(object),
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    let validation = JSON.parse(data);
+                    if (validation == null) {
+                        updatePage(currentPage, size, sortingField, sortingDirection)
+                        closePopup();
+                        console.log('success /addUser');
+                    } else {
+                        validationMessage(validation);
+                    }
+                },
+                error: function () {
+                    console.log('error /addUser');
+                }
+            });
+        }
+
+        if(style === 'edit') {
+            object.id = IdForUpdating;
+            object.latestUsername = User.username;
+            $.ajax({
+                type: 'post',
+                url: '../settings/updateUser',
+                data: JSON.stringify(object),
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    let validation = JSON.parse(data);
+                    if (validation == null) {
+                        updatePage(currentPage, size, sortingField, sortingDirection)
+                        closePopup();
+                        console.log('success /updateUser');
+                    } else {
+                        validationMessage(validation);
+                    }
+                },
+                error: function () {
+                    console.log('error /updateUser');
+                }
+            });
+        }
+    }
+
+    function validationMessage(validation){
+        if(validation?.name ?? false){
+            document.getElementById('nameMessage').innerHTML = validation.name;
+            document.getElementById('name').style.border = "1px solid red";
+        } else {
+            document.getElementById('nameMessage').innerHTML = "";
+            document.getElementById('name').style.border = "1px solid green";
+        }
+        if(validation?.surname ?? false){
+            document.getElementById('surnameMessage').innerHTML = validation.surname;
+            document.getElementById('surname').style.border = "1px solid red";
+        }else {
+            document.getElementById('surnameMessage').innerHTML = "";
+            document.getElementById('surname').style.border = "1px solid green";
+        }
+        if(validation?.role ?? false){
+            document.getElementById('roleMessage').innerHTML = validation.role;
+            document.getElementById('role').style.border = "1px solid red";
+        }else {
+            document.getElementById('roleMessage').innerHTML = "";
+            document.getElementById('role').style.border = "1px solid green";
+        }
+        if(validation?.phone ?? false){
+            document.getElementById('phoneMessage').innerHTML = validation.phone;
+            document.getElementById('phone').style.border = "1px solid red";
+        }else {
+            document.getElementById('phoneMessage').innerHTML = "";
+            document.getElementById('phone').style.border = "1px solid green";
+        }
+        if(validation?.username ?? false){
+            document.getElementById('usernameMessage').innerHTML = validation.username;
+            document.getElementById('username').style.border = "1px solid red";
+        }else {
+            document.getElementById('usernameMessage').innerHTML = "";
+            document.getElementById('username').style.border = "1px solid green";
+        }
+    }
+
+    function uploadRoles() {
+        $.ajax({
+            type: 'get',
+            url: '../settings/getRoles',
+            dataType: "json",
+            success: function (data) {
+                console.log('success /getRoles');
+                $("#role").append($("" +
+                    "<option value='" + null + "' disabled selected>Choose role</option>"
+                ));
+                data.forEach((role) => {
+                    if (role.id === User?.role.id ?? null) {
+                        $("#role").append($("" +
+                            "<option value='" + role.id + "' selected> " + role.name + "</option>"
+                        ));
+                    } else {
+                        $("#role").append($("" +
+                            "<option value='" + role.id + "'> " + role.name + "</option>"
+                        ));
+                    }
+                })
+            },
+            error: function () {
+                console.log('error /getRoles');
+            }
+        });
+    }
+
+    function changeActive(id){
+        let data = { id: id };
+        $.ajax({
+            type: 'post',
+            url: '../settings/changeUserActiveById',
+            data: data,
+            dataType: "json",
+            success: function (object){
+                console.log('success /changeUserActiveById');
+                updatePage(currentPage, size, sortingField, sortingDirection);
+            },
+            error: function() {
+                console.log('error /changeUserActiveById');
+            }
+        });
+    }
+
+    function resendInvitation(id){
+        let data = { id: id };
+        $.ajax({
+            type: 'post',
+            url: '../settings/resendInvitation',
+            data: data,
+            dataType: "json",
+            success: function (success){
+                console.log('success /resendInvitation');
+                updatePage(currentPage, size, sortingField, sortingDirection)
+            },
+            error: function() {
+                console.log('error /resendInvitation');
+            }
+        });
+    }
+
+    function editForm(id){
+        IdForUpdating = id;
+        let data = { id: id };
+        $.ajax({
+            type: 'get',
+            url: '../settings/getUserById',
+            data: data,
+            dataType: "json",
+            success: function (object){
+                User = object;
+                openPopup('edit');
+                console.log('success /getUserById');
+                let name = document.getElementById('name');
+                name.value = object.name;
+                let surname = document.getElementById('surname');
+                surname.value = object.surname;
+                // role
+                let phone = document.getElementById('phone');
+                phone.value = object.phone;
+                let username = document.getElementById('username');
+                username.value = object.username;
+                let active = document.getElementById('active');
+                active.checked = object.active;
+            },
+            error: function() {
+                console.log('error /getUserById');
+            }
+        });
+    }
+
+    function deleteObject(id){
+        let data = { id: id };
+        $.ajax({
+            type: 'post',
+            url: '../settings/deleteUserById',
+            data: data,
+            dataType: "json",
+            success: function (success){
+                console.log(success + ' /deleteUserById');
+                updatePage(currentPage, size, sortingField, sortingDirection)
+            },
+            error: function() {
+                console.log('error /deleteUserById');
+            }
+        });
+    }
+
+    function mask(){
+        let element = document.getElementById('phone');
+        let maskOptions = {
+            mask: '+38(000)000-00-00',
+            lazy: false
+        }
+        let mask = new IMask(element, maskOptions);
+    }
+
+    function updatePage(currentPage, size, sortingField, sortingDirection){
+        let data = {
+            page: currentPage,
+            size: size,
+            field: sortingField,
+            direction: sortingDirection
+        }
+        $.ajax({
+            type: 'get',
+            url: '../settings/getUsers',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                totalPage = data.totalPages;
+                if(currentPage > totalPage){
+                    currentPage--;
+                    updatePage(currentPage, size, sortingField, sortingDirection);
+                }
+                updateList(data)
+                console.log('success /getUsers');
+            },
+            error: function() {
+                console.log('error /getUsers');
+            }
+        });
+    }
+
+    function changeSize(){
+        size = $('#sizeSelect').val();
+        currentPage = 1;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+
+    function paginationButton(){
+        $("#choose-page").empty();
+        if(totalPage > 1){
+            if(currentPage !== 1){
+                $("#choose-page").append($("" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex='-1' onclick='goFirstPage()' style='height: 40px'>First</button>" +
+                    "</div>" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex='-1' onclick='goPreviousPage()' style='height: 40px'>\<\<</a>" +
+                    "</div>"
+                ));
+            } else {
+                $("#choose-page").append($("" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex='-1' onclick='goFirstPage()' style='height: 40px'>First</button>" +
+                    "</div>" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex='-1' onclick='goPreviousPage()' style='height: 40px'>\<\<</a>" +
+                    "</div>"
+                ));
+            }
+            let start = currentPage - 2;
+            let finish = currentPage + 2;
+            for(let i = start; i <= finish; i++) {
+                if(i > 0 && i <= totalPage) {
+                    if (currentPage === i) {
+                        $("#choose-page").append($("" +
+                            "<div class='page-item active'>" +
+                            "<button onclick='goToPage(" + i + ")' class='page-link' tabIndex='-1' style='height: 40px; width: 40px'>" + i + "</button>" +
+                            "</div>"
+                        ));
+                    } else {
+                        $("#choose-page").append($("" +
+                            "<div class='page-item'>" +
+                            "<button onclick='goToPage(" + i + ")' class='page-link' tabIndex='-1' style='height: 40px; width: 40px'>" + i + "</button>" +
+                            "</div>"
+                        ));
+                    }
+                }
+            }
+            if(currentPage !== totalPage) {
+                $("#choose-page").append($("" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex='-1' onclick='goNextPage()' style='height: 40px'>\>\></button>" +
+                    "</div>" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex='-1' onclick='goLastPage()' style='height: 40px'>Last</a>" +
+                    "</div>"
+                ));
+            } else {
+                $("#choose-page").append($("" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex='-1' onclick='goNextPage()' style='height: 40px'>\>\></button>" +
+                    "</div>" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex='-1' onclick='goLastPage()' style='height: 40px'>Last</a>" +
+                    "</div>"
+                ));
+            }
+        }
+    }
+
+    function goFirstPage(){
+        currentPage = 1;
+        updatePage(currentPage, size, sortingField, sortingDirection);
+    }
+
+    function goPreviousPage(){
+        currentPage--;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+
+    function goToPage(i){
+        currentPage = i;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+    function goNextPage(){
+        currentPage++;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+    function goLastPage(){
+        currentPage = totalPage;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+</script>
+
+</main>
+</body>
+</html>

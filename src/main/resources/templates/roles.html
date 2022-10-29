@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Roles</title>
+
+    <style th:replace="blocks/linkAdminLTE"></style>
+    <div th:replace="blocks/links"></div>
+    <script th:src="@{/js/app.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+
+<body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
+<div class="wrapper">
+
+    <div th:replace="blocks/navbar"></div>
+    <div th:replace="blocks/sidebarContainer"></div>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <div class="content-header">
+            <div class="container-fluid">
+                <h1 class="m-0">Roles</h1>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+            <button onclick="openPopup('add')" class="btn btn-success popup-with-form">Add</button>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Roles</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Statistics</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Flats</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Cash register</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Buyers</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Agencies</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Objects</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Agreements</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Settings</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Api</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Delete</p>
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+                <tbody id="list">
+                <!-- list -->
+                </tbody>
+            </table>
+            <button onclick="savePermissions()" class="btn btn-success popup-with-form">Save</button>
+        </section>
+    </div>
+    <div id="popup" class="modal">
+        <!-- popup -->
+    </div>
+</div>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script th:src="@{/js/validation.js}"></script>
+
+<script>
+    let modal = document.getElementById("popup");
+    let roles;
+    $(document).ready(function() {
+        updatePage();
+    });
+
+    function openPopup(style){
+        modal.style.display = "block";
+        $("#popup").append($(
+            "<div class=\"modal-content\">\n" +
+            "   <span onclick='closePopup()' class=\"close\">&times;</span>\n" +
+            "   <form class=\"mt-2\">\n" +
+            "       <div class=\"form-group mt-2\">\n" +
+            "           <label>Name:</label>\n" +
+            "           <input id=\"name\" type=\"text\" maxlength=\"50\" name=\"name\"\n" +
+            "                  placeholder=\"Enter role name\" class=\"form-control\">\n" +
+            "           <p id='nameMessage' style=\"color: red\"></p>" +
+            "       </div>\n" +
+            "       <button onclick=\"save('"  + style + "')\" type=\"button\" class=\"btn btn-success mt-2\">Save</button>\n" +
+            "   </form>\n" +
+            "</div>"
+        ));
+    }
+
+    function closePopup(){
+        modal.style.display = "none";
+        $("#popup").empty();
+    }
+
+    function save(style){
+        let name = document.getElementById('name');
+        let object = {};
+        object.name = name.value;
+
+        if(style === 'add') {
+            $.ajax({
+                type: 'post',
+                url: '../settings/addRole',
+                data: JSON.stringify(object),
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    let validation = JSON.parse(data);
+                    if (validation == null) {
+                        updatePage();
+                        closePopup();
+                        console.log('success /addRole');
+                    } else {
+                        validationMessage(validation);
+                    }
+                },
+                error: function () {
+                    console.log('error /addRole');
+                }
+            });
+        }
+    }
+
+    function validationMessage(validation){
+        if(validation?.name ?? false){
+            document.getElementById('nameMessage').innerHTML = validation.name;
+            document.getElementById('name').style.border = "1px solid red";
+        } else {
+            document.getElementById('nameMessage').innerHTML = "";
+            document.getElementById('name').style.border = "1px solid green";
+        }
+    }
+
+    function updatePage(){
+        $.ajax({
+            type: 'get',
+            url: '../settings/getRoles',
+            dataType: "json",
+            success: function (data){
+                updateList(data)
+                console.log('success /getRoles');
+            },
+            error: function() {
+                console.log('error /getRoles');
+            }
+        });
+    }
+
+    function updateList(data) {
+        roles = data;
+        $("#list").empty();
+        data.forEach((object) => {
+            $("#list").append($("" +
+                "<tr>" +
+                "<td>" +
+                "<p>" + object.name + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<div class='form-check'>" +
+                "   <input id='statistics" + object.id + "' class='form-check-input' type='checkbox'>" +
+                "</div>" +
+                "</td>" +
+                "<td>" +
+                "<div class='form-check'>" +
+                "   <input id='flats" + object.id + "' class='form-check-input' type='checkbox'>" +
+                "</div>" +
+                "</td>" +
+                "<td>" +
+                "<div class='form-check'>" +
+                "   <input id='cashRegister" + object.id + "' class='form-check-input' type='checkbox'>" +
+                "</div>" +
+                "</td>" +
+                "<td>" +
+                "<div class='form-check'>" +
+                "   <input id='buyers" + object.id + "' class='form-check-input' type='checkbox'>" +
+                "</div>" +
+                "</td>" +
+                "<td>" +
+                "<div class='form-check'>" +
+                "   <input id='agencies" + object.id + "' class='form-check-input' type='checkbox'>" +
+                "</div>" +
+                "</td>" +
+                "<td>" +
+                "<div class='form-check'>" +
+                "   <input id='objects" + object.id + "' class='form-check-input' type='checkbox'>" +
+                "</div>" +
+                "</td>" +
+                "<td>" +
+                "<div class='form-check'>" +
+                "   <input id='agreements" + object.id + "' class='form-check-input' type='checkbox'>" +
+                "</div>" +
+                "</td>" +
+                "<td>" +
+                "<div class='form-check'>" +
+                "   <input id='settings" + object.id + "' class='form-check-input' type='checkbox'>" +
+                "</div>" +
+                "</td>" +
+                "<td>" +
+                "<div class='form-check'>" +
+                "   <input id='api" + object.id + "' class='form-check-input' type='checkbox'>" +
+                "</div>" +
+                "</td>" +
+                "<td>" +
+                "<button onclick='deleteObject(" + object.id + ")' class=\"btn btn-danger\" type=\"button\">Delete</button>" +
+                "</td>" +
+                "</tr>"
+            ));
+        })
+        checkedPermissions();
+    }
+
+    function checkedPermissions(){
+        roles.forEach((object) => {
+            let statistics = document.getElementById('statistics' + object.id)
+            let flats = document.getElementById('flats' + object.id)
+            let cashRegister = document.getElementById('cashRegister' + object.id)
+            let buyers = document.getElementById('buyers' + object.id)
+            let agencies = document.getElementById('agencies' + object.id)
+            let objects = document.getElementById('objects' + object.id)
+            let agreements = document.getElementById('agreements' + object.id)
+            let settings = document.getElementById('settings' + object.id)
+            let api = document.getElementById('api' + object.id)
+            object.permissions.forEach((per) => {
+                if(per.name === 'STATISTICS'){
+                    statistics.checked = true;
+                }
+                if(per.name === 'FLATS'){
+                    flats.checked = true;
+                }
+                if(per.name === 'CASH_REGISTER'){
+                    cashRegister.checked = true;
+                }
+                if(per.name === 'BUYERS'){
+                    buyers.checked = true;
+                }
+                if(per.name === 'AGENCIES'){
+                    agencies.checked = true;
+                }
+                if(per.name === 'OBJECTS'){
+                    objects.checked = true;
+                }
+                if(per.name === 'AGREEMENTS'){
+                    agreements.checked = true;
+                }
+                if(per.name === 'SETTINGS'){
+                    settings.checked = true;
+                }
+                if(per.name === 'API'){
+                    api.checked = true;
+                }
+            })
+        })
+    }
+
+    function savePermissions(){
+        roles.forEach((object) => {
+            let statistics = document.getElementById('statistics' + object.id)
+            let flats = document.getElementById('flats' + object.id)
+            let cashRegister = document.getElementById('cashRegister' + object.id)
+            let buyers = document.getElementById('buyers' + object.id)
+            let agencies = document.getElementById('agencies' + object.id)
+            let objects = document.getElementById('objects' + object.id)
+            let agreements = document.getElementById('agreements' + object.id)
+            let settings = document.getElementById('settings' + object.id)
+            let api = document.getElementById('api' + object.id)
+            let myPermissions = [];
+            if(statistics.checked === true){
+                myPermissions.push({id:1});
+            }
+            if(flats.checked === true){
+                myPermissions.push({id:2});
+            }
+            if(cashRegister.checked === true){
+                myPermissions.push({id:3});
+            }
+            if(buyers.checked === true){
+                myPermissions.push({id:4});
+            }
+            if(agencies.checked === true){
+                myPermissions.push({id:5});
+            }
+            if(objects.checked === true){
+                myPermissions.push({id:6});
+            }
+            if(agreements.checked === true){
+                myPermissions.push({id:7});
+            }
+            if(settings.checked === true){
+                myPermissions.push({id:8});
+            }
+            if(api.checked === true){
+                myPermissions.push({id:9});
+            }
+            object.permissions = myPermissions;
+        })
+
+        console.log(roles);
+
+        $.ajax({
+            type: 'post',
+            url: '../settings/updateRole',
+            data: JSON.stringify(roles),
+            contentType: "application/json; charset=utf-8",
+            success: function (success){
+                console.log('success /updateRole');
+                updatePage()
+            },
+            error: function() {
+                console.log('error /updateRole');
+            }
+        });
+
+    }
+
+    $("#name").keyup(function(event) {
+        if (event.keyCode === 13) {
+            save('add');
+        }
+    });
+
+    function deleteObject(id){
+        let data = { id: id };
+        $.ajax({
+            type: 'post',
+            url: '../settings/deleteRoleById',
+            data: data,
+            dataType: "json",
+            success: function (success){
+                console.log(success + ' /deleteRoleById');
+                updatePage()
+            },
+            error: function() {
+                console.log('error /deleteRoleById');
+            }
+        });
+    }
+</script>
+
+</main>
+</body>
+</html>

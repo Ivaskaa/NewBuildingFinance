@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Flat</title>
+
+    <style th:replace="blocks/linkAdminLTE"></style>
+    <div th:replace="blocks/links"></div>
+    <script th:src="@{/js/app.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+
+<body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
+<div class="wrapper">
+
+    <div th:replace="blocks/navbar"></div>
+    <div th:replace="blocks/sidebarContainer"></div>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <div class="content-header">
+            <div class="container-fluid">
+                <h1 class="m-0">Flat</h1>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+            <button id="descriptionButton" onclick="changePage(this)" class="btn btn-dark">Description</button>
+            <button id="paymentScheduleButton" onclick="maybeSave(this)" class="btn btn-dark">Payment schedule</button>
+            <div id="descriptionPage">
+
+                <div class="content-header">
+                    <div class="container-fluid">
+                        <h1 class="m-0">Description</h1>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group mt-2">
+                            <label>Flat number:</label>
+                            <input id="number" type="number" min="1" max="100000000" maxlength="9" oninput="inputInteger(this)"
+                                   name="number" placeholder="Enter number" class="form-control">
+                            <p id='numberMessage' style="color: red"></p>
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Quantity rooms:</label>
+                            <input id="quantityRooms" type="number" min="1" max="20" maxlength="5" oninput="inputInteger(this)"
+                                   name="quantityRooms" placeholder="Enter quantity rooms" class="form-control">
+                            <p id='quantityRoomsMessage' style="color: red"></p>
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Floor:</label>
+                            <input id="floor" type="number" min="1" max="1000" maxlength="5" oninput="inputInteger(this)"
+                                   name="floor" placeholder="Enter floor" class="form-control">
+                            <p id='floorMessage' style="color: red"></p>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group mt-2">
+                            <label>Area:</label>
+                            <input id="area" oninput="updateAll()" type="number" min="1" max="1000" step="1" maxlength="5" name="area" placeholder="Enter area" class="form-control">
+                            <p id='areaMessage' style="color: red"></p>
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Object:</label>
+                            <select onchange="agencyAndManager()" id="object" class="form-control" name="object" >
+                            </select>
+                            <p id='objectMessage' style="color: red"></p>
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Status:</label>
+                            <select id="status" class="form-control" name="status" >
+                            </select>
+                            <p id='statusMessage' style="color: red"></p>
+                        </div>
+                    </div>
+                    <!--                    </form>-->
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group mt-2">
+                            <label>Price per square meter(USD):</label>
+                            <input id="priceSquare" oninput="updatePrice(this)" value="0" type="number" min="1" max="10000" maxlength="6" name="number" placeholder="Enter price per square meter" class="form-control">
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Price(USD):</label>
+                            <input id="price" oninput="updatePrice(this); inputInteger(this)" value="0" type="number" min="1" max="1000000000" step="1" maxlength="11" name="quantityRooms" placeholder="Enter price" class="form-control">
+                            <p id='priceMessage' style="color: red"></p>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group mt-2">
+                            <label>Sale price per square meter(USD):</label>
+                            <input id="salePriceSquare" oninput="updateSalePrice(this)" value="0" type="number" min="1" max="10000" maxlength="6" name="number" placeholder="Enter sale price per square meter" class="form-control">
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Sale price(USD):</label>
+                            <input id="salePrice" oninput="updateSalePrice(this); inputInteger(this)" value="0" type="number" min="1" max="1000000000" step="1" maxlength="11" name="quantityRooms" placeholder="Enter sale price" class="form-control">
+                            <p id='salePriceMessage' style="color: red"></p>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group mt-2">
+                            <label>Discount per square meter(USD):</label>
+                            <input id="discountSquare" oninput="updateDiscount(this) " value="0" type="number" min="1" max="10000" maxlength="6" name="number" placeholder="Enter discount per square meter" class="form-control">
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Discount(USD):</label>
+                            <input id="discount" oninput="updateDiscount(this); inputInteger(this)" value="0" type="number" min="1" max="1000000000" maxlength="11" name="quantityRooms" placeholder="Enter discount" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group mt-2">
+                            <label>% manager:</label>
+                            <input id="manager" oninput="inputInteger(this)" type="number" min="0" max="100" maxlength="3" name="number" placeholder="Enter % manager" class="form-control">
+                            <p id='managerMessage' style="color: red"></p>
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>% agency:</label>
+                            <input id="agency" oninput="inputInteger(this)" type="number" min="0" max="100" maxlength="3" name="quantityRooms" placeholder="Enter % agency" class="form-control">
+                            <p id='agencyMessage' style="color: red"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-header">
+                    <div class="container-fluid">
+                        <h1 class="m-0">Commission</h1>
+                    </div>
+                </div>
+
+                <button id="commissionButton" onclick="maybeSave(this)" class="btn btn-warning popup-with-form">Pay commission</button>
+                <p id='commissionMessage' style="color: red"></p>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Recipient</p>
+                        </th>
+                        <th scope="col">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Type</p>
+                        </th>
+                        <th scope="col">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Manager</p>
+                        </th>
+                        <th scope="col">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Status</p>
+                        </th>
+                        <th scope="col">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">%</p>
+                        </th>
+                        <th scope="col">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Price</p>
+                        </th>
+                        <th scope="col">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Payment date</p>
+                        </th>
+                        <th scope="col">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Edit</p>
+                        </th>
+                        <th scope="col">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Delete</p>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody id="listCommissions">
+                    <!-- list -->
+                    </tbody>
+                </table>
+
+                <div class="form-group mt-2">
+                    <label>Description:</label>
+                    <textarea id="summernote" style="display: none;"></textarea>
+                </div>
+            </div>
+
+            <div id="paymentSchedulePage" style="display: none">
+                <div class="content-header">
+                    <div class="container-fluid">
+                        <h1 class="m-0">Payment schedule</h1>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group mt-2">
+                            <label>Buyer:</label>
+                            <select id="buyer" onchange="updateAgencyAndRealtor(this.value)" class="form-control" style="width: 100%; height: 150px"></select>
+                            <p id='buyerMessage' style="color: red"></p>
+                            <button id="createBuyerButton" onclick="openPopupBuyer()" class="btn btn-success popup-with-form">Create new buyer</button>
+                        </div>
+                        <div id="agencyDiv" class="form-group mt-2" style="display: none">
+                            <label>Agency:</label>
+                            <select id="agencyy" onchange="updateRealtor()" class="form-control">
+                                <option th:value="${null}" selected disabled>Choose agency</option>
+                            </select>
+                            <p id='agencyyMessage' style="color: red"></p>
+                        </div>
+                        <div id="realtorDiv" class="form-group mt-2" style="display: none">
+                            <label>Realtor:</label>
+                            <select id="realtorr" class="form-control">
+                                <option th:value="${null}" selected disabled>Choose realtor</option>
+                            </select>
+                            <p id='realtorrMessage' style="color: red"></p>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group mt-2">
+                            <button id="drawUpContract" onclick="save(null)" class="btn btn-primary popup-with-form">Draw up contract</button>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div id="contractInfoDiv" class="form-group mt-2" style="display: none">
+                            <div class="form-group mt-2" >
+                                <label th:text="'Contract status: '"></label>
+                            </div>
+                            <div class="form-group mt-2">
+                                <label th:text="'Contract number: '"></label>
+                            </div>
+                            <div class="form-group mt-2">
+                                <label th:text="'Contract date: '"></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <label>
+                    <select id="sizeSelect" style="width: 50px; " onchange="changeSize()" name='status' class='form-control'>
+                        <option value=10 selected>10</option>
+                        <option value=20>20</option>
+                    </select>
+                </label>
+
+                <button id="addPayment" onclick="openPopupPayment('add')" class="btn btn-success popup-with-form">Add payment</button>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">
+                            <div onclick="sort('number')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Number</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div onclick="sort('date')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Date</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div onclick="sort('planned')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Planned</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div onclick="sort('actually')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Actually</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div>
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Difference</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div>
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Pay</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div>
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Edit</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div>
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Delete</p>
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody id="listPayment">
+                    <!-- list -->
+                    </tbody>
+                </table>
+                <nav>
+                    <ul id="choose-page" class="pagination">
+                        <!-- pagination buttons -->
+                    </ul>
+                </nav>
+
+            </div>
+
+            <button id="saveButton" onclick="maybeSave(this)" class="btn btn-success popup-with-form">Save</button>
+            <a th:href="@{/flats}" class="btn btn-dark popup-with-form">Back</a>
+        </section>
+    </div>
+    <div id="popupBuyer" class="modal">
+        <!-- popup -->
+    </div>
+    <div id="popupPayment" class="modal">
+        <!-- popup -->
+    </div>
+</div>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script th:src="@{/js/validation.js}"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script th:src="@{/js/flatPaymentShedule.js}"></script>
+
+<script>
+    let FlatId = "[[${flatId}]]";
+    let Flat = {};
+    let Objects;
+    let Statuses;
+
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",0));
+    let url = window.location.protocol+"//"+ window.location.host + context;
+    console.log(url)
+    // window.location.href = 'redirect-url';
+
+    let currentPage = 1;
+    let size = 10;
+    let sortingField = 'id';
+    let sortingDirection = 'ASC';  // DESC
+
+    $(document).ready(function() {
+        summernote();
+        Flat.id = FlatId;
+        if(FlatId != 0){
+            getFlatById();
+        } else {
+            getObjects();
+            getStatuses();
+        }
+    });
+
+    function changePage(element){
+        if (element.id === 'descriptionButton'){
+            $("#paymentSchedulePage").hide();
+            $("#descriptionPage").show();
+        }
+        if (element.id === 'paymentScheduleButton'){
+            $("#descriptionPage").hide();
+            $("#paymentSchedulePage").show();
+        }
+    }
+
+    function maybeSave(element){
+        if(element.id === 'commissionButton'){
+            if(Flat.contract == null){
+                document.getElementById('commissionMessage').innerHTML = "Firstly create contract for this flat";
+                setTimeout(function() {
+                    document.getElementById('commissionMessage').innerHTML = "";
+                }, 5000);
+            } else {
+                window.location = url + '/cashRegister';
+            }
+        }
+        if(element.id === 'paymentScheduleButton'){
+            if(FlatId == 0){
+                save(element);
+            } else {
+                changePage(element);
+            }
+        }
+        if(element.id === 'saveButton'){
+            save(element);
+        }
+    }
+
+    function save(element){
+        let flat = {};
+        flat.objectId = $("#object").val();
+        flat.status = $("#status").val();
+        flat.area = document.getElementById('area').value;
+        flat.price = document.getElementById('price').value;
+        flat.salePrice = document.getElementById('salePrice').value;
+        flat.number = document.getElementById('number').value;
+        flat.quantityRooms = document.getElementById('quantityRooms').value;
+        flat.floor = document.getElementById('floor').value;
+        flat.description = $("#summernote").summernote("code");
+        flat.agency = document.getElementById('agency').value;
+        flat.manager = document.getElementById('manager').value;
+        flat.buyerId = $("#buyer").val();
+        flat.realtorId = $("#realtorr").val();
+        flat.agencyId = $("#agencyy").val();
+        if (element == null){
+            flat.id = Flat.id;
+            $.ajax({
+                type: 'post',
+                url: url + '/flats/updateFlatWithBuyer',
+                data: JSON.stringify(flat),
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    console.log('success /updateFlat');
+                    let validation = JSON.parse(data);
+                    if (validation == null) {
+                        validationMessage(null);
+                        if (Flat.contract.id !== undefined) {
+                            window.location = url + '/contracts/contract/' + Flat.contract.id;
+                        } else {
+                            window.location = url + '/contracts/contract/0?flatId=' + FlatId;
+                        }
+                    } else {
+                        validationMessage(validation);
+                    }
+                },
+                error: function () {
+                    console.log('error /updateFlat');
+                }
+            });
+        } else {
+            if (Flat.id == 0) {
+                $.ajax({
+                    type: 'post',
+                    url: url + '/flats/addFlat',
+                    data: JSON.stringify(flat),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (data) {
+                        console.log('success /addFlat');
+                        let validation = JSON.parse(data);
+                        if (typeof validation !== "object") {
+                            FlatId = validation;
+                            Flat.id = FlatId;
+                            if (element.id === 'commissionButton') {
+                                window.location = url + '/cashRegister';
+                            }
+                            if (element.id === 'paymentScheduleButton') {
+                                $("#descriptionPage").hide();
+                                $("#paymentSchedulePage").show();
+                            }
+                            getFlatById();
+                            validationMessage(null);
+                        } else {
+                            validationMessage(validation);
+                        }
+                    },
+                    error: function () {
+                        console.log('error /addFlat');
+                    }
+                });
+            } else {
+                flat.id = Flat.id;
+                $.ajax({
+                    type: 'post',
+                    url: url + '/flats/updateFlat',
+                    data: JSON.stringify(flat),
+                    contentType: "application/json; charset=utf-8",
+                    success: function (data) {
+                        console.log('success /updateFlat');
+                        let validation = JSON.parse(data);
+                        if (validation == null) {
+                            validationMessage(null);
+                        } else {
+                            validationMessage(validation);
+                        }
+                    },
+                    error: function () {
+                        console.log('error /updateFlat');
+                    }
+                });
+            }
+        }
+    }
+
+    function validationMessage(validation){
+        if(validation === 1){
+            document.getElementById('numberMessage').innerHTML = "";
+            document.getElementById('number').style.border = "1px solid #ced4da";
+            document.getElementById('quantityRoomsMessage').innerHTML = "";
+            document.getElementById('quantityRooms').style.border = "1px solid #ced4da";
+            document.getElementById('floorMessage').innerHTML = "";
+            document.getElementById('floor').style.border = "1px solid #ced4da";
+            document.getElementById('statusMessage').innerHTML = "";
+            document.getElementById('status').style.border = "1px solid #ced4da";
+            document.getElementById('objectMessage').innerHTML = "";
+            document.getElementById('object').style.border = "1px solid #ced4da";
+            document.getElementById('areaMessage').innerHTML = "";
+            document.getElementById('area').style.border = "1px solid #ced4da";
+            document.getElementById('priceMessage').innerHTML = "";
+            document.getElementById('price').style.border = "1px solid #ced4da";
+            document.getElementById('salePriceMessage').innerHTML = "";
+            document.getElementById('salePrice').style.border = "1px solid #ced4da";
+            document.getElementById('agencyMessage').innerHTML = "";
+            document.getElementById('agency').style.border = "1px solid #ced4da";
+            document.getElementById('managerMessage').innerHTML = "";
+            document.getElementById('manager').style.border = "1px solid #ced4da";
+            document.getElementById('buyerMessage').innerHTML = "";
+            document.getElementById('buyer').style.border = "1px solid #ced4da";
+            document.getElementById('realtorrMessage').innerHTML = "";
+            document.getElementById('realtorr').style.border = "1px solid #ced4da";
+            return;
+        }
+        if(validation?.number ?? false){
+            document.getElementById('numberMessage').innerHTML = validation.number;
+            document.getElementById('number').style.border = "1px solid red";
+        }else {
+            document.getElementById('numberMessage').innerHTML = "";
+            document.getElementById('number').style.border = "1px solid green";
+        }
+        if(validation?.quantityRooms ?? false){
+            document.getElementById('quantityRoomsMessage').innerHTML = validation.quantityRooms;
+            document.getElementById('quantityRooms').style.border = "1px solid red";
+        }else {
+            document.getElementById('quantityRoomsMessage').innerHTML = "";
+            document.getElementById('quantityRooms').style.border = "1px solid green";
+        }
+        if(validation?.floor ?? false){
+            document.getElementById('floorMessage').innerHTML = validation.floor;
+            document.getElementById('floor').style.border = "1px solid red";
+        }else {
+            document.getElementById('floorMessage').innerHTML = "";
+            document.getElementById('floor').style.border = "1px solid green";
+        }
+        if(validation?.status ?? false){
+            document.getElementById('statusMessage').innerHTML = validation.status;
+            document.getElementById('status').style.border = "1px solid red";
+        } else {
+            document.getElementById('statusMessage').innerHTML = "";
+            document.getElementById('status').style.border = "1px solid green";
+        }
+        if(validation?.objectId ?? false){
+            document.getElementById('objectMessage').innerHTML = validation.objectId;
+            document.getElementById('object').style.border = "1px solid red";
+        }else {
+            document.getElementById('objectMessage').innerHTML = "";
+            document.getElementById('object').style.border = "1px solid green";
+        }
+        if(validation?.area ?? false){
+            document.getElementById('areaMessage').innerHTML = validation.area;
+            document.getElementById('area').style.border = "1px solid red";
+        }else {
+            document.getElementById('areaMessage').innerHTML = "";
+            document.getElementById('area').style.border = "1px solid green";
+        }
+        if(validation?.price ?? false){
+            document.getElementById('priceMessage').innerHTML = validation.price;
+            document.getElementById('price').style.border = "1px solid red";
+        }else {
+            document.getElementById('priceMessage').innerHTML = "";
+            document.getElementById('price').style.border = "1px solid green";
+        }
+        if(validation?.salePrice ?? false){
+            document.getElementById('salePriceMessage').innerHTML = validation.salePrice;
+            document.getElementById('salePrice').style.border = "1px solid red";
+        }else {
+            document.getElementById('salePriceMessage').innerHTML = "";
+            document.getElementById('salePrice').style.border = "1px solid green";
+        }
+        if(validation?.agency ?? false){
+            document.getElementById('agencyMessage').innerHTML = validation.agency;
+            document.getElementById('agency').style.border = "1px solid red";
+        }else {
+            document.getElementById('agencyMessage').innerHTML = "";
+            document.getElementById('agency').style.border = "1px solid green";
+        }
+        if(validation?.manager ?? false){
+            document.getElementById('managerMessage').innerHTML = validation.manager;
+            document.getElementById('manager').style.border = "1px solid red";
+        }else {
+            document.getElementById('managerMessage').innerHTML = "";
+            document.getElementById('manager').style.border = "1px solid green";
+        }
+        if(validation?.realtor ?? false){
+            document.getElementById('realtorrMessage').innerHTML = validation.realtor;
+            document.getElementById('realtorr').style.border = "1px solid red";
+        }else {
+            document.getElementById('realtorrMessage').innerHTML = "";
+            document.getElementById('realtorr').style.border = "1px solid green";
+        }
+        if(validation?.buyer ?? false){
+            document.getElementById('buyerMessage').innerHTML = validation.buyer;
+            document.getElementById('buyer').style.border = "1px solid red";
+        }else {
+            document.getElementById('buyerMessage').innerHTML = "";
+            document.getElementById('buyer').style.border = "1px solid green";
+        }
+        setTimeout(function() {
+            validationMessage(1)
+        }, 5000);
+    }
+
+    function updateList(data) {
+        $("#list").empty();
+        data.content.forEach((object) => {
+            $("#list").append($("" +
+                "<tr>" +
+                "<td>" +
+                "<p>" + object.id + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.house + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.section + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.address + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.status + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.agency + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.manager + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<button onclick='editForm(" + object.id + ")' class=\"btn btn-warning\" type=\"button\">Edit</button>" +
+                "</td>" +
+                "<td>" +
+                "<button onclick='deleteObject(" + object.id + ")' class=\"btn btn-danger\" type=\"button\">Delete</button>" +
+                "</td>" +
+                "</tr>"
+            ));
+        })
+        paginationButton();
+    }
+
+    function agencyAndManager(){
+        Objects.forEach((object) => {
+            if (object.id == $("#object").val()){
+                document.getElementById('agency').value = object.agency;
+                document.getElementById('manager').value = object.manager;
+            }
+        })
+    }
+
+    function getFlatById(){
+        let data = { id: FlatId };
+        $.ajax({
+            type: 'get',
+            url: url +'/flats/getFlatById',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                console.log('success /getFlatById');
+                Flat = data;
+                document.getElementById('number').value = Flat.number;
+                document.getElementById('quantityRooms').value = Flat.quantityRooms;
+                document.getElementById('floor').value = Flat.floor;
+                document.getElementById('area').value = Flat.area;
+                document.getElementById('price').value = Flat.price;
+                document.getElementById('salePrice').value = Flat.salePrice;
+                $("#summernote").summernote("code", Flat.description);
+                if(null != Flat?.buyer?.id ?? false){
+                    $('#buyer').append($("" +
+                        "<option value='" + Flat?.buyer?.id + "' selected>" + Flat?.buyer?.name + " " + Flat?.buyer?.surname + "</option>"))
+                    $("#agencyDiv").show();
+                    $("#realtorDiv").show();
+                }
+                if(undefined !== Flat?.contract?.id ?? null){
+                    document.getElementById('number').disabled = true;
+                    document.getElementById('quantityRooms').disabled = true;
+                    document.getElementById('floor').disabled = true;
+                    document.getElementById('area').disabled = true;
+                    document.getElementById('price').disabled = true;
+                    document.getElementById('salePrice').disabled = true;
+                    document.getElementById('buyer').disabled = true;
+                    document.getElementById('agencyy').disabled = true;
+                    document.getElementById('realtorr').disabled = true;
+                    document.getElementById('object').disabled = true;
+                    document.getElementById('status').disabled = true;
+                    document.getElementById('priceSquare').disabled = true;
+                    document.getElementById('salePriceSquare').disabled = true;
+                    document.getElementById('discountSquare').disabled = true;
+                    document.getElementById('discount').disabled = true;
+                    document.getElementById('manager').disabled = true;
+                    document.getElementById('agency').disabled = true;
+                    document.getElementById('addPayment').disabled = true;
+                    document.getElementById('createBuyerButton').disabled = true;
+                    $('#summernote').summernote('disable');
+                }
+                getObjects();
+                getStatuses();
+                updateAgency();
+                updateAll();
+                if(undefined !== Flat?.contract?.id ?? null) {
+                    let buttons = document.getElementsByName('button');
+                    buttons.forEach((element) => {
+                        element.disabled = true;
+                    })
+                }
+            },
+            error: function() {
+                console.log('error /getFlatById');
+            }
+        });
+    }
+
+    function getObjects(){
+        $.ajax({
+            type: 'get',
+            url: url +'/flats/getAllOnSaleObjects',
+            dataType: "json",
+            success: function (data){
+                console.log('success /getAllOnSaleObjects');
+                Objects = data
+                $("#object").append($("" +
+                    "<option selected disabled value='" + null + "' selected disabled>Choose object</option>"
+                ));
+                data.forEach((object) => {
+                    if (object.id === Flat?.object?.id ?? null) {
+                        $("#object").append($("" +
+                            "<option selected value='" + object.id + "'> " + object.house + "(" + object.section + ")" + "</option>"
+                        ));
+                        agencyAndManager(object);
+                    } else {
+                        $("#object").append($("" +
+                            "<option value='" + object.id + "'> " + object.house + "(" + object.section + ")" + "</option>"
+                        ));
+                    }
+                })
+            },
+            error: function() {
+                console.log('error /getAllOnSaleObjects');
+            }
+        });
+    }
+
+    function getStatuses(){
+        $.ajax({
+            type: 'get',
+            url: url +'/flats/getStatuses',
+            dataType: "json",
+            success: function (data){
+                console.log('success /getStatuses');
+                Statuses = data;
+                $("#status").append($("" +
+                    "<option selected disabled value='" + null + "'>Choose status</option>"
+                ));
+                Statuses.forEach((object) => {
+                    if (object.first === Flat?.status ?? null) {
+                        $("#status").append($("" +
+                            "<option selected value='" + object.first + "'> " + object.second + "</option>"
+                        ));
+                    } else {
+                        $("#status").append($("" +
+                            "<option value='" + object.first + "'> " + object.second + "</option>"
+                        ));
+                    }
+                })
+            },
+            error: function() { console.log('error /getStatuses'); }
+        });
+    }
+
+    function updatePrice(element){
+        if(element.id === 'price') {
+            document.getElementById("priceSquare").value = $('#price').val() / $('#area').val();
+            updateAll();
+        }
+        if(element.id === 'priceSquare') {
+            document.getElementById("price").value = $('#priceSquare').val() * $('#area').val();
+            updateAll();
+        }
+        function updateAll(){
+            let bol = false;
+            if ($('#salePriceSquare').val() !== '' && $('#salePriceSquare').val() !== '0') {
+                console.log("salePriceSquare");
+                document.getElementById("salePrice").value = $('#salePriceSquare').val() * $('#area').val();
+                bol = true;
+            } else {
+                if ($('#salePrice').val() !== '' && $('#salePrice').val() !== '0') {
+                    console.log("salePrice");
+                    document.getElementById("salePriceSquare").value = $('#salePrice').val() / $('#area').val();
+                    bol = true;
+                }
+            }
+            if (bol) {
+                document.getElementById("discount").value = $('#price').val() - $('#salePrice').val();
+                document.getElementById("discountSquare").value = $('#discount').val() / $('#area').val();
+            }
+        }
+    }
+
+    function updateSalePrice(element){
+        if(element.id === 'salePrice') {
+            document.getElementById("salePriceSquare").value = $('#salePrice').val() / $('#area').val();
+            updateAll();
+        }
+        if(element.id === 'salePriceSquare') {
+            document.getElementById("salePrice").value = $('#salePriceSquare').val() * $('#area').val();
+            updateAll();
+        }
+        function updateAll(){
+            let bol = false;
+            if ($('#priceSquare').val() !== '' && $('#priceSquare').val() !== '0') {
+                document.getElementById("price").value = $('#priceSquare').val() * $('#area').val();
+                bol = true;
+            } else {
+                if ($('#price').val() !== '' && $('#price').val() !== '0') {
+                    document.getElementById("priceSquare").value = $('#price').val() / $('#area').val();
+                    bol = true;
+                }
+            }
+            if (bol) {
+                document.getElementById("discount").value = $('#price').val() - $('#salePrice').val();
+                document.getElementById("discountSquare").value = $('#discount').val() / $('#area').val();
+            }
+        }
+    }
+
+    function updateDiscount(element){
+        if(element.id === 'discount') {
+            document.getElementById("discountSquare").value = $('#discount').val() / $('#area').val();
+            updateAll();
+        }
+        if(element.id === 'discountSquare') {
+            document.getElementById("discount").value = $('#discountSquare').val() * $('#area').val();
+            updateAll();
+        }
+        function updateAll(){
+            let bol = false;
+            if ($('#priceSquare').val() !== '' && $('#priceSquare').val() !== '0') {
+                document.getElementById("price").value = $('#priceSquare').val() * $('#area').val();
+                bol = true;
+            } else {
+                if ($('#price').val() !== '' && $('#price').val() !== '0') {
+                    document.getElementById("priceSquare").value = $('#price').val() / $('#area').val();
+                    bol = true;
+                }
+            }
+            if (bol) {
+                document.getElementById("salePriceSquare").value = $('#priceSquare').val() - $('#discountSquare').val();
+                document.getElementById("salePrice").value = $('#price').val() - $('#discount').val();
+            }
+        }
+    }
+
+    function updateAll() {
+        document.getElementById("priceSquare").value = $('#price').val() / $('#area').val();
+        document.getElementById("salePriceSquare").value = $('#salePrice').val() / $('#area').val();
+        document.getElementById("discount").value = $('#price').val() - $('#salePrice').val();
+        document.getElementById("discountSquare").value = $('#discount').val() / $('#area').val();
+    }
+
+    function inputInteger(element){
+        element.value = Math.round(element.value);
+    }
+
+    function summernote(){
+        // Summernote
+        console.log('hello');
+        $('#summernote').summernote();
+    }
+</script>
+
+<script th:src="@{/plugins/summernote/summernote-bs4.min.js}"></script>
+
+</body>
+</html>

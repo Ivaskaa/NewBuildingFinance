@@ -1,0 +1,170 @@
+<!-- Main Sidebar Container -->
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <!-- Brand Logo -->
+    <div class="brand-link">
+<!--        <img th:src="@{/dist/img/AdminLTELogo.png}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">-->
+        <a style="color: white" th:href="@{/statistics}" class="nav-link">New Building Finance</a>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <!-- Sidebar user panel (optional) -->
+        <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+            <div class="info">
+                <a th:href="@{/profile}" style="color: white" th:text="${user.username}" class="nav-link"></a>
+            </div>
+        </div>
+
+
+        <!-- Sidebar Menu -->
+        <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                <!-- Add icons to the links using the .nav-icon class
+                     with font-awesome or any other icon font library -->
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-copy"></i>
+                        <p>
+                            Statistics
+                            <i class="fas fa-angle-left right"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a th:href="@{/dashboard}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>General statistics</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Flats statistics</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Monthly statistics</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/flats}" class="nav-link">
+                        <i class="nav-icon fas fa-columns"></i>
+                        <p>
+                            Flats
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/cashRegister}" class="nav-link">
+                        <i class="nav-icon fas fa-columns"></i>
+                        <p>
+                            Cash register
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/buyers}" class="nav-link">
+                        <i class="nav-icon fas fa-columns"></i>
+                        <p>
+                            Buyers
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/agencies}" class="nav-link">
+                        <i class="nav-icon fas fa-columns"></i>
+                        <p>
+                            Agencies
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/objects}" class="nav-link">
+                        <i class="nav-icon fas fa-columns"></i>
+                        <p>
+                            Objects
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/contracts}" class="nav-link">
+                        <i class="nav-icon fas fa-columns"></i>
+                        <p>
+                            Contracts
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-copy"></i>
+                        <p>
+                            Contracts
+                            <i class="fas fa-angle-left right"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a th:href="@{/contracts}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Contracts</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/contracts/templates}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Templates</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-copy"></i>
+                        <p>
+                            Settings
+                            <i class="fas fa-angle-left right"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a th:href="@{/settings/currency}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Currency</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/settings/roles}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Roles</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/settings/users}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Users</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/settings/variables}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Variables</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/settings/settings}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Settings</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+        <!-- /.sidebar-menu -->
+    </div>
+    <!-- /.sidebar -->
+</aside>

@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Buyers</title>
+
+  <style th:replace="blocks/linkAdminLTE"></style>
+  <div th:replace="blocks/links"></div>
+  <script th:src="@{/js/app.js}"></script>
+  <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+
+<body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
+<div class="wrapper">
+
+  <div th:replace="blocks/navbar"></div>
+  <div th:replace="blocks/sidebarContainer"></div>
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+
+    <div class="content-header">
+      <div class="container-fluid">
+        <h1 class="m-0">Buyers</h1>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <section class="content">
+      <label>
+        <select id="sizeSelect" style="width: 50px; " onchange="changeSize()" name='status' class='form-control'>
+          <option value=10 selected>10</option>
+          <option value=20>20</option>
+        </select>
+      </label>
+
+      <button onclick="openPopup('add')" class="btn btn-success popup-with-form">Add buyer</button>
+      <table class="table">
+        <thead>
+        <tr>
+          <th scope="col">
+            <div onclick="sort('name')">
+              <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Name</p>
+            </div>
+          </th>
+          <th scope="col">
+            <div onclick="sort('count')">
+              <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Count</p>
+            </div>
+          </th>
+          <th scope="col">
+            <div onclick="sort('phone')">
+              <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Phone</p>
+            </div>
+          </th>
+          <th scope="col">
+            <div onclick="sort('email')">
+              <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Email</p>
+            </div>
+          </th>
+          <th scope="col">
+            <div onclick="sort('realtor.agency')">
+              <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Agency</p>
+            </div>
+          </th>
+          <th scope="col">
+            <div onclick="sort('realtor')">
+              <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Realtor</p>
+            </div>
+          </th>
+          <th scope="col">
+            <div onclick="sort('user')">
+              <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Manager</p>
+            </div>
+          </th>
+          <th scope="col">
+            <div>
+              <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Contracts</p>
+            </div>
+          </th>
+          <th scope="col">
+            <div>
+              <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Edit</p>
+            </div>
+          </th>
+          <th scope="col">
+            <div>
+              <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Delete</p>
+            </div>
+          </th>
+        </tr>
+        </thead>
+        <tbody id="list">
+        <!-- list -->
+        </tbody>
+      </table>
+      <nav>
+        <ul id="choose-page" class="pagination">
+          <!-- pagination buttons -->
+        </ul>
+      </nav>
+    </section>
+  </div>
+  <div id="popup" class="modal">
+    <!-- popup -->
+  </div>
+</div>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script th:src="@{/js/validation.js}"></script>
+
+<script>
+  let modal = document.getElementById("popup");
+
+  let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
+  let url = window.location.protocol+"//"+ window.location.host + context;
+
+  let currentPage = 1;
+  let size = 10;
+  let sortingField = 'id';
+  let sortingDirection = 'ASC';  // DESC
+
+  let totalPage;
+  let IdForUpdating;
+
+  let Buyer = {};
+
+  $(document).ready(function() {
+    updatePage(currentPage, size, sortingField, sortingDirection);
+  });
+
+  function sort(field){
+    if(sortingDirection === 'ASC'){
+      sortingDirection = 'DESC';
+    } else {
+      sortingDirection = 'ASC';
+    }
+    sortingField = field;
+    updatePage(currentPage, size, sortingField, sortingDirection);
+
+  }
+
+  function openPopup(style) {
+    modal.style.display = "block";
+    $("#popup").append($(
+            "<div class=\"modal-content\">\n" +
+            "   <span onclick=\"closePopup()\" class=\"close\">&times;</span>\n" +
+            "     <form class=\"mt-2\">\n" +
+
+            "       <div class='row'>" +
+            "       <div class='col'>" +
+            "         <div class=\"form-group mt-2\">\n" +
+            "           <label>Name:</label>\n" +
+            "           <input id=\"name\" type=\"text\" maxlength=\"50\" \n" +
+            "                  placeholder=\"Enter name\" class=\"form-control\">\n" +
+            "           <p id='nameMessage' style=\"color: red\"></p>" +
+            "         </div>\n" +
+            "       </div>\n" +
+            "       <div class='col'>" +
+            "         <div class=\"form-group mt-2\">\n" +
+            "           <label>Surname:</label>\n" +
+            "           <input id=\"surname\" type=\"text\" maxlength=\"50\" \n" +
+            "                  placeholder=\"Enter surname\" class=\"form-control\">\n" +
+            "           <p id='surnameMessage' style=\"color: red\"></p>" +
+            "         </div>\n" +
+            "       </div>\n" +
+            "       <div class='col'>" +
+            "         <div class=\"form-group mt-2\">\n" +
+            "           <label>Lastname:</label>\n" +
+            "           <input id=\"lastname\" type=\"text\" maxlength=\"50\" \n" +
+            "                  placeholder=\"Enter lastname\" class=\"form-control\">\n" +
+            "           <p id='lastnameMessage' style=\"color: red\"></p>" +
+            "         </div>\n" +
+            "       </div>" +
+            "       </div>\n" +
+            "       <div class='row'>" +
+            "       <div class='col'>" +
+            "         <div class=\"form-group mt-2\">\n" +
+            "           <label>Address:</label>\n" +
+            "           <input id=\"address\" type=\"text\" maxlength=\"50\" \n" +
+            "                  placeholder=\"Enter address\" class=\"form-control\">\n" +
+            "           <p id='addressMessage' style=\"color: red\"></p>" +
+            "         </div>\n" +
+            "       </div>\n" +
+            "       <div class='col'>" +
+            "         <div class=\"form-group mt-2\">\n" +
+            "           <label>ID number:</label>\n" +
+            "           <input id=\"idNumber\" type=\"number\" maxlength=\"15\" \n" +
+            "                  placeholder=\"Enter ID\" class=\"form-control\">\n" +
+            "           <p id='idNumberMessage' style=\"color: red\"></p>" +
+            "         </div>\n" +
+            "       </div>" +
+            "       </div>\n" +
+            "       <div class='row'>" +
+            "       <div class='col'>" +
+            "         <div class=\"form-group mt-2\">\n" +
+            "           <label>Agency:</label>\n" +
+            "           <select id=\"agency\" onchange='getRealtors()' class=\"form-control\">\n" +
+            "           </select>" +
+            "           <p id='agencyMessage' style=\"color: red\"></p>" +
+            "         </div>\n" +
+            "       </div>" +
+            "       <div class='col'>" +
+            "         <div class=\"form-group mt-2\">\n" +
+            "           <label>Realtor:</label>\n" +
+            "           <select id=\"realtor\" class=\"form-control\">\n" +
+            "             <option value='" + null + "' selected disabled>Choose realtor</option>" +
+            "           </select>" +
+            "           <p id='realtorMessage' style=\"color: red\"></p>" +
+            "         </div>\n" +
+            "       </div>" +
+            "       <div class='col'>" +
+            "         <div class=\"form-group mt-2\">\n" +
+            "           <label>Manager:</label>\n" +
+            "           <select id=\"manager\" class=\"form-control\">\n" +
+            "           </select>" +
+            "           <p id='managerMessage' style=\"color: red\"></p>" +
+            "         </div>\n" +
+            "       </div>" +
+            "       </div>" +
+            "       <h3>Passport data</h3>" +
+            "       <div class='row'>" +
+            "       <div class='col'>" +
+            "         <div class=\"form-group mt-2\">\n" +
+            "           <label>Series:</label>\n" +
+            "           <input id=\"passportSeries\" type=\"number\" min='0' maxlength=\"50\" \n" +
+            "                  placeholder=\"Enter passport series\" class=\"form-control\">\n" +
+            "           <p id='passportSeriesMessage' style=\"color: red\"></p>" +
+            "         </div>\n" +
+            "       </div>" +
+            "       <div class='col'>" +
+            "         <div class=\"form-group mt-2\">\n" +
+            "           <label>Number:</label>\n" +
+            "           <input id=\"passportNumber\" type=\"number\" min='0' maxlength=\"50\" \n" +
+            "                  placeholder=\"Enter passport number\" class=\"form-control\">\n" +
+            "           <p id='passportNumberMessage' style=\"color: red\"></p>" +
+            "         </div>\n" +
+            "       </div>" +
+            "       <div class='col'>" +
+            "         <div class=\"form-group mt-2\">\n" +
+            "           <label>Who issued:</label>\n" +
+            "           <input id=\"passportWhoIssued\" type=\"number\" min='0' maxlength=\"50\" \n" +
+            "                  placeholder=\"Enter who issued\" class=\"form-control\">\n" +
+            "           <p id='passportWhoIssuedMessage' style=\"color: red\"></p>" +
+            "         </div>\n" +
+            "       </div>" +
+            "       </div>" +
+            "       <h3>Buyer contacts</h3>" +
+            "       <div class=\"form-group mt-2\">\n" +
+            "         <label>Phone:</label>\n" +
+            "         <input id=\"phone\" type=\"text\" maxlength=\"50\" \n" +
+            "                placeholder=\"Enter phone\" class=\"form-control\">\n" +
+            "         <p id='phoneMessage' style=\"color: red\"></p>" +
+            "       </div>\n" +
+            "       <div class=\"form-group mt-2\">\n" +
+            "         <label>Email:</label>\n" +
+            "         <input id=\"email\" type=\"text\" maxlength=\"50\" \n" +
+            "                placeholder=\"Enter email\" class=\"form-control\">\n" +
+            "         <p id='emailMessage' style=\"color: red\"></p>" +
+            "       </div>\n" +
+            "       <div class=\"form-group mt-2\">\n" +
+            "         <label>Note:</label>\n" +
+            "         <textarea id=\"note\" maxlength=\"3000\" \n" +
+            "                placeholder=\"Enter note\" class=\"form-control\"></textarea>\n" +
+            "       </div>\n" +
+            "       <button onclick=\"save('" + style + "')\" type=\"button\" class=\"btn btn-success mt-2\">Save</button>\n" +
+            "     </form>\n" +
+            "   </div>"
+    ));
+    if (style === 'add') {
+      Buyer = null;
+      getAgencies();
+      getManagers();
+    }
+  }
+
+  function closePopup(){
+    modal.style.display = "none";
+    $("#popup").empty();
+  }
+
+  function getAgencies(){
+    $.ajax({
+      type: 'get',
+      url: '../buyers/getAllAgencies',
+      dataType: "json",
+      async: false,
+      success: function (data){
+        console.log('success /getAllAgencies');
+        $("#agency").append($("" +
+                "<option value='" + null + "' selected disabled>Choose agency</option>"
+        ));
+        data.forEach((object) =>{
+          if (object.id == Buyer?.realtor?.agency?.id ?? false) {
+            $("#agency").append($("" +
+                    "<option value='" + object.id + "' selected>" + object.name + "</option>"
+            ));
+            getRealtors();
+          } else {
+            $("#agency").append($("" +
+                    "<option value='" + object.id + "'>" + object.name + "</option>"
+            ));
+          }
+        })
+      },
+      error: function() {
+        console.log('error /getAllAgencies');
+      }
+    });
+  }
+
+  function getManagers(){
+    $.ajax({
+      type: 'get',
+      url: '../buyers/getAllManagers',
+      dataType: "json",
+      async: false,
+      success: function (data){
+        console.log('success /getAllManagers');
+        $("#manager").append($("" +
+                "<option value='" + null + "' disabled selected>Choose manager</option>"
+        ));
+        data.forEach((object) =>{
+          if (object.id == Buyer?.user?.id ?? false) {
+            $("#manager").append($("" +
+                    "<option value='" + object.id + "' selected>" + object.name + " " + object.surname + "</option>"
+            ));
+          } else {
+            $("#manager").append($("" +
+                    "<option value='" + object.id + "'>" + object.name + " " + object.surname + "</option>"
+            ));
+          }
+        })
+      },
+      error: function() {
+        console.log('error /getAllManagers');
+      }
+    });
+  }
+
+  function getRealtors(){
+    let data = {};
+    data.id = $("#agency").val()
+    $.ajax({
+      type: 'get',
+      url: '../buyers/getRealtorsByAgenciesId',
+      dataType: "json",
+      data: data,
+      async: false,
+      success: function (data){
+        console.log('success /getRealtorsByAgenciesId');
+        $("#realtor").empty();
+        $("#realtor").append($("" +
+                "<option value='" + null + "' selected disabled>Choose realtor</option>"
+        ));
+        data.forEach((object) =>{
+          if (object.id == Buyer?.realtor?.id ?? false) {
+            $("#realtor").append($("" +
+                    "<option value='" + object.id + "' selected>" + object.name + " " + object.surname + "</option>"
+            ));
+          } else {
+            $("#realtor").append($("" +
+                    "<option value='" + object.id + "'>" + object.name + " " + object.surname + "</option>"
+            ));
+          }
+        })
+      },
+      error: function() {
+        console.log('error /getRealtorsByAgenciesId');
+      }
+    });
+  }
+
+  function save(style){
+    let object = {};
+    object.name = document.getElementById('name').value;
+    object.surname = document.getElementById('surname').value;
+    object.lastname = document.getElementById('lastname').value;
+    object.address = document.getElementById('address').value;
+    object.idNumber = document.getElementById('idNumber').value;
+    object.passportSeries = document.getElementById('passportSeries').value;
+    object.passportNumber = document.getElementById('passportNumber').value;
+    object.passportWhoIssued = document.getElementById('passportWhoIssued').value;
+    object.phone = document.getElementById('phone').value;
+    object.email = document.getElementById('email').value;
+    object.note = document.getElementById('note').value;
+    object.realtor = $('#realtor').val();
+    object.manager = $('#manager').val();
+
+    console.log(object);
+    if(style === 'add') {
+      $.ajax({
+        type: 'post',
+        url: '../buyers/addBuyer',
+        data: JSON.stringify(object),
+        contentType: "application/json; charset=utf-8",
+        success: function (data) {
+          let validation = JSON.parse(data);
+          if (validation == null) {
+            updatePage(currentPage, size, sortingField, sortingDirection)
+            closePopup();
+            console.log('success /addBuyer');
+          } else {
+            validationMessage(validation);
+          }
+        },
+        error: function () {
+          console.log('error /addBuyer');
+        }
+      });
+    }
+
+    if(style === 'edit') {
+      object.id = IdForUpdating;
+      $.ajax({
+        type: 'post',
+        url: '../buyers/updateBuyer',
+        data: JSON.stringify(object),
+        contentType: "application/json; charset=utf-8",
+        success: function (data) {
+          let validation = JSON.parse(data);
+          if (validation == null) {
+            updatePage(currentPage, size, sortingField, sortingDirection)
+            closePopup();
+            console.log('success /updateBuyer');
+          } else {
+            validationMessage(validation);
+          }
+        },
+        error: function () {
+          console.log('error /updateBuyer');
+        }
+      });
+    }
+  }
+
+  function validationMessage(validation){
+    if(validation?.name ?? false){
+      document.getElementById('nameMessage').innerHTML = validation.name;
+      document.getElementById('name').style.border = "1px solid red";
+    } else {
+      document.getElementById('nameMessage').innerHTML = "";
+      document.getElementById('name').style.border = "1px solid green";
+    }
+    if(validation?.surname ?? false){
+      document.getElementById('surnameMessage').innerHTML = validation.surname;
+      document.getElementById('surname').style.border = "1px solid red";
+    } else {
+      document.getElementById('surnameMessage').innerHTML = "";
+      document.getElementById('surname').style.border = "1px solid green";
+    }
+    if(validation?.lastname ?? false){
+      document.getElementById('lastnameMessage').innerHTML = validation.lastname;
+      document.getElementById('lastname').style.border = "1px solid red";
+    } else {
+      document.getElementById('lastnameMessage').innerHTML = "";
+      document.getElementById('lastname').style.border = "1px solid green";
+    }
+    if(validation?.address ?? false){
+      document.getElementById('addressMessage').innerHTML = validation.address;
+      document.getElementById('address').style.border = "1px solid red";
+    } else {
+      document.getElementById('addressMessage').innerHTML = "";
+      document.getElementById('address').style.border = "1px solid green";
+    }
+    if(validation?.idNumber ?? false){
+      document.getElementById('idNumberMessage').innerHTML = validation.idNumber;
+      document.getElementById('idNumber').style.border = "1px solid red";
+    } else {
+      document.getElementById('idNumberMessage').innerHTML = "";
+      document.getElementById('idNumber').style.border = "1px solid green";
+    }
+    if(validation?.passportSeries ?? false){
+      document.getElementById('passportSeriesMessage').innerHTML = validation.passportSeries;
+      document.getElementById('passportSeries').style.border = "1px solid red";
+    } else {
+      document.getElementById('passportSeriesMessage').innerHTML = "";
+      document.getElementById('passportSeries').style.border = "1px solid green";
+    }
+    if(validation?.passportNumber ?? false){
+      document.getElementById('passportNumberMessage').innerHTML = validation.passportNumber;
+      document.getElementById('passportNumber').style.border = "1px solid red";
+    } else {
+      document.getElementById('passportNumberMessage').innerHTML = "";
+      document.getElementById('passportNumber').style.border = "1px solid green";
+    }
+    if(validation?.passportWhoIssued ?? false){
+      document.getElementById('passportWhoIssuedMessage').innerHTML = validation.passportWhoIssued;
+      document.getElementById('passportWhoIssued').style.border = "1px solid red";
+    } else {
+      document.getElementById('passportWhoIssuedMessage').innerHTML = "";
+      document.getElementById('passportWhoIssued').style.border = "1px solid green";
+    }
+    if(validation?.phone ?? false){
+      document.getElementById('phoneMessage').innerHTML = validation.phone;
+      document.getElementById('phone').style.border = "1px solid red";
+    } else {
+      document.getElementById('phoneMessage').innerHTML = "";
+      document.getElementById('phone').style.border = "1px solid green";
+    }
+    if(validation?.email ?? false){
+      document.getElementById('emailMessage').innerHTML = validation.email;
+      document.getElementById('email').style.border = "1px solid red";
+    } else {
+      document.getElementById('emailMessage').innerHTML = "";
+      document.getElementById('email').style.border = "1px solid green";
+    }
+    if(validation?.realtor ?? false){
+      document.getElementById('realtorMessage').innerHTML = validation.realtor;
+      document.getElementById('realtor').style.border = "1px solid red";
+    } else {
+      document.getElementById('realtorMessage').innerHTML = "";
+      document.getElementById('realtor').style.border = "1px solid green";
+    }
+    if(validation?.manager ?? false){
+      document.getElementById('managerMessage').innerHTML = validation.manager;
+      document.getElementById('manager').style.border = "1px solid red";
+    } else {
+      document.getElementById('managerMessage').innerHTML = "";
+      document.getElementById('manager').style.border = "1px solid green";
+    }
+  }
+
+
+  function updatePage(currentPage, size, sortingField, sortingDirection){
+    let data = {
+      page: currentPage,
+      size: size,
+      field: sortingField,
+      direction: sortingDirection
+    }
+    $.ajax({
+      type: 'get',
+      url: '../buyers/getBuyers',
+      data: data,
+      dataType: "json",
+      success: function (data){
+        totalPage = data.totalPages;
+        if(currentPage > totalPage){
+          currentPage--;
+          updatePage(currentPage, size, sortingField, sortingDirection);
+        }
+        updateList(data)
+        console.log('success /getBuyers');
+      },
+      error: function() {
+        console.log('error /getBuyers');
+      }
+    });
+  }
+
+  function updateList(data) {
+    $("#list").empty();
+    data.content.forEach((object) => {
+      $("#list").append($("" +
+              "<tr>" +
+              "<td>" +
+              "<p>" + object.name + " " + object.surname + " " + object.lastname + "</p>" +
+              "</td>" +
+              "<td>" +
+              "<p>" + object.count + "</p>" +
+              "</td>" +
+              "<td>" +
+              "<p>" + object.phone + "</p>" +
+              "</td>" +
+              "<td>" +
+              "<p>" + object.email + "</p>" +
+              "</td>" +
+              "<td>" +
+              "<p>" + object.agency + "</p>" +
+              "</td>" +
+              "<td>" +
+              "<p>" + object.realtor + "</p>" +
+              "</td>" +
+              "<td>" +
+              "<p>" + object.manager + "</p>" +
+              "</td>" +
+              "<td>" +
+              "<a href='" + url +"/buyers/contracts/" + object.id + "' class=\"btn btn-warning\" type=\"button\">Contracts</a>" +
+              "</td>" +
+              "<td>" +
+              "<button onclick='editForm(" + object.id + ")' class=\"btn btn-warning\" type=\"button\">Edit</button>" +
+              "</td>" +
+              "<td>" +
+              "<button onclick='deleteObject(" + object.id + ")' class=\"btn btn-danger\" type=\"button\">Delete</button>" +
+              "</td>" +
+              "</tr>"
+      ));
+    })
+    paginationButton();
+  }
+
+  function editForm(id){
+    IdForUpdating = id;
+    openPopup('edit');
+    let data = { id: id };
+    $.ajax({
+      type: 'get',
+      url: '../buyers/getBuyerById',
+      data: data,
+      dataType: "json",
+      success: function (object){
+        console.log('success /getBuyerById');
+        Buyer = object
+        console.log(Buyer);
+        document.getElementById('name').value = object.name;
+        document.getElementById('surname').value = object.surname;
+        document.getElementById('lastname').value = object.lastname;
+        document.getElementById('address').value = object.address;
+        document.getElementById('idNumber').value = object.idNumber;
+        document.getElementById('passportSeries').value = object.passportSeries;
+        document.getElementById('passportNumber').value = object.passportNumber;
+        document.getElementById('passportWhoIssued').value = object.passportWhoIssued;
+        document.getElementById('phone').value = object.phone;
+        document.getElementById('email').value = object.email;
+        document.getElementById('note').value = object.note;
+        getAgencies();
+        getManagers();
+      },
+      error: function() {
+        console.log('error /getBuyerById');
+      }
+    });
+  }
+
+  function deleteObject(id){
+    let data = { id: id };
+    $.ajax({
+      type: 'post',
+      url: '../buyers/deleteBuyerById',
+      data: data,
+      dataType: "json",
+      success: function (success){
+        console.log(success + ' /deleteBuyerById');
+        updatePage(currentPage, size, sortingField, sortingDirection)
+      },
+      error: function() {
+        console.log('error /deleteBuyerById');
+      }
+    });
+  }
+
+  function changeSize(){
+    size = $('#sizeSelect').val();
+    currentPage = 1;
+    updatePage(currentPage, size, sortingField, sortingDirection)
+  }
+
+  function paginationButton(){
+    $("#choose-page").empty();
+    if(totalPage > 1){
+      if(currentPage !== 1){
+        $("#choose-page").append($("" +
+                "<div class='page-item'>" +
+                "   <button class='page-link' tabIndex=\"-1\" onclick='goFirstPage()' style='height: 40px'>First</button>" +
+                "</div>" +
+                "<div class='page-item'>" +
+                "   <button class='page-link' tabIndex=\"-1\" onclick='goPreviousPage()' style='height: 40px'>\<\<</a>" +
+                "</div>"
+        ));
+      } else {
+        $("#choose-page").append($("" +
+                "<div class='page-item disabled'>" +
+                "   <button class='page-link' tabIndex=\"-1\" onclick='goFirstPage()' style='height: 40px'>First</button>" +
+                "</div>" +
+                "<div class='page-item disabled'>" +
+                "   <button class='page-link' tabIndex=\"-1\" onclick='goPreviousPage()' style='height: 40px'>\<\<</a>" +
+                "</div>"
+        ));
+      }
+      let start = currentPage - 2;
+      let finish = currentPage + 2;
+      for(let i = start; i <= finish; i++) {
+        if(i > 0 && i <= totalPage) {
+          if (currentPage === i) {
+            $("#choose-page").append($("" +
+                    "<div class='page-item active'>" +
+                    "<button onclick='goToPage(" + i + ")' class='page-link' tabIndex=\"-1\" style='height: 40px; width: 40px'>" + i + "</button>" +
+                    "</div>"
+            ));
+          } else {
+            $("#choose-page").append($("" +
+                    "<div class='page-item'>" +
+                    "<button onclick='goToPage(" + i + ")' class='page-link' tabIndex=\"-1\" style='height: 40px; width: 40px'>" + i + "</button>" +
+                    "</div>"
+            ));
+          }
+        }
+      }
+      if(currentPage !== totalPage) {
+        $("#choose-page").append($("" +
+                "<div class='page-item'>" +
+                "   <button class='page-link' tabIndex=\"-1\" onclick='goNextPage()' style='height: 40px'>\>\></button>" +
+                "</div>" +
+                "<div class='page-item'>" +
+                "   <button class='page-link' tabIndex=\"-1\" onclick='goLastPage()' style='height: 40px'>Last</a>" +
+                "</div>"
+        ));
+      } else {
+        $("#choose-page").append($("" +
+                "<div class='page-item disabled'>" +
+                "   <button class='page-link' tabIndex=\"-1\" onclick='goNextPage()' style='height: 40px'>\>\></button>" +
+                "</div>" +
+                "<div class='page-item disabled'>" +
+                "   <button class='page-link' tabIndex=\"-1\" onclick='goLastPage()' style='height: 40px'>Last</a>" +
+                "</div>"
+        ));
+      }
+    }
+  }
+
+  function goFirstPage(){
+    currentPage = 1;
+    updatePage(currentPage, size, sortingField, sortingDirection);
+  }
+
+  function goPreviousPage(){
+    currentPage--;
+    updatePage(currentPage, size, sortingField, sortingDirection)
+  }
+
+  function goToPage(i){
+    currentPage = i;
+    updatePage(currentPage, size, sortingField, sortingDirection)
+  }
+  function goNextPage(){
+    currentPage++;
+    updatePage(currentPage, size, sortingField, sortingDirection)
+  }
+  function goLastPage(){
+    currentPage = totalPage;
+    updatePage(currentPage, size, sortingField, sortingDirection)
+  }
+</script>
+
+</main>
+</body>
+</html>
