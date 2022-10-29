@@ -1,12 +1,9 @@
 package com.example.NewBuildingFinance.entities.contract;
 
-import com.example.NewBuildingFinance.dto.contract.ContractSaveDto;
 import com.example.NewBuildingFinance.dto.contract.ContractTableDto;
 import com.example.NewBuildingFinance.dto.contract.ContractUploadDto;
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
 import com.example.NewBuildingFinance.entities.flat.Flat;
-import com.example.NewBuildingFinance.entities.flat.StatusFlat;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;

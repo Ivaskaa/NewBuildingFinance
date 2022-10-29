@@ -1,6 +1,7 @@
 package com.example.NewBuildingFinance.repository;
 
 import com.example.NewBuildingFinance.entities.flat.Flat;
+import com.example.NewBuildingFinance.entities.flat.StatusFlat;
 import com.example.NewBuildingFinance.entities.object.Object;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +25,6 @@ public interface FlatRepository extends JpaRepository<Flat, Long>, JpaSpecificat
     Optional<Flat> findFlatByContractId(Long id);
 
 
-    List<Flat> findAllByDeletedFalseAndObjectIdAndContractNull(Long objectId);
-    List<Flat> findAllByDeletedFalseAndObjectIdAndContractNullOrId(Long object_id, Long id);
+    List<Flat> findAllByDeletedFalseAndObjectIdAndContractNullAndStatus(Long object_id, StatusFlat status);
+    List<Flat> findAllByDeletedFalseAndObjectIdAndContractNullAndStatusOrId(Long object_id, StatusFlat status, Long id);
 }

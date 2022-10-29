@@ -6,31 +6,31 @@ import com.example.NewBuildingFinance.dto.contract.ContractUploadDto;
 import com.example.NewBuildingFinance.entities.contract.Contract;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
+import com.example.NewBuildingFinance.entities.flat.StatusFlat;
 import com.example.NewBuildingFinance.entities.object.Object;
 import com.example.NewBuildingFinance.others.specifications.ContractSpecification;
 import com.example.NewBuildingFinance.repository.ContractRepository;
 import com.example.NewBuildingFinance.repository.FlatRepository;
 import com.example.NewBuildingFinance.repository.ObjectRepository;
+import com.itextpdf.html2pdf.HtmlConverter;
+import com.itextpdf.kernel.pdf.PdfWriter;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.xhtmlrenderer.layout.SharedContext;
-import org.xhtmlrenderer.pdf.ITextRenderer;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.text.DateFormat;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Optional;
 
 @Service
@@ -40,7 +40,6 @@ public class ContractService {
     private final ContractRepository contractRepository;
     private final FlatRepository flatRepository;
     private final ObjectRepository objectRepository;
-    private static final String PDF_OUTPUT = "src/main/resources/html2pdf.pdf";
 
     public Page<ContractTableDto> findSortingAndSpecificationPage(
             Integer currentPage,
@@ -86,6 +85,7 @@ public class ContractService {
         if(flat.getRealtor() == null){
             flat.setRealtor(flat.getBuyer().getRealtor());
         }
+        flat.setStatus(StatusFlat.SOLD);
         flatRepository.save(flat);
         ContractUploadDto contractUploadDto = contractAfterSave.buildUploadDto();
         contractUploadDto.setFlat(flat);
@@ -127,7 +127,7 @@ public class ContractService {
         Flat flat = flatRepository.findFlatByContractId(contract.getId()).orElse(null);
         if (flat != null) {
             flat.setContract(null);
-            flat.setBuyer(null);
+            flat.setStatus(StatusFlat.ACTIVE);
             flatRepository.save(flat);
         }
         contract.setBuyer(null);
@@ -146,55 +146,86 @@ public class ContractService {
             contractUploadDto.setFlat(flat);
             contractUploadDto.setObject(flat.getObject());
         }
-        log.info("success");
+        log.info("success get contract by id");
         return contractUploadDto;
     }
 
-    public void exportPdf( Long id) throws Exception {
+    public ResponseEntity<byte[]> getPdf(Long id) throws IOException {
+        log.info("get pdf for contract id: {}", id);
         Contract contract = contractRepository.findById(id).orElseThrow();
-        Document document = Jsoup.parse(contract.getContractTemplate().getText(), "UTF-8");
-        File outputPdf = new File(PDF_OUTPUT);
-        xhtmlToPdf(document, outputPdf);
-//        return outputPdf;
-    }
 
-    private void xhtmlToPdf(Document xhtml, File outputPdf) throws Exception {
-        try (OutputStream outputStream = new FileOutputStream(outputPdf)) {
-            ITextRenderer renderer = new ITextRenderer();
-            SharedContext sharedContext = renderer.getSharedContext();
-            sharedContext.setPrint(true);
-            sharedContext.setInteractive(false);
-            renderer.setDocumentFromString(xhtml.html());
-            renderer.layout();
-            renderer.createPDF(outputStream);
-        }
-    }
+        String html = contract.getContractTemplate().getText();
+        System.out.println(html);
+        html = html.replace("%BUYERNAME%", contract.getName());
+        html = html.replace("%BUYERSURNAME%", contract.getSurname());
+        html = html.replace("%BUYERLASTNAME%", contract.getLastname());
+        html = html.replace("%BUYERPHONE%", contract.getPhone());
+        html = html.replace("%BUYEREMAIL%", contract.getEmail());
+        html = html.replace("%FLATNUMBER%", contract.getFlatNumber().toString());
+        html = html.replace("%FLATFLOR%", contract.getFlatFloor().toString());
+        html = html.replace("%FLATPRICE%", contract.getPrice().toString());
+        html = html.replace("%FLATAREA%", contract.getFlatArea().toString());
+        html = html.replace("%FLATADDRESS%", contract.getFlatAddress());
+        html = html.replace("%CONTRACTNUMBER%", contract.getId().toString());
+        html = html.replace("%OBJECT%",
+                contract.getFlat().getObject().getHouse() +
+                        "(" + contract.getFlat().getObject().getSection() + ")");
+        html = html.replace("%REALTOR%",
+                contract.getFlat().getRealtor().getSurname() +
+                        " " + contract.getFlat().getRealtor().getName());
+        html = html.replace("%AGENCY%", contract.getFlat().getRealtor().getAgency().getName());
 
-//    public Map<String, ?> createPdf(Long id) throws FileNotFoundException {
-//        log.info("create pdf for contract id: {}", id);
-//
-//        log.info("success");
-//        return map;
-//    }
+        File file = new File("html2pdf.pdf");
+        PdfWriter pdfWriter = new PdfWriter(file);
+        HtmlConverter.convertToPdf(html, pdfWriter);
+        byte[] content = Files.readAllBytes(file.toPath());
+        String filename = contract.getContractTemplate().getName();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData(filename + ".pdf", filename + ".pdf");
+        headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+        log.info("success get pdf for contract");
+        return new ResponseEntity<>(content, headers, HttpStatus.OK);
+    }
 
     public boolean checkRealtor(Long flatId) {
-        Flat flat = flatRepository.findFlatByContractId(flatId).orElse(null);
-        if (flat == null){
-            return false;
-        }
-        return flat.getRealtor() == null;
+        if(flatId != null) {
+            Flat flat = flatRepository.findFlatByContractId(flatId).orElse(null);
+            if (flat == null) {
+                return false;
+            }
+            return flat.getRealtor() == null;
+        } else return false;
     }
 
     public boolean checkFlatPayments(Long flatId) {
-        Flat flat = flatRepository.findFlatByContractId(flatId).orElse(null);
+        if(flatId != null) {
+            Flat flat = flatRepository.findById(flatId).orElse(null);
+            if (flat == null){
+                return false;
+            }
+            Integer price = flat.getSalePrice();
+            for(FlatPayment flatPayment : flat.getFlatPayments()){
+                price -= flatPayment.getPlanned();
+            }
+            return price != 0;
+        } else return false;
+    }
+
+    public boolean checkStatus(Long flatId) {
+        Flat flat = flatRepository.findById(flatId).orElse(null);
         if (flat == null){
             return false;
         }
-        Integer price = flat.getSalePrice();
-        for(FlatPayment flatPayment : flat.getFlatPayments()){
-            price -= flatPayment.getPlanned();
-        }
-        return price != 0;
+        return !flat.getStatus().equals(StatusFlat.ACTIVE);
     }
+
+    public boolean checkContract(Long id) {
+        Contract contract = contractRepository.findById(id).orElse(null);
+        return contract == null;
+    }
+
 
 }

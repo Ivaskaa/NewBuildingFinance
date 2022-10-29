@@ -212,17 +212,20 @@
                         <div class="form-group mt-2">
                             <button id="drawUpContract" onclick="save(null)" class="btn btn-primary popup-with-form">Draw up contract</button>
                         </div>
+                        <div class="form-group mt-2">
+                            <button id="goToContract" onclick="goToContract()" class="btn btn-primary popup-with-form">Go to contract</button>
+                        </div>
                     </div>
                     <div class="col">
                         <div id="contractInfoDiv" class="form-group mt-2" style="display: none">
                             <div class="form-group mt-2" >
-                                <label th:text="'Contract status: '"></label>
+                                <label id="contractStatus"></label>
                             </div>
                             <div class="form-group mt-2">
-                                <label th:text="'Contract number: '"></label>
+                                <label id="contractNumber"></label>
                             </div>
                             <div class="form-group mt-2">
-                                <label th:text="'Contract date: '"></label>
+                                <label id="contractDate"></label>
                             </div>
                         </div>
                     </div>
@@ -401,10 +404,11 @@
                     let validation = JSON.parse(data);
                     if (validation == null) {
                         validationMessage(null);
-                        if (Flat.contract.id !== undefined) {
-                            window.location = url + '/contracts/contract/' + Flat.contract.id;
+                        if (undefined === Flat?.contract?.id ?? null) {
+                            console.log(Flat.id);
+                            window.location = url + '/contracts/contract/0?flatId=' + Flat.id;
                         } else {
-                            window.location = url + '/contracts/contract/0?flatId=' + FlatId;
+                            window.location = url + '/contracts/contract/' + Flat.contract.id;
                         }
                     } else {
                         validationMessage(validation);
@@ -675,6 +679,12 @@
                     document.getElementById('agency').disabled = true;
                     document.getElementById('addPayment').disabled = true;
                     document.getElementById('createBuyerButton').disabled = true;
+                    $("#drawUpContract").hide();
+                    $("#goToContract").show();
+                    $("#contractInfoDiv").show();
+                    document.getElementById('contractStatus').innerHTML = 'Contract status: ' + Flat.contract.status;
+                    document.getElementById('contractNumber').innerHTML = 'Contract number: ' + Flat.contract.id;
+                    document.getElementById('contractDate').innerHTML = 'Contract date: ' + moment(Flat.contract.date).format('YYYY-MM-DD');
                     $('#summernote').summernote('disable');
                 }
                 getObjects();
@@ -693,6 +703,11 @@
             }
         });
     }
+
+    function goToContract(){
+        window.location = url + '/contracts/contract/' + Flat.contract.id;
+    }
+
 
     function getObjects(){
         $.ajax({

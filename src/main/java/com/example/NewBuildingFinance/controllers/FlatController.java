@@ -179,6 +179,9 @@ public class FlatController {
             bindingResult.addError(new FieldError("flatSaveDto", "price", "Price must be rather then sale price"));
             bindingResult.addError(new FieldError("flatSaveDto", "salePrice", "Price must be rather then sale price"));
         }
+        if(flatService.checkStatus(flatSaveDto.getStatus())){
+            bindingResult.addError(new FieldError("flatSaveDto", "status", "Flat status must be active"));
+        }
         if(flatService.checkPercentages(flatSaveDto.getAgency(), flatSaveDto.getManager())){
             bindingResult.addError(new FieldError("flatSaveDto", "agency", "The sum of percentages must be less than 100"));
             bindingResult.addError(new FieldError("flatSaveDto", "manager", "The sum of percentages must be less than 100"));

@@ -746,17 +746,9 @@
     // print to pdf
 
     function printToPdf(){
-        let data = {id : Contract.id};
-        $.ajax({
-            type: 'post',
-            url: url + '/createPdf',
-            dataType: "json",
-            data: data,
-            success: function (data){
-                console.log('success /createPdf');
-            },
-            error: function() { console.log('error /createPdf'); }
-        });
+        if(Contract.id !== undefined) {
+            window.location = url + "/getPdf/" + Contract.id;
+        }
     }
 
 </script>

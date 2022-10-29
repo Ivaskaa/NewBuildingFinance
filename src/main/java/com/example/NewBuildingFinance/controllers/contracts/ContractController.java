@@ -13,11 +13,15 @@ import com.example.NewBuildingFinance.service.*;
 import com.example.NewBuildingFinance.service.auth.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.itextpdf.html2pdf.HtmlConverter;
+import com.itextpdf.kernel.pdf.PdfWriter;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -113,6 +117,12 @@ public class ContractController {
             BindingResult bindingResult
     ) throws IOException, ParseException {
         //validation
+        if(contractService.checkRealtor(contractSaveDto.getFlatId())){
+            bindingResult.addError(new FieldError("contractSaveDto", "flatId", "No selected realtor for this flat"));
+        }
+        if(contractService.checkFlatPayments(contractSaveDto.getFlatId())){
+            bindingResult.addError(new FieldError("contractSaveDto", "flatId", "The payment of flat not full planned"));
+        }
         if(bindingResult.hasErrors()){
             Map<String, String> errors = new HashMap<>();
             for (FieldError error : bindingResult.getFieldErrors()) {
@@ -132,11 +142,14 @@ public class ContractController {
             BindingResult bindingResult
     ) throws IOException, ParseException {
         //validation
+        if(contractService.checkStatus(contractSaveDto.getFlatId())){
+            bindingResult.addError(new FieldError("contractSaveDto", "flatId", "Flat status must be active"));
+        }
         if(contractService.checkRealtor(contractSaveDto.getFlatId())){
-            bindingResult.addError(new FieldError("contractSaveDto", "flat", "No selected realtor for this flat"));
+            bindingResult.addError(new FieldError("contractSaveDto", "flatId", "No selected realtor for this flat"));
         }
         if(contractService.checkFlatPayments(contractSaveDto.getFlatId())){
-            bindingResult.addError(new FieldError("contractSaveDto", "flat", "The payment of flat not full planned"));
+            bindingResult.addError(new FieldError("contractSaveDto", "flatId", "The payment of flat not full planned"));
         }
         if(bindingResult.hasErrors()){
             Map<String, String> errors = new HashMap<>();
@@ -170,13 +183,17 @@ public class ContractController {
 //    }
 
 
-    @PostMapping("/createPdf")
-    @ResponseBody
-    public FileSystemResource createOrder(Long id) throws Exception {
-        contractService.exportPdf(id);
-        File file = new File(PDF_OUTPUT);
-//        Resource file = (Resource) new File(PDF_OUTPUT);
-        return new FileSystemResource(file);
+    @GetMapping("/getPdf/{id}")
+    public ResponseEntity<byte[]> getPdf(
+            @PathVariable(required = false) Long id
+    ) throws Exception {
+        //validation
+        if(contractService.checkContract(id)){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        //action
+        ResponseEntity<byte[]> response = contractService.getPdf(id);
+        return response;
     }
 
 

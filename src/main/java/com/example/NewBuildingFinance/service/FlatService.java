@@ -2,6 +2,7 @@ package com.example.NewBuildingFinance.service;
 
 import com.example.NewBuildingFinance.dto.flat.FlatTableDto;
 import com.example.NewBuildingFinance.entities.flat.Flat;
+import com.example.NewBuildingFinance.entities.flat.StatusFlat;
 import com.example.NewBuildingFinance.entities.object.Object;
 import com.example.NewBuildingFinance.others.specifications.FlatSpecification;
 import com.example.NewBuildingFinance.repository.FlatRepository;
@@ -110,20 +111,13 @@ public class FlatService {
         return flat;
     }
 
-//    public List<Flat> findAllByObjectId(Long id) {
-//        log.info("get flats by object id: {}", id);
-//        List<Flat> flats = flatRepository.findAllByDeletedFalseAndObjectId(id);
-//        log.info("success");
-//        return flats;
-//    }
-
     public List<Flat> getFlatsWithoutContractByObjectId(Long id, Long flatId) {
         log.info("get flats by object id: {} and without contract", id);
         List<Flat> flats;
         if(flatId == null) {
-            flats = flatRepository.findAllByDeletedFalseAndObjectIdAndContractNull(id);
+            flats = flatRepository.findAllByDeletedFalseAndObjectIdAndContractNullAndStatus(id, StatusFlat.ACTIVE);
         } else {
-            flats = flatRepository.findAllByDeletedFalseAndObjectIdAndContractNullOrId(id, flatId);
+            flats = flatRepository.findAllByDeletedFalseAndObjectIdAndContractNullAndStatusOrId(id, StatusFlat.ACTIVE, flatId);
         }
         log.info("success");
         return flats;
@@ -145,5 +139,9 @@ public class FlatService {
         Flat flat;
         flat = flatRepository.findFlatInObject(number, objectId);
         return flat != null;
+    }
+
+    public boolean checkStatus(StatusFlat status) {
+        return !status.equals(StatusFlat.ACTIVE);
     }
 }
