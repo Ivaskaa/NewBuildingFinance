@@ -691,6 +691,7 @@ function updateListPayment(data) {
 
     Permissions.forEach((permission)=>{
         if(permission === "CASH_REGISTER"){
+            console.log('hello');
             let buttons = document.getElementsByName('pay');
             buttons.forEach((element) => {
                 element.disabled = false;
