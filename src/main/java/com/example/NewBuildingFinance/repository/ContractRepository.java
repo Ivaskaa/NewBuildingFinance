@@ -13,7 +13,10 @@ public interface ContractRepository extends JpaRepository<Contract, Long>, JpaSp
 //    @Query("select c from Contract c where c.deleted = false")
 
 
+
     Page<Contract> findAll(Specification<Contract> specification, Pageable pageable);
+
+    Page<Contract> findAllByBuyerId(Pageable pageable, Long buyerId);
 
 
 }

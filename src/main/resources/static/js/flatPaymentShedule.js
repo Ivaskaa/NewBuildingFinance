@@ -656,7 +656,7 @@ function updateListPayment(data) {
             "<p>" + remains + "</p>" +
             "</td>" +
             "<td>" +
-            "<button onclick='pay(" + object.id + ")' class=\"btn btn-success\" type=\"button\">Pay</button>" +
+            "<button name='pay' onclick='pay(" + object.id + ")' class=\"btn btn-success\" type=\"button\" disabled>Pay</button>" +
             "</td>" +
             "<td>" +
             "<button name='button' onclick='editFormPayment(" + object.id + ")' class=\"btn btn-warning\" type=\"button\" >Edit</button>" +
@@ -688,6 +688,15 @@ function updateListPayment(data) {
             item.style.color = 'green';
         }
     }
+
+    Permissions.forEach((permission)=>{
+        if(permission === "CASH_REGISTER"){
+            let buttons = document.getElementsByName('pay');
+            buttons.forEach((element) => {
+                element.disabled = false;
+            })
+        }
+    })
 
     if(undefined !== Flat?.contract?.id ?? null) {
         let buttons = document.getElementsByName('button');

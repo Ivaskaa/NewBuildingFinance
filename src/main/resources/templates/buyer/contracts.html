@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Contracts</title>
+
+    <style th:replace="blocks/linkAdminLTE"></style>
+    <div th:replace="blocks/links"></div>
+    <script th:src="@{/js/app.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+
+<body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
+<div class="wrapper">
+
+    <div th:replace="blocks/navbar"></div>
+    <div th:replace="blocks/sidebarContainer"></div>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <div class="content-header">
+            <div class="container-fluid">
+                <h1 class="m-0">Contracts</h1>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+            <label>
+                <select id="sizeSelect" style="width: 50px; " onchange="changeSize()" name='status' class='form-control'>
+                    <option value=10 selected>10</option>
+                    <option value=20>20</option>
+                </select>
+            </label>
+
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">
+                        <div onclick="sort('flat.number')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Flat number</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div onclick="sort('flat.object.name')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Object</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div onclick="sort('status')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Status</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div onclick="sort('flatArea')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Area</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div onclick="sort('price')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Price</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div onclick="sort('buyer.realtor.agency.name')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Agency</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div onclick="sort('price')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Realtor</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div onclick="sort('id')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Contract number</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div onclick="sort('date')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Date</p>
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+                <tbody id="list">
+                <!-- list -->
+                </tbody>
+            </table>
+            <nav>
+                <ul id="choose-page" class="pagination">
+                    <!-- pagination buttons -->
+                </ul>
+            </nav>
+        </section>
+    </div>
+</div>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script th:src="@{/js/validation.js}"></script>
+
+<script>
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
+    let url = window.location.protocol+"//"+ window.location.host + context;
+
+    let BuyerId = "[[${buyerId}]]";
+
+    let UserId = "[[${userId}]]";
+    let Permissions;
+
+    let currentPage = 1;
+    let size = $('#sizeSelect').val();
+    let sortingField = 'id';
+    let sortingDirection = 'ASC';  // DESC
+
+    let totalPage;
+
+    $(document).ready(function() {
+        updatePage();
+        getUserPermissions();
+    });
+
+    function sort(field){
+        if(sortingDirection === 'ASC'){
+            sortingDirection = 'DESC';
+        } else {
+            sortingDirection = 'ASC';
+        }
+        sortingField = field;
+        updatePage(currentPage, size, sortingField, sortingDirection);
+    }
+
+    function updatePage(){
+        let data = {
+            page: currentPage,
+            size: size,
+            field: sortingField,
+            direction: sortingDirection,
+            buyerId: BuyerId
+        }
+        $.ajax({
+            type: 'get',
+            url: url + '/getContractsByBuyerId',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                totalPage = data.totalPages;
+                if(currentPage > totalPage){
+                    if (currentPage !== 1) {
+                        currentPage--;
+                        updatePage(currentPage, size, sortingField, sortingDirection);
+                    }
+                }
+                updateList(data)
+                console.log('success /getContractsByBuyerId');
+            },
+            error: function() {
+                console.log('error /getContractsByBuyerId');
+            }
+        });
+    }
+
+    function updateList(data) {
+        $("#list").empty();
+        data.content.forEach((object) => {
+            $("#list").append($("" +
+                "<tr>" +
+                "<td>" +
+                "<p onclick='goToFlat(" + object.flatId + ")'>" + object.flatNumber + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.object + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.status + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.flatArea + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.price + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.agency + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.realtor + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p onclick='goToContract(" + object.id + ")'>" + object.id + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + moment(object.date).format('YYYY-MM-DD') + "</p>" +
+                "</td>" +
+                "</tr>"
+            ));
+        })
+        paginationButton();
+    }
+
+    function getUserPermissions(){
+        let data = {id: UserId};
+        $.ajax({
+            type: 'get',
+            url: url + '/getUserPermissionsById',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                console.log('success /getUserPermissionsById');
+                Permissions = data;
+            },
+            error: function() {
+                console.log('error /getUserPermissionsById');
+            }
+        });
+    }
+
+    function goToFlat(id){
+        Permissions.forEach((permission)=>{
+            if(permission === "FLATS"){
+                window.location = "/flats/flat/" + id;
+            }
+        })
+    }
+
+    function goToContract(id){
+        Permissions.forEach((permission)=>{
+            if(permission === "CONTRACTS"){
+                window.location = "/contracts/contract/" + id;
+            }
+        })
+    }
+
+    function changeSize(){
+        size = $('#sizeSelect').val();
+        currentPage = 1;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+
+    function paginationButton(){
+        $("#choose-page").empty();
+        if(totalPage > 1){
+            if(currentPage !== 1){
+                $("#choose-page").append($("" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goFirstPage()' style='height: 40px'>First</button>" +
+                    "</div>" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goPreviousPage()' style='height: 40px'>\<\<</a>" +
+                    "</div>"
+                ));
+            } else {
+                $("#choose-page").append($("" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goFirstPage()' style='height: 40px'>First</button>" +
+                    "</div>" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goPreviousPage()' style='height: 40px'>\<\<</a>" +
+                    "</div>"
+                ));
+            }
+            let start = currentPage - 2;
+            let finish = currentPage + 2;
+            for(let i = start; i <= finish; i++) {
+                if(i > 0 && i <= totalPage) {
+                    if (currentPage === i) {
+                        $("#choose-page").append($("" +
+                            "<div class='page-item active'>" +
+                            "<button onclick='goToPage(" + i + ")' class='page-link' tabIndex=\"-1\" style='height: 40px; width: 40px'>" + i + "</button>" +
+                            "</div>"
+                        ));
+                    } else {
+                        $("#choose-page").append($("" +
+                            "<div class='page-item'>" +
+                            "<button onclick='goToPage(" + i + ")' class='page-link' tabIndex=\"-1\" style='height: 40px; width: 40px'>" + i + "</button>" +
+                            "</div>"
+                        ));
+                    }
+                }
+            }
+            if(currentPage !== totalPage) {
+                $("#choose-page").append($("" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goNextPage()' style='height: 40px'>\>\></button>" +
+                    "</div>" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goLastPage()' style='height: 40px'>Last</a>" +
+                    "</div>"
+                ));
+            } else {
+                $("#choose-page").append($("" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goNextPage()' style='height: 40px'>\>\></button>" +
+                    "</div>" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goLastPage()' style='height: 40px'>Last</a>" +
+                    "</div>"
+                ));
+            }
+        }
+    }
+
+    function goFirstPage(){
+        currentPage = 1;
+        updatePage(currentPage, size, sortingField, sortingDirection);
+    }
+
+    function goPreviousPage(){
+        currentPage--;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+
+    function goToPage(i){
+        currentPage = i;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+    function goNextPage(){
+        currentPage++;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+    function goLastPage(){
+        currentPage = totalPage;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+</script>
+
+</main>
+</body>
+</html>

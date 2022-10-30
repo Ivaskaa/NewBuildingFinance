@@ -2,6 +2,7 @@ package com.example.NewBuildingFinance.service;
 
 import com.example.NewBuildingFinance.dto.contract.ContractSaveDto;
 import com.example.NewBuildingFinance.dto.contract.ContractTableDto;
+import com.example.NewBuildingFinance.dto.contract.ContractTableDtoForBuyers;
 import com.example.NewBuildingFinance.dto.contract.ContractUploadDto;
 import com.example.NewBuildingFinance.entities.contract.Contract;
 import com.example.NewBuildingFinance.entities.flat.Flat;
@@ -40,6 +41,24 @@ public class ContractService {
     private final ContractRepository contractRepository;
     private final FlatRepository flatRepository;
     private final ObjectRepository objectRepository;
+
+    public Page<ContractTableDtoForBuyers> findSortingPageByBuyerId(
+            Integer currentPage,
+            Integer size,
+            String sortingField,
+            String sortingDirection,
+            Long buyerId
+    ) {
+        log.info("get flat page. page: {}, size: {} field: {}, direction: {}",
+                currentPage - 1, size, sortingField, sortingDirection);
+        Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
+        Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
+        Page<ContractTableDtoForBuyers> flats
+                = contractRepository.findAllByBuyerId(pageable, buyerId)
+                .map(Contract::buildTableDtoForBuyers);
+        log.info("success");
+        return flats;
+    }
 
     public Page<ContractTableDto> findSortingAndSpecificationPage(
             Integer currentPage,
@@ -226,6 +245,4 @@ public class ContractService {
         Contract contract = contractRepository.findById(id).orElse(null);
         return contract == null;
     }
-
-
 }

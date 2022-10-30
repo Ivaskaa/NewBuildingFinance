@@ -133,7 +133,7 @@
                     </div>
                 </div>
 
-                <button id="commissionButton" onclick="maybeSave(this)" class="btn btn-warning popup-with-form">Pay commission</button>
+                <button id="commissionButton" onclick="maybeSave(this)" style="display: none" class="btn btn-warning popup-with-form">Pay commission</button>
                 <p id='commissionMessage' style="color: red"></p>
                 <table class="table">
                     <thead>
@@ -213,7 +213,7 @@
                             <button id="drawUpContract" onclick="save(null)" class="btn btn-primary popup-with-form">Draw up contract</button>
                         </div>
                         <div class="form-group mt-2">
-                            <button id="goToContract" onclick="goToContract()" class="btn btn-primary popup-with-form">Go to contract</button>
+                            <button id="goToContract" onclick="goToContract()" style="display: none" class="btn btn-primary popup-with-form">Go to contract</button>
                         </div>
                     </div>
                     <div class="col">
@@ -321,6 +321,9 @@
     let Objects;
     let Statuses;
 
+    let UserId = "[[${userId}]]";
+    let Permissions;
+
     let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",0));
     let url = window.location.protocol+"//"+ window.location.host + context;
     console.log(url)
@@ -333,6 +336,7 @@
 
     $(document).ready(function() {
         summernote();
+        getUserPermissions();
         Flat.id = FlatId;
         if(FlatId != 0){
             getFlatById();
@@ -341,6 +345,29 @@
             getStatuses();
         }
     });
+
+    function getUserPermissions(){
+        let data = {id: UserId};
+        $.ajax({
+            type: 'get',
+            url: url + '/flats/getUserPermissionsById',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                console.log('success /getUserPermissionsById');
+                Permissions = data;
+                console.log(Permissions);
+                Permissions.forEach((permission)=>{
+                    if(permission === "CASH_REGISTER"){
+                        $("#commissionButton").show();
+                    }
+                })
+            },
+            error: function() {
+                console.log('error /getUserPermissionsById');
+            }
+        });
+    }
 
     function changePage(element){
         if (element.id === 'descriptionButton'){
@@ -680,11 +707,16 @@
                     document.getElementById('addPayment').disabled = true;
                     document.getElementById('createBuyerButton').disabled = true;
                     $("#drawUpContract").hide();
-                    $("#goToContract").show();
+                    Permissions.forEach((permission)=>{
+                        if(permission === "CONTRACTS"){
+                            $("#goToContract").show();
+                        }
+                    })
                     $("#contractInfoDiv").show();
                     document.getElementById('contractStatus').innerHTML = 'Contract status: ' + Flat.contract.status;
                     document.getElementById('contractNumber').innerHTML = 'Contract number: ' + Flat.contract.id;
                     document.getElementById('contractDate').innerHTML = 'Contract date: ' + moment(Flat.contract.date).format('YYYY-MM-DD');
+                    document.getElementById('saveButton').disabled = true;
                     $('#summernote').summernote('disable');
                 }
                 getObjects();

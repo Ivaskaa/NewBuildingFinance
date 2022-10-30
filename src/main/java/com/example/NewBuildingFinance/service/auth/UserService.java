@@ -1,5 +1,6 @@
 package com.example.NewBuildingFinance.service.auth;
 
+import com.example.NewBuildingFinance.entities.auth.Permission;
 import com.example.NewBuildingFinance.others.EmailContext;
 import com.example.NewBuildingFinance.entities.auth.SecureToken;
 import com.example.NewBuildingFinance.entities.auth.User;
@@ -27,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Log4j2
@@ -92,6 +94,17 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findById(id).orElseThrow();
         log.info("success");
         return user;
+    }
+
+    public List<String> getUserPermissionsById(Long id) {
+        log.info("get user permissions by id: {}", id);
+        User user = userRepository.findById(id).orElseThrow();
+        List<String> permissions = user.getRole().getPermissions()
+                .stream()
+                .map(Permission::getName)
+                .collect(Collectors.toList());
+        log.info("success");
+        return permissions;
     }
 
     @Override

@@ -3,10 +3,7 @@ package com.example.NewBuildingFinance.controllers;
 import com.example.NewBuildingFinance.dto.BuyerDto;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
-import com.example.NewBuildingFinance.service.AgencyService;
-import com.example.NewBuildingFinance.service.BuyerService;
-import com.example.NewBuildingFinance.service.InternalCurrencyService;
-import com.example.NewBuildingFinance.service.RealtorService;
+import com.example.NewBuildingFinance.service.*;
 import com.example.NewBuildingFinance.service.auth.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,14 +19,16 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
 @AllArgsConstructor
 @RequestMapping("/buyers")
 public class BuyerController {
-    private final InternalCurrencyService currencyService;
+    private final InternalCurrencyService internalCurrencyService;
     private final BuyerService buyerService;
+    private final ContractService contractService;
     private final RealtorService realtorService;
     private final AgencyService agencyService;
     private final UserService userService;
@@ -41,9 +40,36 @@ public class BuyerController {
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", currencyService.findAll());
+        model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("user", user);
         return "buyer/buyers";
+    }
+
+    @GetMapping("/contracts/{buyerId}")
+    public String buyerContracts(
+            @PathVariable Long buyerId,
+            Model model
+    ) throws JsonProcessingException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = userService.loadUserByUsername(authentication.getName());
+        model.addAttribute("currencies", internalCurrencyService.findAll());
+        model.addAttribute("userId", user.getId());
+        model.addAttribute("buyerId", buyerId);
+        model.addAttribute("user", user);
+        return "buyer/contracts";
+    }
+
+    @GetMapping("/getContractsByBuyerId")
+    @ResponseBody
+    public String getContractsByBuyerId(
+            Integer page,
+            Integer size,
+            String field,
+            String direction,
+            Long buyerId
+    ) throws JsonProcessingException {
+        return mapper.writeValueAsString(contractService.findSortingPageByBuyerId(
+                page, size, field, direction, buyerId));
     }
 
     @GetMapping("/getBuyers")
@@ -114,6 +140,17 @@ public class BuyerController {
     ) throws JsonProcessingException {
         buyerService.deleteById(id);
         return mapper.writeValueAsString("success");
+    }
+
+    // others
+
+    @GetMapping ("/getUserPermissionsById")
+    @ResponseBody
+    public String getUserPermissionsById(
+            Long id
+    ) throws JsonProcessingException {
+        List<String> permissions = userService.getUserPermissionsById(id);
+        return mapper.writeValueAsString(permissions);
     }
 
     @GetMapping("/getAllAgencies")

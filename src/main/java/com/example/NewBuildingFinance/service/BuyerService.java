@@ -32,12 +32,6 @@ public class BuyerService {
         return buyerPage;
     }
 
-//    public List<Buyer> findAll() {
-//        List<Buyer> buyers = buyerRepository.findAll();
-//        log.info("success");
-//        return buyers;
-//    }
-
     public Buyer save(Buyer buyer) {
         log.info("save buyer: {}", buyer);
         Buyer buyerAfterSave = buyerRepository.save(buyer);

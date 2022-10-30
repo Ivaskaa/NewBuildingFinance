@@ -65,6 +65,7 @@ public class FlatController {
         User user = userService.loadUserByUsername(authentication.getName());
         model.addAttribute("currencies", currencyService.findAll());
         model.addAttribute("flatId", id);
+        model.addAttribute("userId", user.getId());
         model.addAttribute("user", user);
         return "flat/flat";
     }
@@ -299,10 +300,18 @@ public class FlatController {
             }
             return mapper.writeValueAsString(errors);
         }
-
         //action
         Buyer buyer = buyerService.save(buyerDto.build());
         return mapper.writeValueAsString(buyer.getId());
+    }
+
+    @GetMapping ("/getUserPermissionsById")
+    @ResponseBody
+    public String getUserPermissionsById(
+            Long id
+    ) throws JsonProcessingException {
+        List<String> permissions = userService.getUserPermissionsById(id);
+        return mapper.writeValueAsString(permissions);
     }
 
     @GetMapping("/getAllManagers")

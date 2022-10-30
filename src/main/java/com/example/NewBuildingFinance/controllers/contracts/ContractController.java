@@ -173,16 +173,6 @@ public class ContractController {
         return mapper.writeValueAsString(contract);
     }
 
-//    @PostMapping("/createPdf")
-//    @RequestMapping(value = "/createPdf", method = RequestMethod.POST)
-//    public void createPdf(
-//            HttpServletResponse response,
-//            Long id
-//    ) throws Exception {
-//        contractService.exportPdf(response, id);
-//    }
-
-
     @GetMapping("/getPdf/{id}")
     public ResponseEntity<byte[]> getPdf(
             @PathVariable(required = false) Long id

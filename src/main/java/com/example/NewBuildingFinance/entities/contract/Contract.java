@@ -1,6 +1,7 @@
 package com.example.NewBuildingFinance.entities.contract;
 
 import com.example.NewBuildingFinance.dto.contract.ContractTableDto;
+import com.example.NewBuildingFinance.dto.contract.ContractTableDtoForBuyers;
 import com.example.NewBuildingFinance.dto.contract.ContractUploadDto;
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
 import com.example.NewBuildingFinance.entities.flat.Flat;
@@ -99,6 +100,22 @@ public class Contract {
         contract.setObject(object);
         contract.setDate(String.valueOf(date));
         contract.setComment(comment);
+        return contract;
+    }
+
+    public ContractTableDtoForBuyers buildTableDtoForBuyers(){
+        ContractTableDtoForBuyers contract = new ContractTableDtoForBuyers();
+        contract.setId(id);
+
+        contract.setFlatId(flat.getId());
+        contract.setFlatNumber(flatNumber);
+        contract.setFlatArea(flatArea);
+        contract.setStatus(status.getValue());
+        contract.setPrice(price);
+        contract.setObject(object);
+        contract.setDate(date);
+        contract.setAgency(buyer.getRealtor().getAgency().getName());
+        contract.setRealtor(buyer.getRealtor().getSurname() + " " + buyer.getRealtor().getName());
         return contract;
     }
 }
