@@ -99,7 +99,7 @@ public class ContractController {
             Optional<Long> objectId,
             Optional<String> buyerName,
             Optional<String> comment
-    ) throws JsonProcessingException {
+    ) throws JsonProcessingException, ParseException {
         return mapper.writeValueAsString(contractService.findSortingAndSpecificationPage(
                 page, size, field, direction,
                 id,

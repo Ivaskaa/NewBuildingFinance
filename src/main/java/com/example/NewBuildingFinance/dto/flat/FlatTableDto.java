@@ -9,7 +9,7 @@ public class FlatTableDto {
     private String status;
     private Double area; // площа
     private Integer price; // ціна
-    private Integer advance = 0;
+    private Integer advance;
     private Integer entered;
     private Integer remains;
 }

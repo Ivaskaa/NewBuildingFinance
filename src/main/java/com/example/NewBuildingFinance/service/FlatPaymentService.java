@@ -72,19 +72,30 @@ public class FlatPaymentService {
     }
 
     public boolean checkNumber(Long number, Long flatId) {
-        FlatPayment flatPayment = flatPaymentRepository.findByNumberAndFlatId(number, flatId);
-        return flatPayment != null;
+        if (number != null) {
+            FlatPayment flatPayment = flatPaymentRepository.findByNumberAndFlatId(number, flatId);
+            return flatPayment != null;
+        } else {
+            return false;
+        }
     }
 
     public boolean checkPlaned(Integer planned, Long flatId) {
-        List<FlatPayment> flatPaymentList = flatPaymentRepository.findAllByFlatId(flatId);
-        Flat flat = flatService.findById(flatId);
-        Integer flatPrice = flat.getSalePrice();
-        for(FlatPayment flatPayment : flatPaymentList){
-            flatPrice -= flatPayment.getPlanned();
+        if (planned != null){
+            if (planned.equals(0)){
+                return false;
+            }
+            List<FlatPayment> flatPaymentList = flatPaymentRepository.findAllByFlatId(flatId);
+            Flat flat = flatService.findById(flatId);
+            Integer flatPrice = flat.getSalePrice();
+            for (FlatPayment flatPayment : flatPaymentList) {
+                flatPrice -= flatPayment.getPlanned();
+            }
+            flatPrice -= planned;
+            return flatPrice < 0;
+        } else {
+            return false;
         }
-        flatPrice -= planned;
-        return flatPrice < 0;
     }
 
     public boolean checkPlanedEdit(Long id, Integer planned, Long flatId) {

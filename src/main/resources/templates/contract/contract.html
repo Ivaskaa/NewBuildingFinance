@@ -168,7 +168,7 @@
                                placeholder='Enter contract price' maxlength="50">
                         <p id='priceMessage' style="color: red"></p>
                     </div>
-                    <button onclick="printToPdf()" class="btn btn-primary popup-with-form">Print to pdf</button>
+                    <button id='printToPdf' onclick="printToPdf()" style="display: none" class="btn btn-primary popup-with-form">Print to pdf</button>
                 </div>
             </div>
             <div class="form-group mt-2">
@@ -178,6 +178,7 @@
             </div>
 
             <button id="saveButton" onclick="save()" class="btn btn-success popup-with-form">Save</button>
+            <button id="deleteButton" onclick="deleteObject()" style="display: none" class="btn btn-danger popup-with-form">Delete</button>
             <a th:href="@{/contracts}" class="btn btn-dark popup-with-form">Back</a>
         </section>
     </div>
@@ -196,7 +197,6 @@
 
     let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
     let url = window.location.protocol+"//"+ window.location.host + context;
-
 
     $(document).ready(function() {
         Contract.id = ContractId;
@@ -266,9 +266,12 @@
                     console.log('success /addContract');
                     let validation = JSON.parse(data);
                     if (validation.id !== undefined) {
-                        Contract = validation;
-                        console.log(Contract);
-                        validationMessage(null);
+                        window.location = '/contracts/contract/' + validation.id;
+                        // Contract = validation;
+                        // console.log(Contract);
+                        // validationMessage(null);
+                        // $('#deleteButton').show();
+                        // $('#printToPdf').show();
                     } else {
                         validationMessage(validation);
                     }
@@ -526,6 +529,8 @@
                 document.getElementById('date').value = moment(data.date).format('YYYY-MM-DD');
                 document.getElementById('comment').value = data.comment;
 
+                $('#deleteButton').show();
+                $('#printToPdf').show();
                 if(null != data?.buyer?.id ?? false){
                     $('#buyer').append($("" +
                         "<option value='" + data?.buyer?.id + "' selected>" + data?.buyer?.name + " " + data?.buyer?.surname + "</option>"))
@@ -536,6 +541,23 @@
             },
             error: function() {
                 console.log('error /getContractById');
+            }
+        });
+    }
+
+    function deleteObject(){
+        let data = { id: Contract.id };
+        $.ajax({
+            type: 'post',
+            url: '../deleteContractById',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                console.log('success /deleteContractById');
+                window.location = '/contracts';
+            },
+            error: function() {
+                console.log('error /deleteContractById');
             }
         });
     }

@@ -48,7 +48,12 @@
                         </div>
                     </th>
                     <th scope="col">
-
+                        <label>
+                            <input id="dateStart" oninput="search()" type="date" class="form-control" style="width: 80px">
+                        </label>
+                        <label>
+                            <input id="dateFin" oninput="search()" type="date" class="form-control" style="width: 80px">
+                        </label>
                         <div onclick="sort('date')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Date</p>
                         </div>
@@ -151,6 +156,8 @@
 
     function search(){
         searchId = document.getElementById('id').value;
+        searchDateStart = document.getElementById('dateStart').value;
+        searchDateFin = document.getElementById('dateFin').value;
         searchObjectId = $('#object').val();
         searchFlatNumber = document.getElementById('flatNumber').value;
         searchBuyer = document.getElementById('buyer').value;
@@ -205,7 +212,7 @@
                 "<p>" + object.id + "</p>" +
                 "</td>" +
                 "<td>" +
-                "<p>" + object.date + "</p>" +
+                "<p>" + moment(object.date).format('YYYY-MM-DD') + "</p>" +
                 "</td>" +
                 "<td>" +
                 "<p>" + object.flatNumber + "</p>" +

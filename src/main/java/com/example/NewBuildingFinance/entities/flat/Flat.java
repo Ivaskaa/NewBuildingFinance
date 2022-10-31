@@ -12,7 +12,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.Date;
 import java.util.Set;
+
 
 @Getter
 @Setter
@@ -70,6 +72,15 @@ public class Flat {
         flat.setStatus(status.getValue());
         flat.setArea(area);
         flat.setPrice(price);
+        Integer advance = 0;
+        Date date = new Date(99999999999999L);
+        for(FlatPayment flatPayment : flatPayments){
+            if(date.after(flatPayment.getDate())){
+                date = flatPayment.getDate();
+                advance = flatPayment.getPlanned();
+            }
+        }
+        flat.setAdvance(advance);
         flat.setEntered(1);
         flat.setRemains(price - 1);
         return flat;

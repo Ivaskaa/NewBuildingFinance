@@ -9,7 +9,10 @@ import com.example.NewBuildingFinance.entities.object.Object_;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.Predicate;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -18,16 +21,34 @@ public class ContractSpecification {
         if (id == null) {
             return null;
         }
-        System.out.println(id);
         return (root, query, cb) -> {
             return cb.equal(root.get(Contract_.ID), id);
+        };
+    }
+    public static Specification<Contract> likeDate(String dateStartString, String dateFinString) throws ParseException {
+        if (dateStartString.equals("") && dateFinString.equals("")) {
+            return null;
+        }
+        Date dateStart = new Date(Long.MIN_VALUE);
+        Date dateFin = new Date(99999999999999L);
+//        Date dateFin = new Date(Long.MAX_VALUE);
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        if (!dateStartString.equals("")){
+            dateStart = format.parse(dateStartString);
+        }
+        if (!dateFinString.equals("")){
+            dateFin = format.parse(dateFinString);
+        }
+        Date finalDateStart = dateStart;
+        Date finalDateFin = dateFin;
+        return (root, query, cb) -> {
+            return cb.between(root.get(Contract_.DATE), finalDateStart, finalDateFin);
         };
     }
     public static Specification<Contract> likeObject(Long objectId) {
         if (objectId == null) {
             return null;
         }
-        System.out.println(objectId);
         return (root, query, cb) -> {
             return cb.equal(root.get(Contract_.FLAT).get(Flat_.OBJECT).get(Object_.ID), objectId);
         };
@@ -36,7 +57,6 @@ public class ContractSpecification {
         if (number == null) {
             return null;
         }
-        System.out.println(number);
         return (root, query, cb) -> {
             return cb.equal(root.get(Contract_.FLAT_NUMBER), number);
         };
@@ -45,7 +65,6 @@ public class ContractSpecification {
         if (name == null || name.equals("")) {
             return null;
         }
-        System.out.println(name);
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             if(name.contains(" ")) {
@@ -67,7 +86,6 @@ public class ContractSpecification {
         if (comment == null || comment.equals("")) {
             return null;
         }
-        System.out.println(comment);
         return (root, query, cb) -> {
             return cb.like(root.get(Contract_.COMMENT), "%" + comment.toLowerCase(Locale.ROOT) + "%");
         };
@@ -77,14 +95,4 @@ public class ContractSpecification {
             return cb.equal(root.get(Contract_.DELETED), false);
         };
     }
-
-
-//    public static Specification<Contract> likeCount(Integer count) {
-//        if (count == null) {
-//            return null;
-//        }
-//        return (root, query, cb) -> {
-//            return cb.equal(root.get(Contract_.COUNT), count);
-//        };
-//    }
 }

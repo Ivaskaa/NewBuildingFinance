@@ -99,7 +99,7 @@ public class Contract {
                 buyer.getLastname());
         contract.setFlatNumber(flatNumber);
         contract.setObject(object);
-        contract.setDate(String.valueOf(date));
+        contract.setDate(date);
         contract.setComment(comment);
         return contract;
     }

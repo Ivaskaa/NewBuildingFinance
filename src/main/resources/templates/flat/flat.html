@@ -362,6 +362,7 @@
                         $("#commissionButton").show();
                     }
                 })
+                updatePagePayment();
             },
             error: function() {
                 console.log('error /getUserPermissionsById');
@@ -381,7 +382,7 @@
     }
 
     function maybeSave(element){
-        if(element.id === 'commissionButton'){
+        if(element.id === 'commissionButton'){getUserPermissionsById
             if(Flat.contract == null){
                 document.getElementById('commissionMessage').innerHTML = "Firstly create contract for this flat";
                 setTimeout(function() {
@@ -894,7 +895,6 @@
 
     function summernote(){
         // Summernote
-        console.log('hello');
         $('#summernote').summernote();
     }
 </script>

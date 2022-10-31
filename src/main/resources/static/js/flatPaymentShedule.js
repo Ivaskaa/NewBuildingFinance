@@ -470,10 +470,6 @@ let alreadyPay;
 let totalPagePayment;
 let IdForUpdating;
 
-$(document).ready(function() {
-    updatePagePayment();
-});
-
 function sort(field){
     if(sortingDirectionPayment === 'ASC'){
         sortingDirectionPayment = 'DESC';
@@ -689,20 +685,19 @@ function updateListPayment(data) {
         }
     }
 
-    Permissions.forEach((permission)=>{
-        if(permission === "CASH_REGISTER"){
-            console.log('hello');
-            let buttons = document.getElementsByName('pay');
-            buttons.forEach((element) => {
-                element.disabled = false;
-            })
-        }
-    })
-
     if(undefined !== Flat?.contract?.id ?? null) {
         let buttons = document.getElementsByName('button');
         buttons.forEach((element) => {
             element.disabled = true;
+        })
+
+        Permissions.forEach((permission)=>{
+            if(permission === "CASH_REGISTER"){
+                let buttons = document.getElementsByName('pay');
+                buttons.forEach((element) => {
+                    element.disabled = false;
+                })
+            }
         })
     }
 

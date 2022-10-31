@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.text.ParseException;
+import java.util.Date;
 import java.util.Optional;
 
 @Service
@@ -52,11 +53,12 @@ public class ContractService {
             Optional<Long> objectId,
             Optional<String> buyerName,
             Optional<String> comment
-    ) {
+    ) throws ParseException {
         log.info("get contract page. page: {}, size: {} field: {}, direction: {}",
                 currentPage - 1, size, sortingField, sortingDirection);
         Specification<Contract> specification = Specification
                 .where(ContractSpecification.likeId(id.orElse(null)))
+                .and(ContractSpecification.likeDate(dateStart.orElse(null), dateFin.orElse(null)))
                 .and(ContractSpecification.likeObject(objectId.orElse(null)))
                 .and(ContractSpecification.likeFlatNumber(flatNumber.orElse(null)))
                 .and(ContractSpecification.likeBuyerName(buyerName.orElse(null)))
