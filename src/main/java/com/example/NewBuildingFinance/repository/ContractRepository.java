@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -17,6 +18,6 @@ public interface ContractRepository extends JpaRepository<Contract, Long>, JpaSp
     Page<Contract> findAll(Specification<Contract> specification, Pageable pageable);
 
     Page<Contract> findAllByBuyerId(Pageable pageable, Long buyerId);
-
-
+//    @Query("Select c from Contract c where c.flat.realtor.agency.id = ?1")
+    Page<Contract> findAllByFlatRealtorAgencyId(Pageable pageable, Long agencyId);
 }

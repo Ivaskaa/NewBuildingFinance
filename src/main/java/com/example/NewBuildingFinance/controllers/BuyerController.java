@@ -49,7 +49,7 @@ public class BuyerController {
     public String buyerContracts(
             @PathVariable Long buyerId,
             Model model
-    ) throws JsonProcessingException {
+    ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.loadUserByUsername(authentication.getName());
         model.addAttribute("currencies", internalCurrencyService.findAll());

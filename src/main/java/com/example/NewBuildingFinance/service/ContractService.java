@@ -1,9 +1,6 @@
 package com.example.NewBuildingFinance.service;
 
-import com.example.NewBuildingFinance.dto.contract.ContractSaveDto;
-import com.example.NewBuildingFinance.dto.contract.ContractTableDto;
-import com.example.NewBuildingFinance.dto.contract.ContractTableDtoForBuyers;
-import com.example.NewBuildingFinance.dto.contract.ContractUploadDto;
+import com.example.NewBuildingFinance.dto.contract.*;
 import com.example.NewBuildingFinance.entities.contract.Contract;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
@@ -42,24 +39,6 @@ public class ContractService {
     private final FlatRepository flatRepository;
     private final ObjectRepository objectRepository;
 
-    public Page<ContractTableDtoForBuyers> findSortingPageByBuyerId(
-            Integer currentPage,
-            Integer size,
-            String sortingField,
-            String sortingDirection,
-            Long buyerId
-    ) {
-        log.info("get flat page. page: {}, size: {} field: {}, direction: {}",
-                currentPage - 1, size, sortingField, sortingDirection);
-        Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
-        Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
-        Page<ContractTableDtoForBuyers> flats
-                = contractRepository.findAllByBuyerId(pageable, buyerId)
-                .map(Contract::buildTableDtoForBuyers);
-        log.info("success");
-        return flats;
-    }
-
     public Page<ContractTableDto> findSortingAndSpecificationPage(
             Integer currentPage,
             Integer size,
@@ -74,7 +53,7 @@ public class ContractService {
             Optional<String> buyerName,
             Optional<String> comment
     ) {
-        log.info("get flat page. page: {}, size: {} field: {}, direction: {}",
+        log.info("get contract page. page: {}, size: {} field: {}, direction: {}",
                 currentPage - 1, size, sortingField, sortingDirection);
         Specification<Contract> specification = Specification
                 .where(ContractSpecification.likeId(id.orElse(null)))
@@ -86,9 +65,45 @@ public class ContractService {
 //                .and(ContractSpecification.likeAdvance(advanceStart.orElse(null), advanceFin.orElse(null)));
         Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
         Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
-        Page<ContractTableDto> flats = contractRepository.findAll(specification, pageable).map(Contract::buildTableDto);
+        Page<ContractTableDto> contracts = contractRepository.findAll(specification, pageable).map(Contract::buildTableDto);
         log.info("success");
-        return flats;
+        return contracts;
+    }
+
+    public Page<ContractTableDtoForBuyers> findSortingPageByBuyerId(
+            Integer currentPage,
+            Integer size,
+            String sortingField,
+            String sortingDirection,
+            Long buyerId
+    ) {
+        log.info("get contract page for buyer id: {} page: {}, size: {} field: {}, direction: {}",
+                buyerId, currentPage - 1, size, sortingField, sortingDirection);
+        Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
+        Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
+        Page<ContractTableDtoForBuyers> contracts
+                = contractRepository.findAllByBuyerId(pageable, buyerId)
+                .map(Contract::buildTableDtoForBuyers);
+        log.info("success");
+        return contracts;
+    }
+
+    public Page<ContractTableDtoForAgency> findSortingPageByAgencyId(
+            Integer currentPage,
+            Integer size,
+            String sortingField,
+            String sortingDirection,
+            Long agencyId
+    ) {
+        log.info("get contract page for agency id: {} page: {}, size: {} field: {}, direction: {}",
+                agencyId, currentPage - 1, size, sortingField, sortingDirection);
+        Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
+        Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
+        Page<ContractTableDtoForAgency> contracts
+                = contractRepository.findAllByFlatRealtorAgencyId(pageable, agencyId)
+                .map(Contract::buildTableDtoForAgency);
+        log.info("success");
+        return contracts;
     }
 
     public ContractUploadDto save(ContractSaveDto contractSaveDto) throws ParseException {

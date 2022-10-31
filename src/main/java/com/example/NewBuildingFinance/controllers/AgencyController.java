@@ -4,6 +4,7 @@ import com.example.NewBuildingFinance.dto.AgencyDto;
 import com.example.NewBuildingFinance.entities.agency.Agency;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.service.AgencyService;
+import com.example.NewBuildingFinance.service.ContractService;
 import com.example.NewBuildingFinance.service.InternalCurrencyService;
 import com.example.NewBuildingFinance.service.auth.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,8 +26,9 @@ import java.util.*;
 @AllArgsConstructor
 @RequestMapping("/agencies")
 public class AgencyController {
-    private final InternalCurrencyService currencyService;
+    private final InternalCurrencyService internalCurrencyService;
     private final UserService userService;
+    private final ContractService contractService;
     private final AgencyService agencyService;
     private final ObjectMapper mapper;
 
@@ -36,7 +38,7 @@ public class AgencyController {
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", currencyService.findAll());
+        model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("user", user);
         return "agency/agencies";
     }
@@ -48,10 +50,24 @@ public class AgencyController {
     ) throws JsonProcessingException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", currencyService.findAll());
+        model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("agencyId", id);
+        model.addAttribute("userId", user.getId());
         model.addAttribute("user", user);
         return "agency/agency";
+    }
+
+    @GetMapping("/getContractsByAgencyId")
+    @ResponseBody
+    public String getContractsByBuyerId(
+            Integer page,
+            Integer size,
+            String field,
+            String direction,
+            Long agencyId
+    ) throws JsonProcessingException {
+        return mapper.writeValueAsString(contractService.findSortingPageByAgencyId(
+                page, size, field, direction, agencyId));
     }
 
     @GetMapping("/getAgencies")
@@ -145,5 +161,16 @@ public class AgencyController {
     ) throws JsonProcessingException {
         agencyService.deleteById(id);
         return mapper.writeValueAsString("success");
+    }
+
+    // others
+
+    @GetMapping ("/getUserPermissionsById")
+    @ResponseBody
+    public String getUserPermissionsById(
+            Long id
+    ) throws JsonProcessingException {
+        List<String> permissions = userService.getUserPermissionsById(id);
+        return mapper.writeValueAsString(permissions);
     }
 }

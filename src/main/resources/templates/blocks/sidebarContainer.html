@@ -21,7 +21,7 @@
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                 <!-- Add icons to the links using the .nav-icon class
                      with font-awesome or any other icon font library -->
-                <li class="nav-item">
+                <li th:each="permission : ${user.role.permissions}" th:if="${#strings.equals(permission.name, 'STATISTICS')}" class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-copy"></i>
                         <p>
@@ -50,7 +50,7 @@
                         </li>
                     </ul>
                 </li>
-                <li class="nav-item">
+                <li th:each="permission : ${user.role.permissions}" th:if="${#strings.equals(permission.name, 'FLATS')}" class="nav-item">
                     <a th:href="@{/flats}" class="nav-link">
                         <i class="nav-icon fas fa-columns"></i>
                         <p>
@@ -58,7 +58,7 @@
                         </p>
                     </a>
                 </li>
-                <li class="nav-item">
+                <li th:each="permission : ${user.role.permissions}" th:if="${#strings.equals(permission.name, 'CASH_REGISTER')}" class="nav-item">
                     <a th:href="@{/cashRegister}" class="nav-link">
                         <i class="nav-icon fas fa-columns"></i>
                         <p>
@@ -66,7 +66,7 @@
                         </p>
                     </a>
                 </li>
-                <li class="nav-item">
+                <li th:each="permission : ${user.role.permissions}" th:if="${#strings.equals(permission.name, 'BUYERS')}" class="nav-item">
                     <a th:href="@{/buyers}" class="nav-link">
                         <i class="nav-icon fas fa-columns"></i>
                         <p>
@@ -74,7 +74,7 @@
                         </p>
                     </a>
                 </li>
-                <li class="nav-item">
+                <li th:each="permission : ${user.role.permissions}" th:if="${#strings.equals(permission.name, 'AGENCIES')}" class="nav-item">
                     <a th:href="@{/agencies}" class="nav-link">
                         <i class="nav-icon fas fa-columns"></i>
                         <p>
@@ -82,7 +82,7 @@
                         </p>
                     </a>
                 </li>
-                <li class="nav-item">
+                <li th:each="permission : ${user.role.permissions}" th:if="${#strings.equals(permission.name, 'OBJECTS')}" class="nav-item">
                     <a th:href="@{/objects}" class="nav-link">
                         <i class="nav-icon fas fa-columns"></i>
                         <p>
@@ -90,15 +90,7 @@
                         </p>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a th:href="@{/contracts}" class="nav-link">
-                        <i class="nav-icon fas fa-columns"></i>
-                        <p>
-                            Contracts
-                        </p>
-                    </a>
-                </li>
-                <li class="nav-item">
+                <li th:each="permission : ${user.role.permissions}" th:if="${#strings.equals(permission.name, 'CONTRACTS')}" class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-copy"></i>
                         <p>
@@ -121,7 +113,7 @@
                         </li>
                     </ul>
                 </li>
-                <li class="nav-item">
+                <li th:each="permission : ${user.role.permissions}" th:if="${#strings.equals(permission.name, 'SETTINGS')}" class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-copy"></i>
                         <p>
@@ -146,12 +138,6 @@
                             <a th:href="@{/settings/users}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Users</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a th:href="@{/settings/variables}" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Variables</p>
                             </a>
                         </li>
                         <li class="nav-item">

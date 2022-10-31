@@ -29,7 +29,7 @@
         <!-- Main content -->
         <section class="content">
             <button id="descriptionButton" onclick="changePage(this)" class="btn btn-dark">Description</button>
-            <button id="salesButton" onclick="maybeSave(this)" class="btn btn-dark">Sales</button>
+            <button id="salesButton" onclick="maybeSave(this)" class="btn btn-dark">Contracts</button>
             <button id="commissionsButton" onclick="maybeSave(this)" class="btn btn-dark">Commissions</button>
             <div id="descriptionPage">
 
@@ -106,9 +106,72 @@
             <div id="salesPage" style="display: none">
                 <div class="content-header">
                     <div class="container-fluid">
-                        <h1 class="m-0">Sales</h1>
+                        <h1 class="m-0">Contracts</h1>
                     </div>
                 </div>
+
+                <label>
+                    <select id="sizeSelectContract" style="width: 50px; " onchange="changeSizeContracts()" name='status' class='form-control'>
+                        <option value=10 selected>10</option>
+                        <option value=20>20</option>
+                    </select>
+                </label>
+
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">
+                            <div onclick="sortContracts('flat.number')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Flat number</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div onclick="sortContracts('flat.object.name')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Object</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div onclick="sortContracts('status')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Status</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div onclick="sortContracts('flatArea')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Area</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div onclick="sortContracts('price')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Price</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div onclick="sortContracts('buyer')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Buyer</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div onclick="sortContracts('id')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Contract number</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div onclick="sortContracts('date')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Date</p>
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody id="listContracts">
+                    <!-- list -->
+                    </tbody>
+                </table>
+                <nav>
+                    <ul id="choose-pageContracts" class="pagination">
+                        <!-- pagination buttons -->
+                    </ul>
+                </nav>
+
             </div>
 
             <div id="commissionsPage" style="display: none">
@@ -117,6 +180,7 @@
                         <h1 class="m-0">Commissions</h1>
                     </div>
                 </div>
+
             </div>
         </section>
     </div>
@@ -134,10 +198,11 @@
     let Agency = {};
     let IdForUpdating;
 
+    let UserId = "[[${userId}]]" ;
+
     let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",0));
     let url = window.location.protocol+"//"+ window.location.host + context;
     console.log(url)
-    // window.location.href = 'redirect-url';
 
     let modal = document.getElementById("popup");
 
@@ -149,6 +214,7 @@
     let totalPage;
 
     $(document).ready(function() {
+        getUserPermissions();
         Agency.id = AgencyId;
         if(AgencyId != 0){
             getAgencyById(AgencyId);
@@ -500,7 +566,6 @@
             data: data,
             dataType: "json",
             success: function (object){
-                console.log('hello2');
                 console.log('success /getRealtorById');
                 document.getElementById('realtorName').value = object.name;
                 document.getElementById('realtorSurname').value = object.surname;
@@ -597,6 +662,224 @@
         currentPage = totalPage;
         updateRealtors()
     }
+
+
+    // contrats
+
+    let currentPageContracts = 1;
+    let sizeContracts = $('#sizeSelectContract').val();
+    let sortingFieldContracts = 'id';
+    let sortingDirectionContracts = 'ASC';  // DESC
+    let totalPageContracts;
+
+    $(document).ready(function() {
+        updateListContracts();
+        getUserPermissions();
+    });
+
+    function sortContracts(field){
+        if(sortingDirectionContracts === 'ASC'){
+            sortingDirectionContracts = 'DESC';
+        } else {
+            sortingDirectionContracts = 'ASC';
+        }
+        sortingFieldContracts = field;
+        updateListContracts();
+    }
+
+    function updateListContracts(){
+        let data = {
+            page: currentPageContracts,
+            size: sizeContracts,
+            field: sortingFieldContracts,
+            direction: sortingDirectionContracts,
+            agencyId: AgencyId
+        }
+        $.ajax({
+            type: 'get',
+            url: url + '/agencies/getContractsByAgencyId',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                totalPageContracts = data.totalPages;
+                if(currentPageContracts > totalPageContracts){
+                    if (currentPageContracts !== 1) {
+                        currentPageContracts--;
+                        updateListContracts();
+                    }
+                }
+                updateContracts(data)
+                console.log('success /getContractsByAgencyId');
+            },
+            error: function() {
+                console.log('error /getContractsByAgencyId');
+            }
+        });
+    }
+
+    function updateContracts(data) {
+        $("#listContracts").empty();
+        data.content.forEach((object) => {
+            $("#listContracts").append($("" +
+                "<tr>" +
+                "<td>" +
+                "<p onclick='goToFlat(" + object.flatId + ")'>" + object.flatNumber + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.object + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.status + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.flatArea + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.price + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.buyer + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p onclick='goToContract(" + object.id + ")'>" + object.id + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + moment(object.date).format('YYYY-MM-DD') + "</p>" +
+                "</td>" +
+                "</tr>"
+            ));
+        })
+        paginationButtonContracts();
+    }
+
+    function getUserPermissions(){
+        let data = {id: UserId};
+        $.ajax({
+            type: 'get',
+            url: url + '/agencies/getUserPermissionsById',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                console.log('success /getUserPermissionsById');
+                Permissions = data;
+            },
+            error: function() {
+                console.log('error /getUserPermissionsById');
+            }
+        });
+    }
+
+    function goToFlat(id){
+        Permissions.forEach((permission)=>{
+            if(permission === "FLATS"){
+                window.location = "/flats/flat/" + id;
+            }
+        })
+    }
+
+    function goToContract(id){
+        Permissions.forEach((permission)=>{
+            if(permission === "CONTRACTS"){
+                window.location = "/contracts/contract/" + id;
+            }
+        })
+    }
+
+    function changeSizeContracts(){
+        sizeContracts = $('#sizeSelectContracts').val();
+        currentPageContracts = 1;
+        updateListContracts()
+    }
+
+    function paginationButtonContracts(){
+        $("#choose-pageContracts").empty();
+        if(totalPageContracts > 1){
+            if(currentPageContracts !== 1){
+                $("#choose-pageContracts").append($("" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goFirstPageContracts()' style='height: 40px'>First</button>" +
+                    "</div>" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goPreviousPageContracts()' style='height: 40px'>\<\<</a>" +
+                    "</div>"
+                ));
+            } else {
+                $("#choose-pageContracts").append($("" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goFirstPageContracts()' style='height: 40px'>First</button>" +
+                    "</div>" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goPreviousPageContracts()' style='height: 40px'>\<\<</a>" +
+                    "</div>"
+                ));
+            }
+            let start = currentPageContracts - 2;
+            let finish = currentPageContracts + 2;
+            for(let i = start; i <= finish; i++) {
+                if(i > 0 && i <= totalPageContracts) {
+                    if (currentPageContracts === i) {
+                        $("#choose-pageContracts").append($("" +
+                            "<div class='page-item active'>" +
+                            "<button onclick='goToPageContracts(" + i + ")' class='page-link' tabIndex=\"-1\" style='height: 40px; width: 40px'>" + i + "</button>" +
+                            "</div>"
+                        ));
+                    } else {
+                        $("#choose-pageContracts").append($("" +
+                            "<div class='page-item'>" +
+                            "<button onclick='goToPageContracts(" + i + ")' class='page-link' tabIndex=\"-1\" style='height: 40px; width: 40px'>" + i + "</button>" +
+                            "</div>"
+                        ));
+                    }
+                }
+            }
+            if(currentPageContracts !== totalPageContracts) {
+                $("#choose-pageContracts").append($("" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goNextPageContracts()' style='height: 40px'>\>\></button>" +
+                    "</div>" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goLastPageContracts()' style='height: 40px'>Last</a>" +
+                    "</div>"
+                ));
+            } else {
+                $("#choose-pageContracts").append($("" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goNextPageContracts()' style='height: 40px'>\>\></button>" +
+                    "</div>" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goLastPageContracts()' style='height: 40px'>Last</a>" +
+                    "</div>"
+                ));
+            }
+        }
+    }
+
+    function goFirstPageContracts(){
+        currentPageContracts = 1;
+        updateListContracts();
+    }
+
+    function goPreviousPageContracts(){
+        currentPageContracts--;
+        updateListContracts()
+    }
+
+    function goToPageContracts(i){
+        currentPageContracts = i;
+        updateListContracts()
+    }
+    function goNextPageContracts(){
+        currentPageContracts++;
+        updateListContracts()
+    }
+    function goLastPageContracts(){
+        currentPageContracts = totalPageContracts;
+        updateListContracts()
+    }
+
+
+
+
 
     function mask(){
         let element = document.getElementById('realtorPhone');

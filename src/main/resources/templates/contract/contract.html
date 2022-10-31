@@ -728,16 +728,29 @@
                     "<option selected disabled value='" + null + "'>Choose contract template</option>"
                 ));
                 data.forEach((object) => {
-                    if (object.id === Contract?.contractTemplate?.id ?? null) {
-                        $("#template").append($("" +
-                            "<option selected value='" + object.id + "'> " + object.name + "</option>"
-                        ));
+                    if(undefined !== Contract?.contractTemplate?.id ?? undefined) {
+                        if (object.id === Contract.contractTemplate.id) {
+                            $("#template").append($("" +
+                                "<option selected value='" + object.id + "'> " + object.name + "</option>"
+                            ));
+                        } else {
+                            $("#template").append($("" +
+                                "<option value='" + object.id + "'> " + object.name + "</option>"
+                            ));
+                        }
                     } else {
-                        $("#template").append($("" +
-                            "<option value='" + object.id + "'> " + object.name + "</option>"
-                        ));
+                        if (object.main === true) {
+                            $("#template").append($("" +
+                                "<option selected value='" + object.id + "'> " + object.name + "</option>"
+                            ));
+                        } else {
+                            $("#template").append($("" +
+                                "<option value='" + object.id + "'> " + object.name + "</option>"
+                            ));
+                        }
                     }
                 })
+
             },
             error: function() { console.log('error /getContractTemplates'); }
         });
