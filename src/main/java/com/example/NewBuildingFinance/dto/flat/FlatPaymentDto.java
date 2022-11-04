@@ -15,7 +15,7 @@ public class FlatPaymentDto {
     @NotNull(message = "Must not be empty")
     private Date date;
     @NotNull(message = "Must not be empty")
-    private Integer planned;
+    private Double planned;
     @NotNull(message = "Must not be empty")
     private Long flatId;
 

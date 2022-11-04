@@ -19,9 +19,9 @@ public class FlatSaveDto {
     @NotNull(message = "Must not be empty")
     private Double area; // площа
     @NotNull(message = "Must not be empty")
-    private Integer price; // ціна
+    private Double price; // ціна
     @NotNull(message = "Must not be empty")
-    private Integer salePrice; // ціна продажі
+    private Double salePrice; // ціна продажі
 
     @NotNull(message = "Must not be empty")
     private Integer number;

@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Income</title>
+
+    <style th:replace="blocks/linkAdminLTE"></style>
+    <div th:replace="blocks/links"></div>
+    <script th:src="@{/js/app.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+
+<body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
+<div class="wrapper">
+
+    <div th:replace="blocks/navbar"></div>
+    <div th:replace="blocks/sidebarContainer"></div>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <div class="content-header">
+            <div class="container-fluid">
+                <h1 class="m-0">Income</h1>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+
+            <div class="row">
+                <div class="col">
+                    <div class="form-group mt-2">
+                        <label>Article:</label>
+                        <select id="article" onchange="articles()" class="form-control">
+                        </select>
+                        <p id='articleMessage' style="color: red"></p>
+                    </div>
+                    <div class="d-flex flex-nowrap mt-2">
+                        <label class="m-1">Completed:</label>
+                        <div class="form-check form-switch m-1">
+                            <input id="completed" type="checkbox" class="form-check-input" role="switch"> <!-- checked="checked" -->
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group mt-2">
+                                <label>Number:</label>
+                                <input id="number" type="number" placeholder="Enter number" class="form-control">
+                                <p id='numberMessage' style="color: red"></p>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group mt-2">
+                                <label>Date:</label>
+                                <input id="date" type="date" placeholder="Choose date" class="form-control">
+                                <p id='dateMessage' style="color: red"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="forFlatPayment" style="display: none">
+                        <div class="form-group mt-2">
+                            <label>Object:</label>
+                            <select id="object" onchange="getFlatsByObjectId()" class="form-control">
+                            </select>
+                            <p id='objectMessage' style="color: red"></p>
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Flat number:</label>
+                            <select id="flat" onchange="getFlatPaymentsByFlatId()" class="form-control">
+                                <option th:value="null" disabled selected>Choose flat</option>
+                            </select>
+                            <p id='flatMessage' style="color: red"></p>
+                        </div>
+                        <div class="form-group mt-2">
+                            <label>Flat payment number:</label>
+                            <select id="flatPayment" onchange="uploadFlatPayment()" class="form-control" >
+                                <option th:value="null" disabled selected>Choose flat payment</option>
+                            </select>
+                            <p id='flatPaymentMessage' style="color: red"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                </div>
+                <div class="col">
+                </div>
+                <div class="col">
+                    <div class="form-group mt-2">
+                        <label>Money:</label>
+                        <input id="price" type="number" placeholder='Enter money' class="form-control" maxlength="15">
+                        <p id='priceMessage' style="color: red"></p>
+                    </div>
+                    <div class="form-group mt-2">
+                        <label>Currency:</label>
+                        <select id="currency" onchange="uploadAdmissionCourse()" class="form-control">
+                        </select>
+                        <p id='currencyMessage' style="color: red"></p>
+                    </div>
+                    <div class="form-group mt-2">
+                        <label>Admission course:</label>
+                        <input id="admissionCourse" type="number" placeholder='Enter admission course' class="form-control" maxlength="5">
+                        <p id='admissionCourseMessage' style="color: red"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group mt-2">
+                <label>Comment:</label>
+                <textarea id="comment" class="form-control" maxlength="5000"></textarea>
+                <p id='commentMessage' style="color: red"></p>
+            </div>
+
+            <button id="saveButton" onclick="save()" class="btn btn-success popup-with-form">Save</button>
+            <button id="deleteButton" onclick="deleteObject()" style="display: none" class="btn btn-danger popup-with-form">Delete</button>
+            <a th:href="@{/cashRegister}" class="btn btn-dark popup-with-form">Back</a>
+        </section>
+    </div>
+</div>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script th:src="@{/js/validation.js}"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+    let IncomeId = "[[${cashRegisterId}]]";
+    let FlatPaymentId = "[[${flatPaymentId}]]";
+    let Income = {};
+    let FlatPayment = {};
+    console.log(FlatPaymentId);
+
+
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
+    let url = window.location.protocol+"//"+ window.location.host + context;
+
+    $(document).ready(function() {
+        Income.id = IncomeId;
+        if(IncomeId != 0){
+            getIncomeById();
+        } else if(FlatPaymentId != 0) {
+            getFlatPaymentById();
+        } else {
+            getArticles();
+            getObjects();
+            getCurrencies();
+        }
+    })
+
+    function articles(){
+        if ($("#article").val() === 'FLAT_PAYMENT'){
+            $("#forFlatPayment").show();
+        } else {
+            $("#forFlatPayment").hide();
+        }
+    }
+
+    function getIncomeById(){
+        let data = {id: IncomeId};
+        $.ajax({
+            type: 'get',
+            url: url + '/getIncomeById',
+            dataType: "json",
+            data: data,
+            success: function (data) {
+                console.log('success /getIncomeById');
+                Income = data;
+                document.getElementById('admissionCourse').value = data.admissionCourse;
+                document.getElementById('price').value = data.price;
+                document.getElementById('date').value = moment(data.date).format('YYYY-MM-DD');
+                document.getElementById('number').value = data.number;
+                document.getElementById('completed').checked = data.status;
+                document.getElementById('comment').value = data.comment;
+
+                getArticles();
+                getObjects();
+                getCurrencies();
+            },
+            error: function () {
+                console.log('error /getIncomeById');
+            }
+        });
+    }
+
+    function getFlatPaymentById(){
+        let data = {id: FlatPaymentId};
+        $.ajax({
+            type: 'get',
+            url: url + '/getFlatPaymentById',
+            dataType: "json",
+            data: data,
+            success: function (data) {
+                console.log('success /getIncomeById');
+                FlatPayment = data;
+                console.log(data);
+                document.getElementById('price').value = data.planned;
+                document.getElementById('date').value = moment(data.date).format('YYYY-MM-DD');
+
+                getArticles();
+                getObjects();
+                getCurrencies();
+            },
+            error: function () {
+                console.log('error /getIncomeById');
+            }
+        });
+    }
+
+    function save(){
+        let income = {};
+        income.number = document.getElementById('number').value;
+        income.date = document.getElementById('date').value;
+        income.status = document.getElementById('completed').checked;
+        income.objectId = $("#object").val();
+        income.flatId = $("#flat").val();
+        income.flatPaymentId = $("#flatPayment").val();
+        income.article = $("#article").val();
+        income.price = document.getElementById('price').value;
+        income.currencyId = $("#currency").val();
+        income.admissionCourse = document.getElementById('admissionCourse').value;
+        income.comment = document.getElementById('comment').value;
+        console.log(income);
+        if (Income.id == 0) {
+            $.ajax({
+                type: 'post',
+                url: url + '/addIncome',
+                data: JSON.stringify(income),
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    console.log('success /addIncome');
+                    let validation = JSON.parse(data);
+                    if (validation.id !== undefined) {
+                        window.location = '/cashRegister/income/' + validation.id;
+                    } else {
+                        validationMessage(validation);
+                    }
+                },
+                error: function () {
+                    console.log('error /addIncome');
+                }
+            });
+        } else {
+            income.id = Income.id;
+            $.ajax({
+                type: 'post',
+                url: url + '/updateIncome',
+                data: JSON.stringify(income),
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    console.log('success /updateIncome');
+                    let validation = JSON.parse(data);
+                    if (validation == null) {
+                        validationMessage(null);
+                    } else {
+                        validationMessage(validation);
+                    }
+                },
+                error: function () {
+                    console.log('error /updateIncome');
+                }
+            });
+        }
+    }
+
+    function validationMessage(validation){
+        if(validation === 1){
+            document.getElementById('numberMessage').innerHTML = "";
+            document.getElementById('number').style.border = "1px solid #ced4da";
+            document.getElementById('dateMessage').innerHTML = "";
+            document.getElementById('date').style.border = "1px solid #ced4da";
+            document.getElementById('flatMessage').innerHTML = "";
+            document.getElementById('flat').style.border = "1px solid #ced4da";
+            document.getElementById('objectMessage').innerHTML = "";
+            document.getElementById('object').style.border = "1px solid #ced4da";
+            document.getElementById('flatPaymentMessage').innerHTML = "";
+            document.getElementById('flatPayment').style.border = "1px solid #ced4da";
+            document.getElementById('articleMessage').innerHTML = "";
+            document.getElementById('article').style.border = "1px solid #ced4da";
+            document.getElementById('priceMessage').innerHTML = "";
+            document.getElementById('price').style.border = "1px solid #ced4da";
+            document.getElementById('currencyMessage').innerHTML = "";
+            document.getElementById('currency').style.border = "1px solid #ced4da";
+            document.getElementById('admissionCourseMessage').innerHTML = "";
+            document.getElementById('admissionCourse').style.border = "1px solid #ced4da";
+            return;
+        }
+        if(validation?.number ?? false){
+            document.getElementById('numberMessage').innerHTML = validation.number;
+            document.getElementById('number').style.border = "1px solid red";
+        }else {
+            document.getElementById('numberMessage').innerHTML = "";
+            document.getElementById('number').style.border = "1px solid green";
+        }
+        if(validation?.date ?? false){
+            document.getElementById('dateMessage').innerHTML = validation.date;
+            document.getElementById('date').style.border = "1px solid red";
+        } else {
+            document.getElementById('dateMessage').innerHTML = "";
+            document.getElementById('date').style.border = "1px solid green";
+        }
+        if(validation?.flat ?? false){
+            document.getElementById('flatMessage').innerHTML = validation.flat;
+            document.getElementById('flat').style.border = "1px solid red";
+        }else {
+            document.getElementById('flatMessage').innerHTML = "";
+            document.getElementById('flat').style.border = "1px solid green";
+        }
+        if(validation?.object ?? false){
+            document.getElementById('objectMessage').innerHTML = validation.object;
+            document.getElementById('object').style.border = "1px solid red";
+        }else {
+            document.getElementById('objectMessage').innerHTML = "";
+            document.getElementById('object').style.border = "1px solid green";
+        }
+        if(validation?.flatPayment ?? false){
+            document.getElementById('flatPaymentMessage').innerHTML = validation.flatPayment;
+            document.getElementById('flatPayment').style.border = "1px solid red";
+        }else {
+            document.getElementById('flatPaymentMessage').innerHTML = "";
+            document.getElementById('flatPayment').style.border = "1px solid green";
+        }
+        if(validation?.article ?? false){
+            document.getElementById('articleMessage').innerHTML = validation.article;
+            document.getElementById('article').style.border = "1px solid red";
+        } else {
+            document.getElementById('articleMessage').innerHTML = "";
+            document.getElementById('article').style.border = "1px solid green";
+        }
+        if(validation?.price ?? false){
+            document.getElementById('priceMessage').innerHTML = validation.price;
+            document.getElementById('price').style.border = "1px solid red";
+        } else {
+            document.getElementById('priceMessage').innerHTML = "";
+            document.getElementById('price').style.border = "1px solid green";
+        }
+        if(validation?.currencyId ?? false){
+            document.getElementById('currencyMessage').innerHTML = validation.currencyId;
+            document.getElementById('currency').style.border = "1px solid red";
+        }else {
+            document.getElementById('currencyMessage').innerHTML = "";
+            document.getElementById('currency').style.border = "1px solid green";
+        }
+        if(validation?.admissionCourse ?? false){
+            document.getElementById('admissionCourseMessage').innerHTML = validation.admissionCourse;
+            document.getElementById('admissionCourse').style.border = "1px solid red";
+        }else {
+            document.getElementById('admissionCourseMessage').innerHTML = "";
+            document.getElementById('admissionCourse').style.border = "1px solid green";
+        }
+        setTimeout(function() {
+            validationMessage(1)
+        }, 4000);
+    }
+
+    function deleteObject(){
+        let data = { id: Income.id };
+        $.ajax({
+            type: 'post',
+            url: url + '/deleteIncomeById',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                console.log('success /deleteIncomeById');
+                window.location = '/cashRegister';
+            },
+            error: function() {
+                console.log('error /deleteIncomeById');
+            }
+        });
+    }
+
+    //upload info
+
+    function uploadFlatPayment(){
+        let data = {id: $("#flatPayment").val()}
+        $.ajax({
+            type: 'get',
+            url: url + '/getFlatPaymentById',
+            dataType: "json",
+            data: data,
+            success: function (data) {
+                console.log('success /getFlatPaymentById');
+                document.getElementById('price').value = data.planned;
+            },
+            error: function () {
+                console.log('error /getFlatPaymentById');
+            }
+        });
+    }
+
+    function uploadAdmissionCourse(){
+        let data = {id: $("#currency").val()}
+        $.ajax({
+            type: 'get',
+            url: url + '/getCurrencyById',
+            dataType: "json",
+            data: data,
+            success: function (data) {
+                console.log('success /getCurrencyById');
+                document.getElementById('admissionCourse').value = data.price;
+                document.getElementById('admissionCourse').disabled = data.name === 'UAH';
+            },
+            error: function () {
+                console.log('error /getCurrencyById');
+            }
+        });
+    }
+
+    // selects
+
+    function getArticles(){
+        $.ajax({
+            type: 'get',
+            url: url + '/getArticlesForIncome',
+            dataType: "json",
+            success: function (data) {
+                console.log('success /getArticlesForIncome');
+                $("#article").append($("" +
+                    "<option selected disabled value='" + null + "'>Choose article</option>"
+                ));
+                data.forEach((element) => {
+                    if(element.first === Income?.article ?? null){
+                        $("#article").append($("" +
+                            "<option selected value='" + element.first + "'> " + element.second + "</option>"
+                        ));
+                        articles();
+                    } else if (FlatPayment !== undefined) {
+                        if (element.first === 'FLAT_PAYMENT') {
+                            $("#article").append($("" +
+                                "<option selected value='" + element.first + "'> " + element.second + "</option>"
+                            ));
+                            articles();
+                        } else {
+                            $("#article").append($("" +
+                                "<option value='" + element.first + "'> " + element.second + "</option>"
+                            ));
+                        }
+                    } else {
+                        $("#article").append($("" +
+                            "<option value='" + element.first + "'> " + element.second + "</option>"
+                        ));
+                    }
+                })
+            },
+            error: function () {
+                console.log('error /getArticlesForIncome');
+            }
+        });
+    }
+
+    function getCurrencies(){
+        $.ajax({
+            type: 'get',
+            url: url + '/getCurrencies',
+            dataType: "json",
+            success: function (data) {
+                console.log('success /getCurrencies');
+                $("#currency").append($("" +
+                    "<option selected disabled value='" + null + "'>Choose currency</option>"
+                ));
+                data.forEach((element) => {
+                    if(element.id === Income?.currencyId ?? null){
+                        $("#currency").append($("" +
+                            "<option selected value='" + element.id + "'> " + element.name + " (" + element.price + ")</option>"
+                        ));
+                    } else {
+                        $("#currency").append($("" +
+                            "<option value='" + element.id + "'> " + element.name + " (" + element.price + ")</option>"
+                        ));
+                    }
+                })
+            },
+            error: function () {
+                console.log('error /getCurrencies');
+            }
+        });
+    }
+
+    function getObjects(){
+        $.ajax({
+            type: 'get',
+            url: url + '/getObjects',
+            dataType: "json",
+            success: function (data) {
+                console.log(data);
+                console.log('success /getObjects');
+                $("#object").empty();
+                $("#object").append($("" +
+                    "<option selected disabled value='" + null + "'>Choose object</option>"
+                ));
+                data.forEach((element) => {
+                    if(element.id === Income?.objectId ?? null){
+                        $("#object").append($("" +
+                            "<option selected value='" + element.id + "'> " + element.house + '(' + element.section + ')' + "</option>"
+                        ));
+                        getFlatsByObjectId();
+                    } else if(element.id === FlatPayment?.flat?.object?.id ?? null){
+                        $("#object").append($("" +
+                            "<option selected value='" + element.id + "'> " + element.house + '(' + element.section + ')' + "</option>"
+                        ));
+                        getFlatsByObjectId();
+                    } else {
+                        $("#object").append($("" +
+                            "<option value='" + element.id + "'> " + element.house + '(' + element.section + ')' + "</option>"
+                        ));
+                    }
+                })
+            },
+            error: function () {
+                console.log('error /getObjects');
+            }
+        });
+    }
+
+    function getFlatsByObjectId(){
+        let data = {
+            id: $("#object").val(),
+            flatId: Income.flatId
+        };
+        $.ajax({
+            type: 'get',
+            url: url + '/getFlatsWithContractWithFlatPaymentsByObjectId',
+            dataType: "json",
+            data: data,
+            success: function (data) {
+                console.log('success /getFlatsWithContractWithFlatPaymentsByObjectId');
+                $("#flat").empty();
+                $("#flat").append($("" +
+                    "<option selected disabled value='" + null + "'>Choose flat</option>"
+                ));
+                data.forEach((element) => {
+                    if(element.id === Income?.flatId ?? null){
+                        $("#flat").append($("" +
+                            "<option selected value='" + element.id + "'> " + element.number + "</option>"
+                        ));
+                        getFlatPaymentsByFlatId();
+                    } else if (element.id === FlatPayment?.flat?.id ?? null){
+                        $("#flat").append($("" +
+                            "<option selected value='" + element.id + "'> " + element.number + "</optionselected>"
+                        ));
+                        getFlatPaymentsByFlatId();
+                    } else {
+                        $("#flat").append($("" +
+                            "<option value='" + element.id + "'> " + element.number + "</option>"
+                        ));
+                    }
+                })
+            },
+            error: function () {
+                console.log('error /getFlatsWithContractWithFlatPaymentsByObjectId');
+            }
+        });
+    }
+
+    function getFlatPaymentsByFlatId(){
+        let data = {
+            id: $("#flat").val(),
+            flatPaymentId: Income.flatPaymentId
+        };
+        $.ajax({
+            type: 'get',
+            url: url + '/getFlatPaymentsByFlatId',
+            dataType: "json",
+            data: data,
+            success: function (data) {
+                console.log('success /getFlatPaymentsByFlatId');
+                $("#flatPayment").empty();
+                $("#flatPayment").append($("" +
+                    "<option selected disabled value='" + null + "'>Choose flat payment</option>"
+                ));
+                data.forEach((element) => {
+                    if(element.id === Income?.flatPaymentId ?? null ){
+                        $("#flatPayment").append($("" +
+                            "<option selected value='" + element.id + "'> " + element.number + " (" + moment(element.date).format('YYYY-MM-DD') + ")</option>"
+                        ));
+                    } else if (element.id === FlatPayment?.id ?? null) {
+                        $("#flatPayment").append($("" +
+                            "<option selected value='" + element.id + "'> " + element.number + " (" + moment(element.date).format('YYYY-MM-DD') + ")</option>"
+                        ));
+                    }else {
+                        $("#flatPayment").append($("" +
+                            "<option value='" + element.id + "'> " + element.number + " (" + moment(element.date).format('YYYY-MM-DD') + ")</option>"
+                        ));
+                    }
+                })
+            },
+            error: function () {
+                console.log('error /getFlatPaymentsByFlatId');
+            }
+        });
+    }
+
+    // print to pdf
+
+    function printToPdf(){
+        if(Contract.id !== undefined) {
+            window.location = url + "/getPdf/" + Contract.id;
+        }
+    }
+
+</script>
+
+</body>
+</html>

@@ -382,7 +382,7 @@
     }
 
     function maybeSave(element){
-        if(element.id === 'commissionButton'){getUserPermissionsById
+        if(element.id === 'commissionButton'){
             if(Flat.contract == null){
                 document.getElementById('commissionMessage').innerHTML = "Firstly create contract for this flat";
                 setTimeout(function() {
@@ -715,7 +715,7 @@
                     })
                     $("#contractInfoDiv").show();
                     document.getElementById('contractStatus').innerHTML = 'Contract status: ' + Flat.contract.status;
-                    document.getElementById('contractNumber').innerHTML = 'Contract number: ' + Flat.contract.id;
+                    document.getElementById('contractNumber').innerHTML = 'Contract number: ' + Flat.contract.number;
                     document.getElementById('contractDate').innerHTML = 'Contract date: ' + moment(Flat.contract.date).format('YYYY-MM-DD');
                     document.getElementById('saveButton').disabled = true;
                     $('#summernote').summernote('disable');

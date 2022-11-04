@@ -27,4 +27,7 @@ public interface FlatRepository extends JpaRepository<Flat, Long>, JpaSpecificat
 
     List<Flat> findAllByDeletedFalseAndObjectIdAndContractNullAndStatus(Long object_id, StatusFlat status);
     List<Flat> findAllByDeletedFalseAndObjectIdAndContractNullAndStatusOrId(Long object_id, StatusFlat status, Long id);
+
+    List<Flat> findAllByDeletedFalseAndObjectIdAndContractNotNull(Long object_id);
+    List<Flat> findAllByDeletedFalseAndObjectIdAndContractNotNullOrId(Long object_id, Long id);
 }

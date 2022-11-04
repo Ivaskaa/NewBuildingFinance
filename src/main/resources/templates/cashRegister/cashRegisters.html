@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cash register</title>
+
+    <style th:replace="blocks/linkAdminLTE"></style>
+    <div th:replace="blocks/links"></div>
+    <script th:src="@{/js/app.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+
+<body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
+<div class="wrapper">
+
+    <div th:replace="blocks/navbar"></div>
+    <div th:replace="blocks/sidebarContainer"></div>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <div class="content-header">
+            <div class="container-fluid">
+                <h1 class="m-0">Cash register</h1>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+            <label>
+                <select id="sizeSelect" style="width: 50px; " onchange="changeSize()" name='status' class='form-control'>
+                    <option value=10 selected>10</option>
+                    <option value=20>20</option>
+                </select>
+            </label>
+
+            <a th:href="@{/cashRegister/income/0}" class="btn btn-success popup-with-form">+ Income</a>
+            <a th:href="@{/cashRegister/spending/0}" class="btn btn-danger popup-with-form">- Spending</a>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">
+                        <label>
+                            <input id="number" oninput="search()" type="number" min="1" max="100000000" class="form-control" style="width: 130px">
+                        </label>
+                        <div onclick="sort('number')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Number</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <input id="dateStart" oninput="search()" type="date" class="form-control" style="width: 80px">
+                        </label>
+                        <label>
+                            <input id="dateFin" oninput="search()" type="date" class="form-control" style="width: 80px">
+                        </label>
+                        <div onclick="sort('date')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Date</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <select id="economic" onchange="search()" class="form-control" style="width: 130px">
+                                <option th:value="null" selected>Empty</option>
+                                <option th:each="el : ${economics}" th:value="${el.first}" th:text="${el.second}"></option>
+                            </select>
+                        </label>
+                        <div onclick="sort('economic')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Economic</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <select id="status" onchange="search()" class="form-control" style="width: 130px">
+                                <option th:value="null" selected>Empty</option>
+                                <option th:each="el : ${statuses}" th:value="${el.first}" th:text="${el.second}"></option>
+                            </select>
+                        </label>
+                        <div onclick="sort('status')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Status</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <select id="object" onchange="search()" class="form-control" style="width: 130px">
+                                <option th:value="null" selected>Empty</option>
+                                <option th:each="el : ${objects}" th:value="${el.id}" th:text="${el.house} + '(' + ${el.section} + ')'"></option>
+                            </select>
+                        </label>
+                        <div onclick="sort('object')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Object</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <select id="article" onchange="search()" class="form-control" style="width: 130px">
+                                <option th:value="null" selected>Empty</option>
+                                <option th:each="el : ${articles}" th:value="${el.first}" th:text="${el.second}"></option>
+                            </select>
+                        </label>
+                        <div onclick="sort('article')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Article</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <input id="price" oninput="search()" type="number" min="1" max="100000000" class="form-control" style="width: 130px">
+                        </label>
+                        <div onclick="sort('price')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Money</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <select id="currency" onchange="search()" class="form-control" style="width: 130px">
+                                <option th:value="null" selected>Empty</option>
+                                <option th:each="el : ${currencies}" th:value="${el.id}" th:text="${el.name}"></option>
+                            </select>
+                        </label>
+                        <div onclick="sort('currency')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Currency</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <input id="counterparty" oninput="search()" type="text" class="form-control" style="width: 80px">
+                        </label>
+                        <div onclick="sort('counterparty')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Counterparty</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Edit</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Delete</p>
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+                <tbody id="list">
+                <!-- list -->
+                </tbody>
+            </table>
+            <nav>
+                <ul id="choose-page" class="pagination">
+                    <!-- pagination buttons -->
+                </ul>
+            </nav>
+        </section>
+    </div>
+</div>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script th:src="@{/js/validation.js}"></script>
+
+<script>
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
+    let url =window.location.protocol+"//"+ window.location.host +context;
+
+    let currentPage = 1;
+    let size = $('#sizeSelect').val();
+    let sortingField = 'id';
+    let sortingDirection = 'DESC';  // ASC
+
+    let searchNumber;
+    let searchDateStart;
+    let searchDateFin;
+    let searchEconomic;
+    let searchStatus;
+    let searchObjectId;
+    let searchArticle;
+    let searchPrice;
+    let searchCurrencyId;
+    let searchCounterparty;
+
+
+    let totalPage;
+
+    $(document).ready(function() {
+        search();
+    });
+
+    function sort(field){
+        if(sortingDirection === 'ASC'){
+            sortingDirection = 'DESC';
+        } else {
+            sortingDirection = 'ASC';
+        }
+        sortingField = field;
+        updatePage();
+    }
+
+    function search(){
+        searchNumber = document.getElementById('number').value;
+        searchDateStart = document.getElementById('dateStart').value;
+        searchDateFin = document.getElementById('dateFin').value;
+        searchEconomic = $('#economic').val();
+        searchStatus = $('#status').val();
+        searchObjectId = $('#object').val();
+        searchArticle = $('#article').val();
+        searchPrice = document.getElementById('price').value;
+        searchCurrencyId = $('#currency').val();
+        searchCounterparty = document.getElementById('counterparty').value;
+        updatePage()
+    }
+
+    function updatePage(){
+        let data = {
+            page: currentPage,
+            size: size,
+            field: sortingField,
+            direction: sortingDirection,
+
+            number: searchNumber,
+            dateStart: searchDateStart,
+            dateFin: searchDateFin,
+            economic: searchEconomic,
+            status: searchStatus,
+            objectId: searchObjectId,
+            article: searchArticle,
+            price: searchPrice,
+            currencyId: searchCurrencyId,
+            counterparty: searchCounterparty
+        }
+        $.ajax({
+            type: 'get',
+            url: url + '/cashRegister/getCashRegisters',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                totalPage = data.totalPages;
+                if(currentPage > totalPage){
+                    if (currentPage !== 1) {
+                        currentPage = totalPage;
+                        updatePage();
+                    }
+                }
+                updateList(data)
+                console.log('success /getCashRegisters');
+            },
+            error: function() {
+                console.log('error /getCashRegisters');
+            }
+        });
+    }
+
+    function updateList(data) {
+        $("#list").empty();
+        data.content.forEach((object) => {
+            let editUrl;
+            console.log(object.economic);
+            if (object.economic === 'Income'){
+                editUrl = url + '/cashRegister/income/' + object.id;
+            } else {
+                editUrl = url + '/cashRegister/spending/' + object.id;
+            }
+            let houseObject = object?.object ?? "";
+            let counterparty = object?.counterparty ?? "";
+            $("#list").append($("" +
+                "<tr>" +
+                "<td>" +
+                "<p>" + object.number + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + moment(object.date).format('YYYY-MM-DD') + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.economic + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.status + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + houseObject + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.article + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.price + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.currency + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + counterparty + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<a href='" + editUrl + "' class=\"btn btn-warning\" type=\"button\">Edit</a>" +
+                "</td>" +
+                "<td>" +
+                "<button onclick='deleteObject(" + object.id + ")' class=\"btn btn-danger\" type=\"button\">Delete</button>" +
+                "</td>" +
+                "</tr>"
+            ));
+        })
+        paginationButton();
+    }
+
+    function deleteObject(id){
+        let data = { id: id };
+        $.ajax({
+            type: 'post',
+            url: url + '/cashRegisters/deleteCashRegistersById',
+            data: data,
+            dataType: "json",
+            success: function (success){
+                console.log(success + ' /deleteContractById');
+                updatePage()
+            },
+            error: function() {
+                console.log('error /deleteContractById');
+            }
+        });
+    }
+
+    function changeSize(){
+        size = $('#sizeSelect').val();
+        currentPage = 1;
+        updatePage()
+    }
+
+    function paginationButton(){
+        $("#choose-page").empty();
+        if(totalPage > 1){
+            if(currentPage !== 1){
+                $("#choose-page").append($("" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goFirstPage()' style='height: 40px'>First</button>" +
+                    "</div>" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goPreviousPage()' style='height: 40px'>\<\<</a>" +
+                    "</div>"
+                ));
+            } else {
+                $("#choose-page").append($("" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goFirstPage()' style='height: 40px'>First</button>" +
+                    "</div>" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goPreviousPage()' style='height: 40px'>\<\<</a>" +
+                    "</div>"
+                ));
+            }
+            let start = currentPage - 2;
+            let finish = currentPage + 2;
+            for(let i = start; i <= finish; i++) {
+                if(i > 0 && i <= totalPage) {
+                    if (currentPage === i) {
+                        $("#choose-page").append($("" +
+                            "<div class='page-item active'>" +
+                            "<button onclick='goToPage(" + i + ")' class='page-link' tabIndex=\"-1\" style='height: 40px; width: 40px'>" + i + "</button>" +
+                            "</div>"
+                        ));
+                    } else {
+                        $("#choose-page").append($("" +
+                            "<div class='page-item'>" +
+                            "<button onclick='goToPage(" + i + ")' class='page-link' tabIndex=\"-1\" style='height: 40px; width: 40px'>" + i + "</button>" +
+                            "</div>"
+                        ));
+                    }
+                }
+            }
+            if(currentPage !== totalPage) {
+                $("#choose-page").append($("" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goNextPage()' style='height: 40px'>\>\></button>" +
+                    "</div>" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goLastPage()' style='height: 40px'>Last</a>" +
+                    "</div>"
+                ));
+            } else {
+                $("#choose-page").append($("" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goNextPage()' style='height: 40px'>\>\></button>" +
+                    "</div>" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goLastPage()' style='height: 40px'>Last</a>" +
+                    "</div>"
+                ));
+            }
+        }
+    }
+
+    function goFirstPage() {
+        currentPage = 1;
+        updatePage(currentPage, size, sortingField, sortingDirection);
+    }
+    function goPreviousPage(){
+        currentPage--;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+    function goToPage(i){
+        currentPage = i;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+    function goNextPage(){
+        currentPage++;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+    function goLastPage(){
+        currentPage = totalPage;
+        updatePage(currentPage, size, sortingField, sortingDirection)
+    }
+</script>
+
+</main>
+</body>
+</html>

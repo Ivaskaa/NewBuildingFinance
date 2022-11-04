@@ -84,14 +84,23 @@ public class FlatSpecification {
         }
         Integer finalAdvanceStart = advanceStart;
         Integer finalAdvanceFin = advanceFin;
+
+
         return (root, query, cb) -> {
             Join<Flat, FlatPayment> bListJoin = root.join(Flat_.FLAT_PAYMENTS, JoinType.INNER);
-//            Join<Flat, FlatPayment> bListJoin = root.join(cb.least(bListJoin.<String>get(FlatPayment_.DATE)), JoinType.INNER);
-            List<Predicate> predicates = new ArrayList<>();
 
-//            predicates.add(cb.between(cb.least(bListJoin.get(FlatPayment_.DATE)), finalAdvanceStart, finalAdvanceFin));
-            cb.least(bListJoin.<String>get(FlatPayment_.DATE));
-            return cb.between(cb.least(bListJoin.get(FlatPayment_.DATE)), finalAdvanceStart, finalAdvanceFin);
+//            Subquery<Date> sq = query.subquery(Date.class);
+//
+//            sq.select(cb.least(bListJoin.<Date>get(FlatPayment_.DATE)));
+//
+//            List<Predicate> predicates = new ArrayList<>();
+//            predicates.add(cb.equal(bListJoin.get(FlatPayment_.PLANNED), sq));
+//            predicates.add(cb.between())
+//            cb.least(bListJoin.<String>get(FlatPayment_.DATE));
+//            Predicate p = cb.equal(c.get("date"), sq);
+//            return cb.between(root.get(FlatPayment_.PLANNED), finalAdvanceStart, finalAdvanceFin);
+//            return cb.and(predicates.toArray(new Predicate[0]));
+            return null;
         };
     }
 }

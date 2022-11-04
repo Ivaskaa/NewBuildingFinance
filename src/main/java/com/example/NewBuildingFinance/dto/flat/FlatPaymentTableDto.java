@@ -8,7 +8,7 @@ public class FlatPaymentTableDto {
     private Long id;
     private Long number;
     private Date date;
-    private Integer planned;
-    private Integer actually;
-    private Integer remains;
+    private Double planned;
+    private Double actually;
+    private Double remains;
 }

@@ -630,6 +630,7 @@ function updateListPayment(data) {
     $("#listPayment").empty();
     alreadyPay = 0;
     data.content.forEach((object) => {
+        console.log(object);
         let actually = object?.actually ?? 'None';
         let remains = object?.remains ?? 'None';
         let date = moment(object.date).format('YYYY-MM-DD');
@@ -700,7 +701,6 @@ function updateListPayment(data) {
             }
         })
     }
-
     paginationButton();
 }
 
@@ -729,6 +729,10 @@ function editFormPayment(id){
             console.log('error /getPaymentById');
         }
     });
+}
+
+function pay(id){
+    window.location = '/cashRegister/income/0?flatPaymentId=' + id;
 }
 
 function deleteObjectPayment(id){

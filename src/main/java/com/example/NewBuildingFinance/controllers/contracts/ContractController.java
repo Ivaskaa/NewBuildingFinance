@@ -4,7 +4,6 @@ import com.example.NewBuildingFinance.dto.contract.ContractSaveDto;
 import com.example.NewBuildingFinance.dto.contract.ContractUploadDto;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
-import com.example.NewBuildingFinance.entities.contract.Contract;
 import com.example.NewBuildingFinance.entities.contract.ContractStatus;
 import com.example.NewBuildingFinance.entities.contract.ContractTemplate;
 import com.example.NewBuildingFinance.entities.flat.Flat;
@@ -13,15 +12,9 @@ import com.example.NewBuildingFinance.service.*;
 import com.example.NewBuildingFinance.service.auth.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.itextpdf.html2pdf.HtmlConverter;
-import com.itextpdf.kernel.pdf.PdfWriter;
 import lombok.AllArgsConstructor;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 import org.springframework.data.util.Pair;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,16 +23,10 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Controller
@@ -48,13 +35,12 @@ import java.util.*;
 public class ContractController {
     private final UserService userService;
     private final BuyerService buyerService;
-    private final InternalCurrencyService currencyService;
+    private final InternalCurrencyService internalCurrencyService;
     private final ContractService contractService;
     private final ContractTemplateService contractTemplateService;
     private final FlatService flatService;
     private final ObjectService objectService;
     private final ObjectMapper mapper;
-    private static final String PDF_OUTPUT = "src/main/resources/html2pdf.pdf";
 
     @GetMapping()
     public String contracts(
@@ -63,7 +49,7 @@ public class ContractController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.loadUserByUsername(authentication.getName());
         model.addAttribute("objects", objectService.findAll());
-        model.addAttribute("currencies", currencyService.findAll());
+        model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("user", user);
         return "contract/contracts";
     }
@@ -74,10 +60,9 @@ public class ContractController {
             Long flatId,
             Model model
     ) {
-        System.out.println(flatId);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", currencyService.findAll());
+        model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("contractId", id);
         model.addAttribute("flatId", Objects.requireNonNullElse(flatId, 0));
         model.addAttribute("user", user);

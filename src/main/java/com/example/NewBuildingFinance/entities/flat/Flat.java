@@ -50,9 +50,9 @@ public class Flat {
     @JsonManagedReference
     private Contract contract;
     private Double area; // площа
-    private Integer price; // ціна
-    private Integer salePrice; // ціна продажі
-    private Integer advance; // аванс
+    private Double price; // ціна
+    private Double salePrice; // ціна продажі
+    private Double advance; // аванс
 
     private Integer number;
     private Integer quantityRooms;
@@ -72,7 +72,7 @@ public class Flat {
         flat.setStatus(status.getValue());
         flat.setArea(area);
         flat.setPrice(price);
-        Integer advance = 0;
+        Double advance = 0d;
         Date date = new Date(99999999999999L);
         for(FlatPayment flatPayment : flatPayments){
             if(date.after(flatPayment.getDate())){
@@ -81,7 +81,7 @@ public class Flat {
             }
         }
         flat.setAdvance(advance);
-        flat.setEntered(1);
+        flat.setEntered(1d);
         flat.setRemains(price - 1);
         return flat;
     }

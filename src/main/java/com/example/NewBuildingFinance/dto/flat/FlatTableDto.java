@@ -8,8 +8,8 @@ public class FlatTableDto {
     private String object;
     private String status;
     private Double area; // площа
-    private Integer price; // ціна
-    private Integer advance;
-    private Integer entered;
-    private Integer remains;
+    private Double price; // ціна
+    private Double advance;
+    private Double entered;
+    private Double remains;
 }

@@ -36,6 +36,7 @@ public class FlatController {
     private final AgencyService agencyService;
     private final RealtorService realtorService;
     private final BuyerService buyerService;
+    private final FlatPaymentService flatPaymentService;
     private final ObjectService objectService;
     private final ObjectMapper mapper;
 

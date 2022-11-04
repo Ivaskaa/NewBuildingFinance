@@ -1,17 +1,14 @@
 package com.example.NewBuildingFinance.entities.cashRegister;
 
 import lombok.Getter;
-import lombok.Setter;
-
-import javax.persistence.*;
 
 @Getter
-@Setter
-@Entity
-@Table(name = "economics")
-public class Economic {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String name;
+public enum Economic {
+    INCOME("Income"), // дохід
+    SPENDING("Spending"); // витрати
+
+    private final String value;
+    Economic(String value) {
+        this.value = value;
+    }
 }

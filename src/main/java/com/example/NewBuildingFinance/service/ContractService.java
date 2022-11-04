@@ -242,7 +242,7 @@ public class ContractService {
             if (flat == null){
                 return false;
             }
-            Integer price = flat.getSalePrice();
+            Double price = flat.getSalePrice();
             for(FlatPayment flatPayment : flat.getFlatPayments()){
                 price -= flatPayment.getPlanned();
             }

@@ -16,4 +16,9 @@ public interface FlatPaymentRepository extends JpaRepository<FlatPayment, Long> 
     Page<FlatPayment> findAllByFlatId(Pageable pageable, Long flatId);
     @Query("select f from FlatPayment f where f.number = ?1 and f.flat.id = ?2")
     FlatPayment findByNumberAndFlatId(Long number, Long flatId);
+
+    List<FlatPayment> findByFlatIdAndPaidFalse(Long flat_id);
+    List<FlatPayment> findByFlatIdAndPaidFalseOrId(Long flat_id, Long id);
+
+    List<FlatPayment> findByFlatId(Long flat_id);
 }

@@ -80,14 +80,14 @@ public class FlatPaymentService {
         }
     }
 
-    public boolean checkPlaned(Integer planned, Long flatId) {
+    public boolean checkPlaned(Double planned, Long flatId) {
         if (planned != null){
-            if (planned.equals(0)){
+            if (planned.equals(0d)){
                 return false;
             }
             List<FlatPayment> flatPaymentList = flatPaymentRepository.findAllByFlatId(flatId);
             Flat flat = flatService.findById(flatId);
-            Integer flatPrice = flat.getSalePrice();
+            Double flatPrice = flat.getSalePrice();
             for (FlatPayment flatPayment : flatPaymentList) {
                 flatPrice -= flatPayment.getPlanned();
             }
@@ -98,10 +98,10 @@ public class FlatPaymentService {
         }
     }
 
-    public boolean checkPlanedEdit(Long id, Integer planned, Long flatId) {
+    public boolean checkPlanedEdit(Long id, Double planned, Long flatId) {
         List<FlatPayment> flatPaymentList = flatPaymentRepository.findAllByFlatId(flatId);
         Flat flat = flatService.findById(flatId);
-        Integer flatPrice = flat.getSalePrice();
+        Double flatPrice = flat.getSalePrice();
         for(FlatPayment flatPayment : flatPaymentList){
             if(!flatPayment.getId().equals(id)) {
                 flatPrice -= flatPayment.getPlanned();
@@ -109,5 +109,25 @@ public class FlatPaymentService {
         }
         flatPrice -= planned;
         return flatPrice < 0;
+    }
+
+    public List<FlatPayment> getByFlatId(Long id) {
+        log.info("get flat payments by flat id: {}", id);
+        List<FlatPayment> flatPayments;
+        flatPayments = flatPaymentRepository.findByFlatId(id);
+        log.info("success get flat payments by flat id");
+        return flatPayments;
+    }
+
+    public List<FlatPayment> getByFlatId(Long flatId, Long flatPaymentId) {
+        log.info("get flat payments with paid false by flat id : {}", flatId);
+        List<FlatPayment> flatPayments;
+        if(flatPaymentId == null) {
+            flatPayments = flatPaymentRepository.findByFlatIdAndPaidFalse(flatId);
+        } else {
+            flatPayments = flatPaymentRepository.findByFlatIdAndPaidFalseOrId(flatId, flatPaymentId);
+        }
+        log.info("success get flat payments with paid false by flat id");
+        return flatPayments;
     }
 }

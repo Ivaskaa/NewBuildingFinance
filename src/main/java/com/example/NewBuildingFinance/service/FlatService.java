@@ -111,20 +111,31 @@ public class FlatService {
         return flat;
     }
 
+    public List<Flat> getWithContractWithFlatPaymentByObjectId(Long id, Long flatId) {
+        log.info("get flats with contract with flat payments by object id: {}", id);
+        List<Flat> flats;
+        if(flatId == null) {
+            flats = flatRepository.findAllByDeletedFalseAndObjectIdAndContractNotNull(id);
+        } else {
+            flats = flatRepository.findAllByDeletedFalseAndObjectIdAndContractNotNullOrId(id, flatId);
+        }
+        log.info("success get flats with contract with flat payments by object id");
+        return flats;
+    }
+
     public List<Flat> getFlatsWithoutContractByObjectId(Long id, Long flatId) {
-        log.info("get flats by object id: {} and without contract", id);
+        log.info("get flats without contracts by object id: {}", id);
         List<Flat> flats;
         if(flatId == null) {
             flats = flatRepository.findAllByDeletedFalseAndObjectIdAndContractNullAndStatus(id, StatusFlat.ACTIVE);
         } else {
             flats = flatRepository.findAllByDeletedFalseAndObjectIdAndContractNullAndStatusOrId(id, StatusFlat.ACTIVE, flatId);
         }
-        log.info("success");
+        log.info("success get flats without contracts by object id");
         return flats;
     }
 
-    public boolean checkPrice(Integer price, Integer salePrice) {
-        // if price > salePrice return false
+    public boolean checkPrice(Double price, Double salePrice) {
         return price < salePrice;
     }
 

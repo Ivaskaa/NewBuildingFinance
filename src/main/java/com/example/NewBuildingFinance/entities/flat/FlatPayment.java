@@ -1,7 +1,9 @@
 package com.example.NewBuildingFinance.entities.flat;
 
 import com.example.NewBuildingFinance.dto.flat.FlatPaymentTableDto;
+import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,11 +20,12 @@ public class FlatPayment {
     private Long id;
     private Long number;
     private Date date;
-    private Integer planned;
-    private Integer actually;
+    private Double planned;
+    private Double actually;
+    private boolean paid;
     @JoinColumn(name = "flat_id")
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
-    @JsonBackReference
+    @JsonManagedReference
     private Flat flat;
 
     public FlatPaymentTableDto build(){

@@ -1,15 +1,20 @@
 package com.example.NewBuildingFinance.entities.cashRegister;
 
+import lombok.Getter;
+
+@Getter
 public enum Article { // стаття
     // приход
-    apartmentPayment("Payment for an apartment"), // оплата за квартиру
-    otherParish("Other parish"), // прочий приход
+    FLAT_PAYMENT("Flat payment"), // оплата за квартиру
+    OTHER_PAYMENT("Other payment"), // прочий приход
     // расход
-    commissionAgencies("Commission agencies"), // комисионние агенства
-    commissionManager("Commission manager"), // комисионние мененджери
-    constructionCosts("Construction costs"), // расходы на строительство
-    withdrawalMoneyCashRegister("Withdrawal money from the cash register"); // видача денег из касси
+    COMMISSION_AGENCIES("Commission agencies"), // комисионние агенства
+    COMMISSION_MANAGER("Commission manager"), // комисионние мененджери
+    CONSTRUCTION_COSTS("Construction costs"), // расходы на строительство
+    WITHDRAWAL_MONEY_CASH_REGISTER("Withdrawal money from cash register"); // видача денег из касси
 
-    Article(String s) {
+    private final String value;
+    Article(String value) {
+        this.value = value;
     }
 }
