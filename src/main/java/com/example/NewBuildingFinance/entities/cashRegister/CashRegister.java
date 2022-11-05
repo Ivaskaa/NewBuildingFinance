@@ -121,9 +121,15 @@ public class CashRegister {
         cashRegister.setId(id);
         cashRegister.setNumber(number);
         cashRegister.setDate(date);
-        if(manager!= null){
+        if (status.equals(StatusCashRegister.COMPLETED)){
+            cashRegister.setCompleted(true);
+        } else if (status.equals(StatusCashRegister.PLANNED)){
+            cashRegister.setCompleted(false);
+        }
+        if(manager != null){
             cashRegister.setManagerId(manager.getId());
         } else if(realtor != null){
+            cashRegister.setAgencyId(realtor.getAgency().getId());
             cashRegister.setRealtorId(realtor.getId());
         } else {
             cashRegister.setCounterparty(counterparty);

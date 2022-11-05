@@ -387,9 +387,9 @@
                 document.getElementById('commissionMessage').innerHTML = "Firstly create contract for this flat";
                 setTimeout(function() {
                     document.getElementById('commissionMessage').innerHTML = "";
-                }, 5000);
+                }, 3000);
             } else {
-                window.location = url + '/cashRegister';
+                window.location = url + '/cashRegister/spending/0?flatId=' + Flat.id;
             }
         }
         if(element.id === 'paymentScheduleButton'){

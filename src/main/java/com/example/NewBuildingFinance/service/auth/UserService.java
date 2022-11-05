@@ -54,6 +54,13 @@ public class UserService implements UserDetailsService {
         return userPage;
     }
 
+    public User findDirector() {
+        log.info("get director");
+        User user = userRepository.findById(1L).orElseThrow();
+        log.info("success get director");
+        return user;
+    }
+
     public List<User> findManagers() {
         log.info("get users where role permission manager");
         List<User> userPage = userRepository.findManagers();

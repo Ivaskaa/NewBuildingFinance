@@ -5,7 +5,9 @@ import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.cashRegister.Article;
 import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
 import com.example.NewBuildingFinance.entities.cashRegister.Economic;
+import com.example.NewBuildingFinance.entities.cashRegister.StatusCashRegister;
 import com.example.NewBuildingFinance.entities.currency.InternalCurrency;
+import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
 import com.example.NewBuildingFinance.entities.object.Object;
 import lombok.Data;
@@ -20,6 +22,7 @@ public class SpendingSaveDto {
     private Long number;
     @NotNull(message = "Must not be empty")
     private Date date;
+    private boolean status;
     private Long objectId;
     private Long flatId;
     private Long managerId;
@@ -40,7 +43,12 @@ public class SpendingSaveDto {
         cashRegister.setId(id);
         cashRegister.setNumber(number);
         cashRegister.setDate(date);
-        cashRegister.setEconomic(Economic.INCOME);
+        cashRegister.setEconomic(Economic.SPENDING);
+        if (status){
+            cashRegister.setStatus(StatusCashRegister.COMPLETED);
+        } else {
+            cashRegister.setStatus(StatusCashRegister.PLANNED);
+        }
         if(article.equals(Article.COMMISSION_MANAGER)) {
             if (managerId != null){
                 User user = new User();
@@ -53,9 +61,9 @@ public class SpendingSaveDto {
                 cashRegister.setObject(object);
             }
             if (flatId != null) {
-                FlatPayment flatPayment = new FlatPayment();
-                flatPayment.setId(flatId);
-                cashRegister.setFlatPayment(flatPayment);
+                Flat flat = new Flat();
+                flat.setId(flatId);
+                cashRegister.setFlat(flat);
             }
         } else if(article.equals(Article.COMMISSION_AGENCIES)){
             if (realtorId != null){
@@ -69,11 +77,11 @@ public class SpendingSaveDto {
                 cashRegister.setObject(object);
             }
             if (flatId != null) {
-                FlatPayment flatPayment = new FlatPayment();
-                flatPayment.setId(flatId);
-                cashRegister.setFlatPayment(flatPayment);
+                Flat flat = new Flat();
+                flat.setId(flatId);
+                cashRegister.setFlat(flat);
             }
-        } else {
+        } else if(article.equals(Article.CONSTRUCTION_COSTS)){
             cashRegister.setCounterparty(counterparty);
         }
         cashRegister.setArticle(article);

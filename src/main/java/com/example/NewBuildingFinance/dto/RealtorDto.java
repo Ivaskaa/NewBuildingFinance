@@ -5,10 +5,12 @@ import lombok.Data;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @Data
 public class RealtorDto {
     private Long id;
+    @NotNull(message = "Must not be empty")
     private Long agencyId;
     @NotEmpty(message = "Must not be empty")
     private String name;

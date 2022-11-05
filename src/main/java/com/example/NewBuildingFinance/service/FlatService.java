@@ -99,7 +99,10 @@ public class FlatService {
 
     public Flat findById(Long id) {
         log.info("get flat by id: {}", id);
-        Flat flat = flatRepository.findById(id).orElseThrow();
+        Flat flat = null;
+        if (id != null) {
+            flat = flatRepository.findById(id).orElseThrow();
+        }
         log.info("success");
         return flat;
     }

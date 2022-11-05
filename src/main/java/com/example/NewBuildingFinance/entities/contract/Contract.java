@@ -131,7 +131,9 @@ public class Contract {
         contract.setPrice(price);
         contract.setObject(object);
         contract.setDate(date);
-        contract.setBuyer(buyer.getSurname() + " " + buyer.getName() + " " + buyer.getLastname());
+        if (buyer != null) {
+            contract.setBuyer(buyer.getSurname() + " " + buyer.getName() + " " + buyer.getLastname());
+        }
         return contract;
     }
 }

@@ -1,6 +1,7 @@
 package com.example.NewBuildingFinance.service;
 
 import com.example.NewBuildingFinance.dto.contract.*;
+import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
 import com.example.NewBuildingFinance.entities.contract.Contract;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
@@ -259,7 +260,10 @@ public class ContractService {
     }
 
     public boolean checkContract(Long id) {
-        Contract contract = contractRepository.findById(id).orElse(null);
+        Contract contract = null;
+        if (id != null) {
+            contract = contractRepository.findById(id).orElse(null);
+        }
         return contract == null;
     }
 }

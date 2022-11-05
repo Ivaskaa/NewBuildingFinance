@@ -11,7 +11,7 @@ public enum Article { // стаття
     COMMISSION_AGENCIES("Commission agencies"), // комисионние агенства
     COMMISSION_MANAGER("Commission manager"), // комисионние мененджери
     CONSTRUCTION_COSTS("Construction costs"), // расходы на строительство
-    WITHDRAWAL_MONEY_CASH_REGISTER("Withdrawal money from cash register"); // видача денег из касси
+    MONEY_FOR_DIRECTOR("Money for director"); // видача денег из касси директору
 
     private final String value;
     Article(String value) {

@@ -33,17 +33,38 @@
                 <div class="col">
                     <div class="form-group mt-2">
                         <label>Article:</label>
-                        <select id="article" onchange="articles()" class="form-control">
+                        <select id="article" onchange="articles(), uploadPrice()" class="form-control">
                         </select>
                         <p id='articleMessage' style="color: red"></p>
                     </div>
-                    <div class="form-group mt-2">
-                        <label>Counterparty:</label>
-                        <select id="counterparty" onchange="articles()" class="form-control">
-                        </select>
-                        <p id='counterpartyMessage' style="color: red"></p>
+                    <div id="counterpartyDivRealtor" style="display: none">
+                        <div class="form-group mt-2">
+                            <label>Agency:</label>
+                            <select id="agency" onchange="getRealtorsByAgencyId()" class="form-control">
+                            </select>
+                            <p id='agencyMessage' style="color: red"></p>
+                        </div>
+                        <div  class="form-group mt-2">
+                            <label>Counterparty:</label>
+                            <select id="counterpartyRealtor" class="form-control">
+                                <option th:value="null" disabled selected>Choose realtor</option>
+                            </select>
+                            <p id='counterpartyRealtorMessage' style="color: red"></p>
+                        </div>
+                        <button onclick="openPopup()" class="btn btn-success popup-with-form">Create realtor</button>
                     </div>
-                    <div class="form-group mt-2">
+                    <div id="counterpartyDivManager" class="form-group mt-2" style="display: none">
+                        <label>Counterparty:</label>
+                        <select id="counterpartyManager" class="form-control">
+                        </select>
+                        <p id='counterpartyManagerMessage' style="color: red"></p>
+                    </div>
+                    <div id="counterpartyDivDirector" class="form-group mt-2" style="display: none">
+                        <label>Counterparty:</label>
+                        <input id="counterpartyDirector" type="text" class="form-control" disabled>
+                        <p id='counterpartyDirectorMessage' style="color: red"></p>
+                    </div>
+                    <div id="counterpartyDivString" class="form-group mt-2" style="display: none">
                         <label>Counterparty:</label>
                         <input id="counterpartyString" type="text" placeholder="Enter name surname counterparty" class="form-control">
                         <p id='counterpartyStringMessage' style="color: red"></p>
@@ -81,7 +102,7 @@
                         </div>
                         <div class="form-group mt-2">
                             <label>Flat number:</label>
-                            <select id="flat" onchange="getFlatPaymentsByFlatId()" class="form-control">
+                            <select id="flat" onchange="uploadPrice()" class="form-control">
                                 <option th:value="null" disabled selected>Choose flat</option>
                             </select>
                             <p id='flatMessage' style="color: red"></p>
@@ -124,29 +145,38 @@
             <a th:href="@{/cashRegister}" class="btn btn-dark popup-with-form">Back</a>
         </section>
     </div>
+    <div id="popup" class="modal">
+        <!-- popup -->
+    </div>
 </div>
 
 <div th:replace="blocks/scriptAdminLTE"></div>
 <script th:src="@{/js/validation.js}"></script>
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://unpkg.com/imask"></script>
 
 <script>
     let SpendingId = "[[${cashRegisterId}]]";
     let FlatId = "[[${flatId}]]";
     let Spending = {};
     let Flat = {};
-    console.log(FlatPaymentId);
+    let Realtor = {};
 
 
+    let modal = document.getElementById("popup");
     let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
     let url = window.location.protocol+"//"+ window.location.host + context;
+    console.log(url)
 
     $(document).ready(function() {
         Spending.id = SpendingId;
         if(SpendingId != 0){
             getSpendingById();
+        } else if (FlatId != 0){
+            getFlatById();
         } else {
+            getDirector();
+            getAgencies();
+            getManagers();
             getArticles();
             getObjects();
             getCurrencies();
@@ -156,15 +186,33 @@
     function articles(){
         if ($("#article").val() === 'COMMISSION_AGENCIES'){
             $("#forFlatPayment").show();
+            $("#counterpartyDivManager").hide();
+            $("#counterpartyDivString").hide();
+            $("#counterpartyDivDirector").hide();
+            $("#counterpartyDivRealtor").show();
         } else if($("#article").val() === 'COMMISSION_MANAGER'){
             $("#forFlatPayment").show();
-        } else {
+            $("#counterpartyDivString").hide();
+            $("#counterpartyDivRealtor").hide();
+            $("#counterpartyDivDirector").hide();
+            $("#counterpartyDivManager").show();
+        } else if($("#article").val() === 'CONSTRUCTION_COSTS'){
             $("#forFlatPayment").hide();
+            $("#counterpartyDivRealtor").hide();
+            $("#counterpartyDivManager").hide();
+            $("#counterpartyDivDirector").hide();
+            $("#counterpartyDivString").show();
+        } else if($("#article").val() === 'MONEY_FOR_DIRECTOR'){
+            $("#forFlatPayment").hide();
+            $("#counterpartyDivRealtor").hide();
+            $("#counterpartyDivManager").hide();
+            $("#counterpartyDivString").hide();
+            $("#counterpartyDivDirector").show();
         }
     }
 
     function getSpendingById(){
-        let data = {id: IncomeId};
+        let data = {id: SpendingId};
         $.ajax({
             type: 'get',
             url: url + '/getSpendingById',
@@ -172,14 +220,18 @@
             data: data,
             success: function (data) {
                 console.log('success /getSpendingById');
-                Income = data;
+                Spending = data;
                 document.getElementById('admissionCourse').value = data.admissionCourse;
                 document.getElementById('price').value = data.price;
                 document.getElementById('date').value = moment(data.date).format('YYYY-MM-DD');
                 document.getElementById('number').value = data.number;
-                document.getElementById('completed').checked = data.status;
+                document.getElementById('completed').checked = data.completed;
                 document.getElementById('comment').value = data.comment;
+                document.getElementById('counterpartyString').value = data?.counterparty ?? '';
 
+                getDirector();
+                getAgencies();
+                getManagers();
                 getArticles();
                 getObjects();
                 getCurrencies();
@@ -190,29 +242,30 @@
         });
     }
 
-    // function getFlatPaymentById(){
-    //     let data = {id: FlatPaymentId};
-    //     $.ajax({
-    //         type: 'get',
-    //         url: url + '/getFlatPaymentById',
-    //         dataType: "json",
-    //         data: data,
-    //         success: function (data) {
-    //             console.log('success /getIncomeById');
-    //             FlatPayment = data;
-    //             console.log(data);
-    //             document.getElementById('price').value = data.planned;
-    //             document.getElementById('date').value = moment(data.date).format('YYYY-MM-DD');
-    //
-    //             getArticles();
-    //             getObjects();
-    //             getCurrencies();
-    //         },
-    //         error: function () {
-    //             console.log('error /getIncomeById');
-    //         }
-    //     });
-    // }
+    function getFlatById(){
+        let data = {id: FlatId};
+        $.ajax({
+            type: 'get',
+            url: url + '/getFlatById',
+            dataType: "json",
+            data: data,
+            success: function (data) {
+                console.log('success /getFlatById');
+                Flat = data;
+                $("#forFlatPayment").show();
+
+                getDirector();
+                getAgencies();
+                getManagers();
+                getArticles();
+                getObjects();
+                getCurrencies();
+            },
+            error: function () {
+                console.log('error /getFlatById');
+            }
+        });
+    }
 
     function save(){
         let spending = {};
@@ -221,15 +274,15 @@
         spending.status = document.getElementById('completed').checked;
         spending.objectId = $("#object").val();
         spending.flatId = $("#flat").val();
-        spending.counterpartyId = $("#counterparty").val();
+        spending.managerId = $("#counterpartyManager").val();
+        spending.realtorId = $("#counterpartyRealtor").val();
         spending.counterparty = document.getElementById('counterpartyString').value;
         spending.article = $("#article").val();
         spending.price = document.getElementById('price').value;
         spending.currencyId = $("#currency").val();
         spending.admissionCourse = document.getElementById('admissionCourse').value;
         spending.comment = document.getElementById('comment').value;
-        console.log(spending);
-        if (Income.id == 0) {
+        if (Spending.id == 0) {
             $.ajax({
                 type: 'post',
                 url: url + '/addSpending',
@@ -238,8 +291,8 @@
                 success: function (data) {
                     console.log('success /addSpending');
                     let validation = JSON.parse(data);
-                    if (validation.id !== undefined) {
-                        window.location = '/cashRegister/income/' + validation.id;
+                    if (typeof validation !== 'object') {
+                        window.location = '/cashRegister/spending/' + validation;
                     } else {
                         validationMessage(validation);
                     }
@@ -249,7 +302,7 @@
                 }
             });
         } else {
-            spending.id = Income.id;
+            spending.id = Spending.id;
             $.ajax({
                 type: 'post',
                 url: url + '/updateSpending',
@@ -281,8 +334,14 @@
             document.getElementById('flat').style.border = "1px solid #ced4da";
             document.getElementById('objectMessage').innerHTML = "";
             document.getElementById('object').style.border = "1px solid #ced4da";
-            document.getElementById('flatPaymentMessage').innerHTML = "";
-            document.getElementById('flatPayment').style.border = "1px solid #ced4da";
+            document.getElementById('counterpartyManagerMessage').innerHTML = "";
+            document.getElementById('counterpartyManager').style.border = "1px solid #ced4da";
+            document.getElementById('counterpartyRealtorMessage').innerHTML = "";
+            document.getElementById('counterpartyRealtor').style.border = "1px solid #ced4da";
+            document.getElementById('counterpartyStringMessage').innerHTML = "";
+            document.getElementById('counterpartyString').style.border = "1px solid #ced4da";
+            document.getElementById('counterpartyDirectorMessage').innerHTML = "";
+            document.getElementById('counterpartyDirector').style.border = "1px solid #ced4da";
             document.getElementById('articleMessage').innerHTML = "";
             document.getElementById('article').style.border = "1px solid #ced4da";
             document.getElementById('priceMessage').innerHTML = "";
@@ -321,12 +380,33 @@
             document.getElementById('objectMessage').innerHTML = "";
             document.getElementById('object').style.border = "1px solid green";
         }
-        if(validation?.flatPayment ?? false){
-            document.getElementById('flatPaymentMessage').innerHTML = validation.flatPayment;
-            document.getElementById('flatPayment').style.border = "1px solid red";
-        }else {
-            document.getElementById('flatPaymentMessage').innerHTML = "";
-            document.getElementById('flatPayment').style.border = "1px solid green";
+        if(validation?.manager ?? false){
+            document.getElementById('counterpartyManagerMessage').innerHTML = validation.manager;
+            document.getElementById('counterpartyManager').style.border = "1px solid red";
+        } else {
+            document.getElementById('counterpartyManagerMessage').innerHTML = "";
+            document.getElementById('counterpartyManager').style.border = "1px solid green";
+        }
+        if(validation?.realtor ?? false){
+            document.getElementById('counterpartyRealtorMessage').innerHTML = validation.realtor;
+            document.getElementById('counterpartyRealtor').style.border = "1px solid red";
+        } else {
+            document.getElementById('counterpartyRealtorMessage').innerHTML = "";
+            document.getElementById('counterpartyRealtor').style.border = "1px solid green";
+        }
+        if(validation?.counterparty ?? false){
+            document.getElementById('counterpartyStringMessage').innerHTML = validation.counterparty;
+            document.getElementById('counterpartyString').style.border = "1px solid red";
+        } else {
+            document.getElementById('counterpartyStringMessage').innerHTML = "";
+            document.getElementById('counterpartyString').style.border = "1px solid green";
+        }
+        if(validation?.director ?? false){
+            document.getElementById('counterpartyDirectorMessage').innerHTML = validation.director;
+            document.getElementById('counterpartyDirector').style.border = "1px solid red";
+        } else {
+            document.getElementById('counterpartyDirectorMessage').innerHTML = "";
+            document.getElementById('counterpartyDirector').style.border = "1px solid green";
         }
         if(validation?.article ?? false){
             document.getElementById('articleMessage').innerHTML = validation.article;
@@ -358,11 +438,11 @@
         }
         setTimeout(function() {
             validationMessage(1)
-        }, 4000);
+        }, 3000);
     }
 
     function deleteObject(){
-        let data = { id: Spending.id };
+        let data = { id: Spending.id};
         $.ajax({
             type: 'post',
             url: url + '/deleteSpendingById',
@@ -378,10 +458,11 @@
         });
     }
 
+
     //upload info
 
-    function uploadPrice(){
-        let data = {id: $("#flat").val()}
+    function uploadPrice() {
+        let data = {id: $("#flat").val()};
         $.ajax({
             type: 'get',
             url: url + '/getFlatById',
@@ -389,7 +470,11 @@
             data: data,
             success: function (data) {
                 console.log('success /getFlatById');
-                document.getElementById('price').value = data.salePrice; //fixme
+                if ($("#article").val() === 'COMMISSION_AGENCIES'){
+                    document.getElementById('price').value = data.salePrice / 100 * data.agency
+                } else if($("#article").val() === 'COMMISSION_MANAGER'){
+                    document.getElementById('price').value = data.salePrice / 100 * data.manager
+                }
             },
             error: function () {
                 console.log('error /getFlatById');
@@ -415,15 +500,33 @@
         });
     }
 
+    function getDirector(){
+        let director = document.getElementById('counterpartyDirector');
+        director.disabled = true;
+        $.ajax({
+            type: 'get',
+            url: url + '/getDirector',
+            dataType: "json",
+            success: function (data) {
+                console.log('success /getDirector');
+                director.value = data.surname + ' ' + data.name;
+            },
+            error: function () {
+                console.log('error /getDirector');
+            }
+        });
+    }
+
+
     // selects
 
     function getArticles(){
         $.ajax({
             type: 'get',
-            url: url + '/getArticles',
+            url: url + '/getArticlesForSpending',
             dataType: "json",
             success: function (data) {
-                console.log('success /getArticles');
+                console.log('success /getArticlesForSpending');
                 $("#article").append($("" +
                     "<option selected disabled value='" + null + "'>Choose article</option>"
                 ));
@@ -441,7 +544,7 @@
                 })
             },
             error: function () {
-                console.log('error /getArticles');
+                console.log('error /getArticlesForSpending');
             }
         });
     }
@@ -474,13 +577,113 @@
         });
     }
 
+    function getManagers(){
+        $("#counterpartyManager").empty();
+        $("#counterpartyManager").append($("" +
+            "<option selected disabled value='" + null + "'>Choose manager</option>"
+        ));
+        $.ajax({
+            type: 'get',
+            url: url + '/getManagers',
+            dataType: "json",
+            success: function (data) {
+                console.log('success /getManagers');
+                data.forEach((element) => {
+                    if(element.id === Spending?.managerId ?? null){
+                        $("#counterpartyManager").append($("" +
+                            "<option selected value='" + element.id + "'> " + element.surname + " " + element.name + "</option>"
+                        ));
+                    } else {
+                        $("#counterpartyManager").append($("" +
+                            "<option value='" + element.id + "'> " + element.surname + " " + element.name + "</option>"
+                        ));
+                    }
+                })
+            },
+            error: function () {
+                console.log('error /getManagers');
+            }
+        });
+    }
+
+    function getAgencies(){
+        $("#agency").empty();
+        $("#agency").append($("" +
+            "<option selected disabled value='" + null + "'>Choose agency</option>"
+        ));
+        $.ajax({
+            type: 'get',
+            url: url + '/getAgencies',
+            dataType: "json",
+            success: function (data) {
+                console.log('success /getAgencies');
+                data.forEach((element) => {
+                    console.log(Realtor);
+                    console.log(element.id);
+                    if(element.id === Realtor?.agencyId ?? null){
+                        $("#agency").append($("" +
+                            "<option selected value='" + element.id + "'> " + element.name + "</option>"
+                        ));
+                        getRealtorsByAgencyId()
+                    } else if(element.id === Spending?.agencyId ?? null){
+                        $("#agency").append($("" +
+                            "<option selected value='" + element.id + "'> " + element.name + "</option>"
+                        ));
+                        getRealtorsByAgencyId()
+                    } else {
+                        $("#agency").append($("" +
+                            "<option value='" + element.id + "'> " + element.name + "</option>"
+                        ));
+                    }
+                })
+            },
+            error: function () {
+                console.log('error /getAgencies');
+            }
+        });
+    }
+
+    function getRealtorsByAgencyId(){
+        let data = {id: $("#agency").val()};
+        $("#counterpartyRealtor").empty();
+        $("#counterpartyRealtor").append($("" +
+            "<option selected disabled value='" + null + "'>Choose manager</option>"
+        ));
+        $.ajax({
+            type: 'get',
+            url: url + '/getRealtorsByAgencyId',
+            dataType: "json",
+            data: data,
+            success: function (data) {
+                console.log('success /getRealtorsByAgencyId');
+                data.forEach((element) => {
+                    if(element.id === Realtor?.id ?? null){
+                        $("#counterpartyRealtor").append($("" +
+                            "<option selected value='" + element.id + "'> " + element.surname + " " + element.name + "</option>"
+                        ));
+                    } else if(element.id === Spending?.realtorId ?? null){
+                        $("#counterpartyRealtor").append($("" +
+                            "<option selected value='" + element.id + "'> " + element.surname + " " + element.name + "</option>"
+                        ));
+                    } else {
+                        $("#counterpartyRealtor").append($("" +
+                            "<option value='" + element.id + "'> " + element.surname + " " + element.name + "</option>"
+                        ));
+                    }
+                })
+            },
+            error: function () {
+                console.log('error /getRealtorsByAgencyId');
+            }
+        });
+    }
+
     function getObjects(){
         $.ajax({
             type: 'get',
             url: url + '/getObjects',
             dataType: "json",
             success: function (data) {
-                console.log(data);
                 console.log('success /getObjects');
                 $("#object").empty();
                 $("#object").append($("" +
@@ -513,7 +716,7 @@
     function getFlatsByObjectId(){
         let data = {
             id: $("#object").val(),
-            flatId: Income.flatId
+            flatId: Spending.flatId
         };
         $.ajax({
             type: 'get',
@@ -556,6 +759,165 @@
         if(Contract.id !== undefined) {
             window.location = url + "/getPdf/" + Contract.id;
         }
+    }
+
+    // realtor
+
+    function saveRealtor(){
+        let realtor = {};
+        realtor.name = document.getElementById('realtorName').value;
+        realtor.surname = document.getElementById('realtorSurname').value;
+        realtor.phone = document.getElementById('realtorPhone').value;
+        realtor.email = document.getElementById('realtorEmail').value;
+        realtor.agencyId = $("#agencyRealtor").val();
+        $.ajax({
+            type: 'post',
+            url: url + '/addRealtor',
+            data: JSON.stringify(realtor),
+            contentType: "application/json; charset=utf-8",
+            success: function (data) {
+                console.log('success /addRealtor');
+                let validation = JSON.parse(data);
+                if (typeof validation !== 'object') {
+                    Realtor.id = parseInt(data);
+                    Realtor.agencyId = parseInt($("#agencyRealtor").val());
+                    console.log(Realtor);
+                    closePopup();
+                    getAgencies();
+                } else {
+                    validationMessageRealtor(validation);
+                }
+            },
+            error: function () {
+                console.log('error /addRealtor');
+            }
+        });
+    }
+
+    function openPopup(){
+        modal.style.display = "block";
+        $("#popup").append($(
+            "<div class=\"modal-content\">\n" +
+            "           <span onclick=\"closePopup()\" class=\"close\">&times;</span>\n" +
+            "           <form class=\"mt-2\">\n" +
+            "               <div class=\"form-group mt-2\">\n" +
+            "                   <label>Name:</label>\n" +
+            "                   <input id=\"realtorName\" type=\"text\" maxlength=\"50\"\n" +
+            "                           placeholder=\"Enter name\" class=\"form-control\">\n" +
+            "                   <p id='realtorNameMessage' style=\"color: red\"></p>" +
+            "               </div>\n" +
+            "               <div class=\"form-group mt-2\">\n" +
+            "                   <label>Surname:</label>\n" +
+            "                   <input id=\"realtorSurname\" type=\"text\" maxlength=\"50\"\n" +
+            "                              placeholder=\"Enter surname\" class=\"form-control\">\n" +
+            "                   <p id='realtorSurnameMessage' style=\"color: red\"></p>" +
+            "               </div>\n" +
+            "               <div class=\"form-group mt-2\">\n" +
+            "                   <label>Phone:</label>\n" +
+            "                   <input id=\"realtorPhone\" type=\"text\" maxlength=\"20\"\n" +
+            "                              placeholder=\"Enter phone\" class=\"form-control\">\n" +
+            "                   <p id='realtorPhoneMessage' style=\"color: red\"></p>" +
+            "               </div>\n" +
+            "               <div class=\"form-group mt-2\">\n" +
+            "                   <label>Agency:</label>\n" +
+            "                   <select id=\"agencyRealtor\" class=\"form-control\">" +
+            "                       <option selected disabled value=" + null + ">Choose agency</option>" +
+            "                   </select>\n" +
+            "                   <p id='agencyRealtorMessage' style=\"color: red\"></p>" +
+            "               </div>\n" +
+            "               <div class=\"form-group mt-2\">\n" +
+            "                   <label>Email:</label>\n" +
+            "                   <input id=\"realtorEmail\" type=\"text\" maxlength=\"20\"\n" +
+            "                              placeholder=\"Enter email\" class=\"form-control\">\n" +
+            "                   <p id='realtorEmailMessage' style=\"color: red\"></p>" +
+            "               </div>\n" +
+            "               <button onclick=\"saveRealtor()\" type=\"button\" class=\"btn btn-success mt-2\">Save</button>\n" +
+            "           </form>\n" +
+            "       </div>"
+        ));
+        getAgenciesRealtor();
+        mask();
+    }
+
+    function validationMessageRealtor(validation){
+        if(validation?.name ?? false){
+            document.getElementById('realtorNameMessage').innerHTML = validation.name;
+            document.getElementById('realtorName').style.border = "1px solid red";
+        }else {
+            document.getElementById('realtorNameMessage').innerHTML = "";
+            document.getElementById('realtorName').style.border = "1px solid green";
+        }
+        if(validation?.agencyId ?? false){
+            document.getElementById('agencyRealtorMessage').innerHTML = validation.agencyId;
+            document.getElementById('agencyRealtor').style.border = "1px solid red";
+        }else {
+            document.getElementById('agencyRealtorMessage').innerHTML = "";
+            document.getElementById('agencyRealtor').style.border = "1px solid green";
+        }
+        if(validation?.surname ?? false){
+            document.getElementById('realtorSurnameMessage').innerHTML = validation.surname;
+            document.getElementById('realtorSurname').style.border = "1px solid red";
+        }else {
+            document.getElementById('realtorSurnameMessage').innerHTML = "";
+            document.getElementById('realtorSurname').style.border = "1px solid green";
+        }
+        if(validation?.phone ?? false){
+            document.getElementById('realtorPhoneMessage').innerHTML = validation.phone;
+            document.getElementById('realtorPhone').style.border = "1px solid red";
+        }else {
+            document.getElementById('realtorPhoneMessage').innerHTML = "";
+            document.getElementById('realtorPhone').style.border = "1px solid green";
+        }
+        if(validation?.email ?? false){
+            document.getElementById('realtorEmailMessage').innerHTML = validation.email;
+            document.getElementById('realtorEmail').style.border = "1px solid red";
+        }else {
+            document.getElementById('realtorEmailMessage').innerHTML = "";
+            document.getElementById('realtorEmail').style.border = "1px solid green";
+        }
+    }
+
+    function getAgenciesRealtor(){
+        $("#agencyRealtor").empty();
+        $("#agencyRealtor").append($("" +
+            "<option selected disabled value='" + null + "'>Choose agency</option>"
+        ));
+        $.ajax({
+            type: 'get',
+            url: url + '/getAgencies',
+            dataType: "json",
+            success: function (data) {
+                console.log('success /getAgencies');
+                data.forEach((element) => {
+                    if(element.id === $("#agency").val()){
+                        $("#agencyRealtor").append($("" +
+                            "<option selected value='" + element.id + "'> " + element.name + "</option>"
+                        ));
+                    } else {
+                        $("#agencyRealtor").append($("" +
+                            "<option value='" + element.id + "'> " + element.name + "</option>"
+                        ));
+                    }
+                })
+            },
+            error: function () {
+                console.log('error /getAgencies');
+            }
+        });
+    }
+
+    function closePopup(){
+        modal.style.display = "none";
+        $("#popup").empty();
+    }
+
+    function mask(){
+        let element = document.getElementById('realtorPhone');
+        let maskOptions = {
+            mask: '+38(000)000-00-00',
+            lazy: false
+        }
+        let mask = new IMask(element, maskOptions);
     }
 
 </script>

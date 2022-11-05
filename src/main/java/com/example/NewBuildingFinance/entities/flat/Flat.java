@@ -39,8 +39,8 @@ public class Flat {
     @JsonManagedReference
     private Realtor realtor;
     @JoinColumn(name = "flat_id")
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
-    @JsonManagedReference
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
+    @JsonBackReference
     private Set<CashRegister> cashRegisterSet;
     @JoinColumn(name = "flat_id")
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)

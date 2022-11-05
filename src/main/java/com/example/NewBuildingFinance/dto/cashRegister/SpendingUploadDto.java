@@ -10,9 +10,11 @@ public class SpendingUploadDto {
     private Long id;
     private Long number;
     private Date date;
+    private boolean completed;
     private Long objectId;
     private Long flatId;
     private Long managerId;
+    private Long agencyId;
     private Long realtorId;
     private String counterparty;
     private Article article; // стаття

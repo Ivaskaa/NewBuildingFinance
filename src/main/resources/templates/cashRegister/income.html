@@ -43,6 +43,7 @@
                             <input id="completed" type="checkbox" class="form-check-input" role="switch"> <!-- checked="checked" -->
                         </div>
                     </div>
+                    <button id="pdfButton" onclick="printToPdf()" class="btn btn-primary popup-with-form" style="display: none">Print to pdf</button>
                 </div>
                 <div class="col">
                     <div class="row">
@@ -175,6 +176,7 @@
                 document.getElementById('number').value = data.number;
                 document.getElementById('completed').checked = data.status;
                 document.getElementById('comment').value = data.comment;
+                $("#pdfButton").show();
 
                 getArticles();
                 getObjects();
@@ -233,8 +235,8 @@
                 success: function (data) {
                     console.log('success /addIncome');
                     let validation = JSON.parse(data);
-                    if (validation.id !== undefined) {
-                        window.location = '/cashRegister/income/' + validation.id;
+                    if (typeof validation !== 'object') {
+                        window.location = '/cashRegister/income/' + validation;
                     } else {
                         validationMessage(validation);
                     }
@@ -428,7 +430,7 @@
                             "<option selected value='" + element.first + "'> " + element.second + "</option>"
                         ));
                         articles();
-                    } else if (FlatPayment !== undefined) {
+                    } else if (FlatPayment.id !== undefined) {
                         if (element.first === 'FLAT_PAYMENT') {
                             $("#article").append($("" +
                                 "<option selected value='" + element.first + "'> " + element.second + "</option>"
@@ -597,8 +599,8 @@
     // print to pdf
 
     function printToPdf(){
-        if(Contract.id !== undefined) {
-            window.location = url + "/getPdf/" + Contract.id;
+        if(Income.id !== undefined) {
+            window.location = url + "/getPdfIncome/" + Income.id;
         }
     }
 
