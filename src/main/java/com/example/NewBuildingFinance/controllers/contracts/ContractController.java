@@ -77,13 +77,13 @@ public class ContractController {
             String field,
             String direction,
 
-            Optional<Long> id,
-            Optional<String> dateStart,
-            Optional<String> dateFin,
-            Optional<Integer> flatNumber,
-            Optional<Long> objectId,
-            Optional<String> buyerName,
-            Optional<String> comment
+            Long id,
+            String dateStart,
+            String dateFin,
+            Integer flatNumber,
+            Long objectId,
+            String buyerName,
+            String comment
     ) throws JsonProcessingException, ParseException {
         return mapper.writeValueAsString(contractService.findSortingAndSpecificationPage(
                 page, size, field, direction,
@@ -127,9 +127,6 @@ public class ContractController {
             BindingResult bindingResult
     ) throws IOException, ParseException {
         //validation
-        if(contractService.checkStatus(contractSaveDto.getFlatId())){
-            bindingResult.addError(new FieldError("contractSaveDto", "flatId", "Flat status must be active"));
-        }
         if(contractService.checkRealtor(contractSaveDto.getFlatId())){
             bindingResult.addError(new FieldError("contractSaveDto", "flatId", "No selected realtor for this flat"));
         }

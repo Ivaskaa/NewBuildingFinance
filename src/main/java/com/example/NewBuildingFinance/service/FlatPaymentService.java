@@ -71,7 +71,7 @@ public class FlatPaymentService {
         return flatPayment;
     }
 
-    public boolean checkNumber(Long number, Long flatId) {
+    public boolean checkNumber(Integer number, Long flatId) {
         if (number != null) {
             FlatPayment flatPayment = flatPaymentRepository.findByNumberAndFlatId(number, flatId);
             return flatPayment != null;

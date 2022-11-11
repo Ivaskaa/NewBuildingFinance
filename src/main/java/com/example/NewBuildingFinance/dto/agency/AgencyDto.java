@@ -1,4 +1,4 @@
-package com.example.NewBuildingFinance.dto;
+package com.example.NewBuildingFinance.dto.agency;
 
 import com.example.NewBuildingFinance.entities.agency.Agency;
 import lombok.Data;

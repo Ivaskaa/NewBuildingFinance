@@ -134,6 +134,19 @@
 			<version>4.0.3</version>
 		</dependency>
 
+		<!-- exel -->
+
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>5.2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>5.2.0</version>
+		</dependency>
+
 		<!-- web sockets -->
 
 		<dependency>

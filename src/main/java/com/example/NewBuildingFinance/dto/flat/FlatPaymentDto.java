@@ -11,7 +11,7 @@ import java.util.Date;
 public class FlatPaymentDto {
     private Long id;
     @NotNull(message = "Must not be empty")
-    private Long number;
+    private Integer number;
     @NotNull(message = "Must not be empty")
     private Date date;
     @NotNull(message = "Must not be empty")

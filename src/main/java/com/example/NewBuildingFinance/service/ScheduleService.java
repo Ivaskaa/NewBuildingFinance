@@ -11,10 +11,12 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class ScheduleService {
     private final RestTemplateService restTemplateService;
+    private final NotificationService notificationService;
     private final CurrencyService currencyService;
 
     @Scheduled(cron = "0 0 8 * * *") // https://spring.io/blog/2020/11/10/new-in-spring-5-3-improved-cron-expressions
-    public void getCurrencyFromApi() throws JsonProcessingException {
+    public void getCurrencyFromApi() throws Exception {
         currencyService.saveCurrency(restTemplateService.getCurrency());
+        notificationService.updateNotifications();
     }
 }

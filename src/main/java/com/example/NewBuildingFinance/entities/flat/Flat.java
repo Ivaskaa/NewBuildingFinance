@@ -72,17 +72,23 @@ public class Flat {
         flat.setStatus(status.getValue());
         flat.setArea(area);
         flat.setPrice(price);
+
         Double advance = 0d;
+        Double entered = 0d;
         Date date = new Date(99999999999999L);
         for(FlatPayment flatPayment : flatPayments){
             if(date.after(flatPayment.getDate())){
                 date = flatPayment.getDate();
                 advance = flatPayment.getPlanned();
+                if(flatPayment.getActually() != null) {
+                    entered += flatPayment.getActually();
+                }
             }
         }
+
         flat.setAdvance(advance);
-        flat.setEntered(1d);
-        flat.setRemains(price - 1);
+        flat.setEntered(entered);
+        flat.setRemains(salePrice - entered);
         return flat;
     }
 

@@ -1,22 +1,18 @@
 package com.example.NewBuildingFinance.service;
 
 import com.example.NewBuildingFinance.dto.cashRegister.CashRegisterTableDto;
-import com.example.NewBuildingFinance.dto.cashRegister.IncomeSaveDto;
 import com.example.NewBuildingFinance.dto.cashRegister.IncomeUploadDto;
 import com.example.NewBuildingFinance.dto.cashRegister.SpendingUploadDto;
 import com.example.NewBuildingFinance.entities.agency.Realtor;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.cashRegister.Article;
 import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
-import com.example.NewBuildingFinance.entities.contract.Contract;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
 import com.example.NewBuildingFinance.others.specifications.CashRegisterSpecification;
 import com.example.NewBuildingFinance.repository.CashRegisterRepository;
 import com.example.NewBuildingFinance.repository.FlatPaymentRepository;
 import com.example.NewBuildingFinance.repository.RealtorRepository;
 import com.example.NewBuildingFinance.repository.auth.UserRepository;
-import com.itextpdf.html2pdf.HtmlConverter;
-import com.itextpdf.styledxmlparser.jsoup.Jsoup;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
@@ -33,15 +29,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 
-import javax.xml.transform.*;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import java.io.*;
+import javax.xml.transform.TransformerException;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.stream.Stream;
@@ -91,7 +84,7 @@ public class CashRegisterService {
         return cashRegisterPage;
     }
 
-    public IncomeUploadDto saveIncome(CashRegister income) {
+    public CashRegister saveIncome(CashRegister income) {
         log.info("save income: {}", income);
         CashRegister cashRegister = cashRegisterRepository.save(income);
         if (income.getArticle().equals(Article.FLAT_PAYMENT)) {
@@ -107,7 +100,7 @@ public class CashRegisterService {
             }
         }
         log.info("success save income");
-        return cashRegister.buildIncomeUploadDto();
+        return cashRegister;
     }
 
     public IncomeUploadDto updateIncome(CashRegister income) {
@@ -145,7 +138,7 @@ public class CashRegisterService {
         return cashRegisterAfterSave.buildIncomeUploadDto();
     }
 
-    public SpendingUploadDto saveSpending(CashRegister spending) {
+    public CashRegister saveSpending(CashRegister spending) {
         log.info("save spending: {}", spending);
         if(spending.getArticle().equals(Article.COMMISSION_AGENCIES)){
             Realtor realtor = realtorRepository.findById(spending.getRealtor().getId()).orElseThrow();
@@ -159,7 +152,7 @@ public class CashRegisterService {
         }
         CashRegister cashRegister = cashRegisterRepository.save(spending);
         log.info("success save spending");
-        return cashRegister.buildSpendingUploadDto();
+        return cashRegister;
     }
 
     public SpendingUploadDto updateSpending(CashRegister spending) {
@@ -243,7 +236,7 @@ public class CashRegisterService {
     }
 
     public ResponseEntity<byte[]> getPdfIncome(Long id) throws IOException, DocumentException, TransformerException {
-        log.info("get pdf for income id: {}", id);
+        log.info("get pdf for income by id: {}", id);
         CashRegister income = cashRegisterRepository.findById(id).orElseThrow();
 
         Document document = new Document();
@@ -252,21 +245,30 @@ public class CashRegisterService {
 
         document.open();
         Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN, 16, BaseColor.BLACK);
-        Chunk chunkHead = new Chunk("Income", font);
-        Paragraph paragraphHead = new Paragraph(chunkHead);
+
+        Paragraph paragraphHead = new Paragraph(new Chunk("Income", font));
         paragraphHead.setAlignment(Element.ALIGN_CENTER);
         document.add(paragraphHead);
         document.add(new Chunk());
+
+        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+        Paragraph paragraphDate = new Paragraph(new Chunk("date:" + format.format(income.getDate()), font));
+        paragraphDate.setAlignment(Element.ALIGN_RIGHT);
+        document.add(paragraphDate);
+        document.add(new Chunk());
+
         if (income.getArticle().equals(Article.FLAT_PAYMENT)){
-            Chunk chunkSender = new Chunk("Sender: " + income.getCounterparty(), font);
-            Paragraph paragraphSender = new Paragraph(chunkSender);
+            Paragraph paragraphSender = new Paragraph(new Chunk("Sender: " + income.getCounterparty(), font));
+            paragraphSender.setAlignment(Element.ALIGN_LEFT);
             document.add(paragraphSender);
             document.add(new Chunk());
         }
-        Chunk chunkRecipient = new Chunk("Recipient: New Building Finance", font);
-        Paragraph paragraphRecipient = new Paragraph(chunkRecipient);
+
+        Paragraph paragraphRecipient = new Paragraph(new Chunk("Recipient: New Building Finance", font));
+        paragraphRecipient.setAlignment(Element.ALIGN_LEFT);
         document.add(paragraphRecipient);
         document.add(new Chunk());
+
         if (income.getArticle().equals(Article.FLAT_PAYMENT)){
             PdfPTable table = new PdfPTable(5);
             Stream.of("Number", "Name", "Payment number", "Price", "Money")
@@ -301,37 +303,88 @@ public class CashRegisterService {
             document.add(new Chunk());
         }
 
+        if (income.getComment() != null && !income.getComment().equals("")) {
+            Paragraph paragraphComment = new Paragraph(new Chunk("Comment: " + income.getComment(), font));
+            document.add(paragraphComment);
+        }
+
         document.close();
-
-
-
-
-
-//        String html = Jsoup.parse(new File("src/main/resources/templates/html2pdf/income.html"), "UTF-8").toString();
-//
-//        html = html.replace("%SENDER%", income.getCounterparty());
-//        html = html.replace("%RECIPIENT%", "New Building Finance");
-//        html = html.replace("%NUMBER%", income.getNumber().toString());
-//        html = html.replace("%ARTICLE%", income.getArticle().getValue());
-//        html = html.replace("%PAYMENTNUMBER%", income.getFlatPayment().getNumber().toString());
-//        html = html.replace("%PRICE%", income.getFlatPayment().getPlanned().toString());
-//        html = html.replace("%MONEY%", income.getPrice().toString()); // fixme
-//        File pdf = new File("src/main/resources/income.pdf");
-//        com.itextpdf.kernel.pdf.PdfWriter pdfWriter = new com.itextpdf.kernel.pdf.PdfWriter(pdf);
-//        HtmlConverter.convertToPdf(document.toString(), pdfWriter);
 
         byte[] content = Files.readAllBytes(pdf.toPath());
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData(
+                "income" + format.format(income.getDate()) + ".pdf",
+                "income" + format.format(income.getDate()) + ".pdf");
+        headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+        log.info("success get pdf for income");
+        return new ResponseEntity<>(content, headers, HttpStatus.OK);
+    }
+
+    public ResponseEntity<byte[]> getPdfSpending(Long id) throws IOException, DocumentException, TransformerException {
+        log.info("get pdf for spending by id: {}", id);
+        CashRegister spending = cashRegisterRepository.findById(id).orElseThrow();
+
+        Document document = new Document();
+        File pdf = new File("src/main/resources/spending.pdf");
+        PdfWriter.getInstance(document, new FileOutputStream(pdf));
+
+        document.open();
+        Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN, 16, BaseColor.BLACK);
+
+        Paragraph paragraphHead = new Paragraph(new Chunk("Spending", font));
+        paragraphHead.setAlignment(Element.ALIGN_CENTER);
+        document.add(paragraphHead);
+        document.add(new Chunk());
+
+        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+        Paragraph paragraphDate = new Paragraph(new Chunk("date:" + format.format(spending.getDate()), font));
+        paragraphDate.setAlignment(Element.ALIGN_CENTER);
+        document.add(paragraphDate);
+        document.add(new Chunk());
+
+        Paragraph paragraphSender = new Paragraph(new Chunk("Sender: " + spending.getCounterparty(), font));
+        document.add(paragraphSender);
+        document.add(new Chunk());
+
+        Paragraph paragraphRecipient = new Paragraph(new Chunk("Recipient: New Building Finance", font));
+        document.add(paragraphRecipient);
+        document.add(new Chunk());
+
+        PdfPTable table = new PdfPTable(3);
+        Stream.of("Number", "Name", "Money")
+                .forEach(columnTitle -> {
+                    PdfPCell header = new PdfPCell();
+                    header.setBackgroundColor(BaseColor.LIGHT_GRAY);
+                    header.setBorderWidth(2);
+                    header.setPhrase(new Phrase(columnTitle));
+                    table.addCell(header);
+                });
+        table.addCell(spending.getNumber().toString());
+        table.addCell(spending.getArticle().getValue());
+        table.addCell(spending.getPrice().toString());
+        document.add(table);
+        document.add(new Chunk());
+
+        if (spending.getComment() != null && !spending.getComment().equals("")) {
+            Paragraph paragraphComment = new Paragraph(new Chunk("Comment: " + spending.getComment(), font));
+            document.add(paragraphComment);
+        }
+
+        document.close();
+
+        byte[] content = Files.readAllBytes(pdf.toPath());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         headers.setContentDispositionFormData(
-                "income" + dateFormat.format(income.getDate()) + ".pdf",
-                "income" + dateFormat.format(income.getDate()) + ".pdf");
+                "income" + format.format(spending.getDate()) + ".pdf",
+                "income" + format.format(spending.getDate()) + ".pdf");
         headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
 
-        log.info("success get pdf for contract");
+        log.info("success get pdf for spending");
         return new ResponseEntity<>(content, headers, HttpStatus.OK);
     }
 

@@ -1,11 +1,13 @@
 package com.example.NewBuildingFinance.service;
 
 import com.example.NewBuildingFinance.dto.contract.*;
+import com.example.NewBuildingFinance.entities.buyer.Buyer;
 import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
 import com.example.NewBuildingFinance.entities.contract.Contract;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
 import com.example.NewBuildingFinance.entities.flat.StatusFlat;
+import com.example.NewBuildingFinance.entities.notification.Notification;
 import com.example.NewBuildingFinance.entities.object.Object;
 import com.example.NewBuildingFinance.others.specifications.ContractSpecification;
 import com.example.NewBuildingFinance.repository.ContractRepository;
@@ -41,31 +43,34 @@ public class ContractService {
     private final FlatRepository flatRepository;
     private final ObjectRepository objectRepository;
 
+    private final NotificationService notificationService;
+    private final BuyerService buyerService;
+
     public Page<ContractTableDto> findSortingAndSpecificationPage(
             Integer currentPage,
             Integer size,
             String sortingField,
             String sortingDirection,
 
-            Optional<Long> id,
-            Optional<String> dateStart,
-            Optional<String> dateFin,
-            Optional<Integer> flatNumber,
-            Optional<Long> objectId,
-            Optional<String> buyerName,
-            Optional<String> comment
+            Long id,
+            String dateStart,
+            String dateFin,
+            Integer flatNumber,
+            Long objectId,
+            String buyerName,
+            String comment
     ) throws ParseException {
         log.info("get contract page. page: {}, size: {} field: {}, direction: {}",
                 currentPage - 1, size, sortingField, sortingDirection);
         Specification<Contract> specification = Specification
-                .where(ContractSpecification.likeId(id.orElse(null)))
-                .and(ContractSpecification.likeDate(dateStart.orElse(null), dateFin.orElse(null)))
-                .and(ContractSpecification.likeObject(objectId.orElse(null)))
-                .and(ContractSpecification.likeFlatNumber(flatNumber.orElse(null)))
-                .and(ContractSpecification.likeBuyerName(buyerName.orElse(null)))
-                .and(ContractSpecification.likeComment(comment.orElse(null)))
+                .where(ContractSpecification.likeId(id))
+                .and(ContractSpecification.likeDate(dateStart, dateFin))
+                .and(ContractSpecification.likeObject(objectId))
+                .and(ContractSpecification.likeFlatNumber(flatNumber))
+                .and(ContractSpecification.likeBuyerName(buyerName))
+                .and(ContractSpecification.likeComment(comment))
                 .and(ContractSpecification.likeDeletedFalse());
-//                .and(ContractSpecification.likeAdvance(advanceStart.orElse(null), advanceFin.orElse(null)));
+//                .and(ContractSpecification.likeAdvance(advanceStart, advanceFin));
         Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
         Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
         Page<ContractTableDto> contracts = contractRepository.findAll(specification, pageable).map(Contract::buildTableDto);
@@ -127,6 +132,9 @@ public class ContractService {
         ContractUploadDto contractUploadDto = contractAfterSave.buildUploadDto();
         contractUploadDto.setFlat(flat);
         contractUploadDto.setObject(flat.getObject());
+
+        createNotification(contractAfterSave);
+
         log.info("success");
         return contractUploadDto;
     }
@@ -153,8 +161,31 @@ public class ContractService {
         ContractUploadDto contractUploadDto = contractAfterSave.buildUploadDto();
         contractUploadDto.setFlat(flat);
         contractUploadDto.setObject(flat.getObject());
+
+        updateNotification(contractAfterSave);
+
         log.info("success");
         return contractUploadDto;
+    }
+
+    public void createNotification(Contract contract) {
+        Notification notification = new Notification();
+        Buyer buyer = buyerService.findById(contract.getBuyer().getId());
+        notification.setName("New contract. buyer: " + buyer.getSurname() + " " + buyer.getName());
+        notification.setContract(contract);
+        notification.setUrl("/contracts/contract/" + contract.getId());
+        notificationService.save(notification);
+    }
+
+    public void updateNotification(Contract contract) {
+        Notification notification = notificationService.findByContractId(contract.getId());
+        Buyer buyer = buyerService.findById(contract.getBuyer().getId());
+        notification.setName("Update contract. buyer: " + buyer.getSurname() + " " + buyer.getName());
+        notification.setContract(contract);
+        notification.setUrl("/contracts/contract/" + contract.getId());
+        notification.setReviewed(false);
+        notification.setInList(true);
+        notificationService.save(notification);
     }
 
     public Contract deleteById(Long id) {
@@ -212,7 +243,7 @@ public class ContractService {
                         " " + contract.getFlat().getRealtor().getName());
         html = html.replace("%AGENCY%", contract.getFlat().getRealtor().getAgency().getName());
 
-        File file = new File("html2pdf.pdf");
+        File file = new File("src/main/resources/contract.pdf");
         PdfWriter pdfWriter = new PdfWriter(file);
         HtmlConverter.convertToPdf(html, pdfWriter);
         byte[] content = Files.readAllBytes(file.toPath());
@@ -229,10 +260,8 @@ public class ContractService {
 
     public boolean checkRealtor(Long flatId) {
         if(flatId != null) {
-            Flat flat = flatRepository.findFlatByContractId(flatId).orElse(null);
-            if (flat == null) {
-                return false;
-            }
+            Flat flat = flatRepository.findById(flatId).orElse(null);
+            assert flat != null;
             return flat.getRealtor() == null;
         } else return false;
     }

@@ -21,9 +21,6 @@ public class MailService {
     private final JavaMailSender emailSender;
     private final SpringTemplateEngine templateEngine;
 
-//    @Value("${spring.mail.username}")
-//    private String sender;
-
     public void send(AbstractEmailContext email) throws MessagingException {
         log.info("send email to: {}", email.getTo());
         MimeMessage message = emailSender.createMimeMessage();
@@ -44,43 +41,4 @@ public class MailService {
     }
 }
 
-//@Service
-//@Log4j2
-//public class MailService {
-//    @Autowired
-//    private JavaMailSender emailSender;
-//
-//    @Value("${spring.mail.username}")
-//    private String sender;
-//
-//    public void send(String emailTo, String subject, String message){
-//        SimpleMailMessage mailMessage = new SimpleMailMessage();
-//
-//        mailMessage.setFrom(sender);
-//        mailMessage.setTo(emailTo);
-//        mailMessage.setSubject(subject);
-//        mailMessage.setText(message);
-//        emailSender.send(mailMessage);
-//    }
-//
-//    public String subjectValidation(String subject) {
-//        if(subject.equals("")){
-//            return "Subject shouldn't be empty";
-//        }
-//        if(subject.length() > 255){
-//            return "Subject must be less than 255 characters";
-//        }
-//        return null;
-//    }
-//
-//    public String messageValidation(String message) {
-//        if(message.equals("")){
-//            return "Message shouldn't be empty";
-//        }
-//        if(message.length() > 255){
-//            return "Message must be less than 255 characters";
-//        }
-//        return null;
-//    }
-//}
 

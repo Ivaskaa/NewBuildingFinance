@@ -266,12 +266,8 @@
                     console.log('success /addContract');
                     let validation = JSON.parse(data);
                     if (validation.id !== undefined) {
+                        sendNotifications();
                         window.location = '/contracts/contract/' + validation.id;
-                        // Contract = validation;
-                        // console.log(Contract);
-                        // validationMessage(null);
-                        // $('#deleteButton').show();
-                        // $('#printToPdf').show();
                     } else {
                         validationMessage(validation);
                     }
@@ -292,6 +288,7 @@
                     let validation = JSON.parse(data);
                     if (validation == null) {
                         validationMessage(null);
+                        sendNotifications();
                     } else {
                         validationMessage(validation);
                     }
@@ -678,8 +675,6 @@
                 id: $("#object").val(),
                 flatId: Contract?.flat?.id
             };
-        console.log("/////////////////")
-        console.log(data);
         $.ajax({
             type: 'get',
             url: url + '/getFlatsWithoutContractByObjectId',
@@ -785,7 +780,6 @@
             window.location = url + "/getPdf/" + Contract.id;
         }
     }
-
 </script>
 
 </body>

@@ -109,6 +109,7 @@
 
 <div th:replace="blocks/scriptAdminLTE"></div>
 <script th:src="@{/js/validation.js}"></script>
+<script src="https://unpkg.com/imask"></script>
 
 <script>
   let modal = document.getElementById("popup");
@@ -268,6 +269,7 @@
             "     </form>\n" +
             "   </div>"
     ));
+    mask();
     if (style === 'add') {
       Buyer = null;
       getAgencies();
@@ -731,6 +733,16 @@
   function goLastPage(){
     currentPage = totalPage;
     updatePage(currentPage, size, sortingField, sortingDirection)
+  }
+
+
+  function mask(){
+    let element = document.getElementById('phone');
+    let maskOptions = {
+      mask: '+38(000)000-00-00',
+      lazy: false
+    }
+    let mask = new IMask(element, maskOptions);
   }
 </script>
 

@@ -1,6 +1,7 @@
 package com.example.NewBuildingFinance.entities.agency;
 
-import com.example.NewBuildingFinance.dto.AgencyTableDto;
+import com.example.NewBuildingFinance.dto.agency.AgencyTableDto;
+import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,13 +29,21 @@ public class Agency {
         AgencyTableDto agency = new AgencyTableDto();
         agency.setId(id);
         agency.setName(name);
+
+        Integer count = 0;
         for(Realtor realtor : realtors){
             if(realtor.isDirector() && realtor.getAgency().equals(this)){
                 agency.setDirectorName(realtor.getName());
                 agency.setDirectorPhone(realtor.getPhone());
                 agency.setDirectorEmail(realtor.getEmail());
             }
+            for(Flat flat : realtor.getFlats()){
+                if (flat.getContract()!= null) {
+                    count++;
+                }
+            }
         }
+
         agency.setCount(count);
         return agency;
     }

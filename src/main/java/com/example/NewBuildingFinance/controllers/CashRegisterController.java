@@ -5,15 +5,12 @@ import com.example.NewBuildingFinance.dto.cashRegister.IncomeSaveDto;
 import com.example.NewBuildingFinance.dto.cashRegister.IncomeUploadDto;
 import com.example.NewBuildingFinance.dto.cashRegister.SpendingSaveDto;
 import com.example.NewBuildingFinance.dto.cashRegister.SpendingUploadDto;
-import com.example.NewBuildingFinance.dto.contract.ContractUploadDto;
 import com.example.NewBuildingFinance.entities.agency.Realtor;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.cashRegister.Article;
 import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
 import com.example.NewBuildingFinance.entities.cashRegister.Economic;
 import com.example.NewBuildingFinance.entities.cashRegister.StatusCashRegister;
-import com.example.NewBuildingFinance.entities.flat.Flat;
-import com.example.NewBuildingFinance.entities.flat.FlatPayment;
 import com.example.NewBuildingFinance.service.*;
 import com.example.NewBuildingFinance.service.auth.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -185,8 +182,8 @@ public class CashRegisterController {
             return mapper.writeValueAsString(errors);
         }
         //action
-        IncomeUploadDto incomeUploadDto = cashRegisterService.saveIncome(incomeSaveDto.build());
-        return mapper.writeValueAsString(incomeUploadDto.getId());
+        CashRegister cashRegister = cashRegisterService.saveIncome(incomeSaveDto.build());
+        return mapper.writeValueAsString(cashRegister.getId());
     }
 
     @PostMapping("/updateIncome")
@@ -276,8 +273,8 @@ public class CashRegisterController {
             return mapper.writeValueAsString(errors);
         }
         //action
-        SpendingUploadDto spendingUploadDto = cashRegisterService.saveSpending(spendingSaveDto.build());
-        return mapper.writeValueAsString(spendingUploadDto.getId());
+        CashRegister cashRegister = cashRegisterService.saveSpending(spendingSaveDto.build());
+        return mapper.writeValueAsString(cashRegister.getId());
     }
 
     @PostMapping("/updateSpending")
@@ -336,24 +333,6 @@ public class CashRegisterController {
         return mapper.writeValueAsString(null);
     }
 
-    @PostMapping("/deleteIncomeById")
-    @ResponseBody
-    public String deleteIncomeById(
-            Long id
-    ) throws JsonProcessingException {
-        cashRegisterService.deleteIncomeById(id);
-        return mapper.writeValueAsString(null);
-    }
-
-    @PostMapping("/deleteSpendingById")
-    @ResponseBody
-    public String deleteSpendingById(
-            Long id
-    ) throws JsonProcessingException {
-        cashRegisterService.deleteSpendingById(id);
-        return mapper.writeValueAsString(null);
-    }
-
     @GetMapping("/getIncomeById")
     @ResponseBody
     public String getIncomeById(
@@ -382,6 +361,36 @@ public class CashRegisterController {
         }
         //action
         return cashRegisterService.getPdfIncome(id);
+    }
+
+    @GetMapping("/getPdfSpending/{id}")
+    public ResponseEntity<byte[]> getPdfSpending(
+            @PathVariable(required = false) Long id
+    ) throws IOException, DocumentException, TransformerException {
+        //validation
+        if(cashRegisterService.checkCashRegister(id)){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        //action
+        return cashRegisterService.getPdfSpending(id);
+    }
+
+    @PostMapping("/deleteIncomeById")
+    @ResponseBody
+    public String deleteIncomeById(
+            Long id
+    ) throws JsonProcessingException {
+        cashRegisterService.deleteIncomeById(id);
+        return mapper.writeValueAsString(null);
+    }
+
+    @PostMapping("/deleteSpendingById")
+    @ResponseBody
+    public String deleteSpendingById(
+            Long id
+    ) throws JsonProcessingException {
+        cashRegisterService.deleteSpendingById(id);
+        return mapper.writeValueAsString(null);
     }
 
 

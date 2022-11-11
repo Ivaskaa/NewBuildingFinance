@@ -18,7 +18,7 @@ public class FlatPayment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long number;
+    private Integer number;
     private Date date;
     private Double planned;
     private Double actually;

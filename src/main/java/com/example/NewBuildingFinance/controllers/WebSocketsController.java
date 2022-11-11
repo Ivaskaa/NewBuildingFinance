@@ -6,14 +6,19 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 
 @Controller
-public class GreetingController {
+public class WebSocketsController {
 
-    @MessageMapping("/hello")
-    @SendTo("/topic/greetings")
+    @MessageMapping("/currency")    // before that must input /app (check WebSocketConfig)
+    @SendTo("/topic/currency")
     public CurrencyDto greeting(
             CurrencyDto currencyDto
     ) throws Exception {
-        System.out.println(currencyDto);
         return currencyDto;
+    }
+
+    @MessageMapping("/notifications")  // before that must input /app (check WebSocketConfig)
+    @SendTo("/topic/notifications")
+    public String notifications() throws Exception {
+        return "success";
     }
 }

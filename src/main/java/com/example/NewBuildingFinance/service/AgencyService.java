@@ -1,6 +1,6 @@
 package com.example.NewBuildingFinance.service;
 
-import com.example.NewBuildingFinance.dto.AgencyTableDto;
+import com.example.NewBuildingFinance.dto.agency.AgencyTableDto;
 import com.example.NewBuildingFinance.entities.agency.Agency;
 import com.example.NewBuildingFinance.others.specifications.AgencySpecification;
 import com.example.NewBuildingFinance.repository.AgencyRepository;

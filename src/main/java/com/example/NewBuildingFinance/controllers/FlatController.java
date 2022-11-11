@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.data.util.Pair;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -60,6 +61,7 @@ public class FlatController {
     @GetMapping("/flat/{id}")
     public String flat(
             @PathVariable(required = false) Long id,
+            Long flatPaymentId,
             Model model
     ) throws JsonProcessingException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -67,6 +69,7 @@ public class FlatController {
         model.addAttribute("currencies", currencyService.findAll());
         model.addAttribute("flatId", id);
         model.addAttribute("userId", user.getId());
+        model.addAttribute("flatPaymentId", Objects.requireNonNullElse(flatPaymentId, 0));
         model.addAttribute("user", user);
         return "flat/flat";
     }
@@ -222,6 +225,13 @@ public class FlatController {
     ) throws JsonProcessingException {
         flatService.deleteById(id);
         return mapper.writeValueAsString("success");
+    }
+
+    @GetMapping("/getXlsx")
+    @ResponseBody
+    public ResponseEntity<byte[]> getXlsx() throws IOException {
+        ResponseEntity<byte[]> response = flatService.getXlsx();
+        return response;
     }
 
     // another

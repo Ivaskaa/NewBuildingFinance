@@ -15,6 +15,7 @@ import java.text.ParseException;
 @RequestMapping("/registration")
 public class RegistrationController {
     private final UserService userService;
+
     @GetMapping()
     public String registerUser(
             @RequestParam(required = false) String token,

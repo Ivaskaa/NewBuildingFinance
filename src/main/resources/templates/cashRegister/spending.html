@@ -75,6 +75,7 @@
                             <input id="completed" type="checkbox" class="form-check-input" role="switch">
                         </div>
                     </div>
+                    <button id="pdfButton" onclick="printToPdf()" class="btn btn-primary popup-with-form" style="display: none">Print to pdf</button>
                 </div>
                 <div class="col">
                     <div class="row">
@@ -228,6 +229,7 @@
                 document.getElementById('completed').checked = data.completed;
                 document.getElementById('comment').value = data.comment;
                 document.getElementById('counterpartyString').value = data?.counterparty ?? '';
+                $("#pdfButton").show();
 
                 getDirector();
                 getAgencies();
@@ -756,8 +758,8 @@
     // print to pdf
 
     function printToPdf(){
-        if(Contract.id !== undefined) {
-            window.location = url + "/getPdf/" + Contract.id;
+        if(Spending.id !== undefined) {
+            window.location = url + "/getPdfSpending/" + Spending.id;
         }
     }
 
