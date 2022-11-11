@@ -113,15 +113,16 @@ public class FlatService {
         Workbook workbook = new XSSFWorkbook();
 
         Sheet sheet = workbook.createSheet("flats");
-        sheet.setColumnWidth(0, 3000);
-        sheet.setColumnWidth(1, 7000);
-        sheet.setColumnWidth(2, 3000);
-        sheet.setColumnWidth(3, 2500);
-        sheet.setColumnWidth(4, 2500);
-        sheet.setColumnWidth(5, 3500);
-        sheet.setColumnWidth(6, 3500);
-        sheet.setColumnWidth(7, 3500);
-        sheet.setColumnWidth(8, 3500);
+        sheet.setColumnWidth(0, 6000);
+        sheet.setColumnWidth(1, 6000);
+        sheet.setColumnWidth(2, 6000);
+        sheet.setColumnWidth(3, 6000);
+        sheet.setColumnWidth(4, 6000);
+        sheet.setColumnWidth(5, 6000);
+        sheet.setColumnWidth(6, 6000);
+        sheet.setColumnWidth(7, 6000);
+        sheet.setColumnWidth(8, 6000);
+        sheet.setColumnWidth(9, 6000);
 
         Row header = sheet.createRow(0);
 
@@ -188,52 +189,60 @@ public class FlatService {
 
         CellStyle rulesStyle = workbook.createCellStyle();
         rulesStyle.setFillForegroundColor(IndexedColors.LIGHT_YELLOW.getIndex());
-        rulesStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        rulesStyle.setFillPattern(FillPatternType.DIAMONDS);
+        rulesStyle.setWrapText(true);
 
         XSSFFont rulesFont = ((XSSFWorkbook) workbook).createFont();
         rulesFont.setFontName("Arial");
-        rulesFont.setFontHeightInPoints((short) 15);
+        rulesFont.setFontHeightInPoints((short) 9);
         rulesStyle.setFont(rulesFont);
-
-        rules.setRowStyle(rulesStyle);
 
         // cell0 number rules
         Cell rulesCell = rules.createCell(0);
-        rulesCell.setCellValue("Must be integer, cannot be repeated in the same object");
+        rulesCell.setCellValue("Must be integer, cannot be \nrepeated in the same object");
+        rulesCell.setCellStyle(rulesStyle);
 
         // cell1 quantity rooms rules
-        rulesCell = header.createCell(1);
+        rulesCell = rules.createCell(1);
         rulesCell.setCellValue("Must be integer");
+        rulesCell.setCellStyle(rulesStyle);
 
         // cell2 flor rules
-        rulesCell = header.createCell(2);
+        rulesCell = rules.createCell(2);
         rulesCell.setCellValue("Must be integer");
+        rulesCell.setCellStyle(rulesStyle);
 
         // cell3 area rules
-        rulesCell = header.createCell(3);
+        rulesCell = rules.createCell(3);
         rulesCell.setCellValue("Must be double");
+        rulesCell.setCellStyle(rulesStyle);
 
         // cell4 object rules
-        rulesCell = header.createCell(4);
-        rulesCell.setCellValue("Must be already created, must be in format \"House(Section)\"");
+        rulesCell = rules.createCell(4);
+        rulesCell.setCellValue("Must be already created, must \nbe in format \"House(Section)\"");
+        rulesCell.setCellStyle(rulesStyle);
 
         // cell5 style rules
-        rulesCell = header.createCell(5);
-        rulesCell.setCellValue("Must be \"ACTIVE\" or \"BOOKING\" or \"NOTACTIVE\" or \"REMOVEDFROMSALE\" or \"RESERVE\"");
+        rulesCell = rules.createCell(5);
+        rulesCell.setCellValue("Must be \"ACTIVE\" or \"BOOKING\" or \n\"NOTACTIVE\" or \"REMOVEDFROMSALE\"\n or \"RESERVE\"");
+        rulesCell.setCellStyle(rulesStyle);
 
         // cell6 price rules
-        rulesCell = header.createCell(6);
+        rulesCell = rules.createCell(6);
         rulesCell.setCellValue("Must be double");
+        rulesCell.setCellStyle(rulesStyle);
 
         // cell7 sale price rules
-        rulesCell = header.createCell(7);
+        rulesCell = rules.createCell(7);
         rulesCell.setCellValue("Must be double");
+        rulesCell.setCellStyle(rulesStyle);
 
         // cell8 manager % and cell9 agency % rules
         CellRangeAddress cellAddresses = new CellRangeAddress(1, 1, 8,9);
         sheet.addMergedRegion(cellAddresses);
-        rulesCell = header.createCell(8);
+        rulesCell = rules.createCell(8);
         rulesCell.setCellValue("Must be integer, the sum should be 100");
+        rulesCell.setCellStyle(rulesStyle);
 
         File file = new File("src/main/resources/flats.xlsx");
 

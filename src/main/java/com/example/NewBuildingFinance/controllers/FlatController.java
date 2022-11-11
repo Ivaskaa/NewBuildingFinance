@@ -22,6 +22,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.io.IOException;
@@ -227,11 +228,25 @@ public class FlatController {
         return mapper.writeValueAsString("success");
     }
 
+    @GetMapping("/getXlsxExample")
+    @ResponseBody
+    public ResponseEntity<byte[]> getXlsxExample() throws IOException {
+        return flatService.getXlsxExample();
+    }
+
+    @PostMapping("/setXlsx")
+    @ResponseBody
+    public ResponseEntity<byte[]> setXlsx(
+            @RequestPart(value = "file", required = false) MultipartFile file
+    ) throws IOException {
+        ResponseEntity<byte[]> response = flatService.setXlsx(file);
+        return response;
+    }
+
     @GetMapping("/getXlsx")
     @ResponseBody
     public ResponseEntity<byte[]> getXlsx() throws IOException {
-        ResponseEntity<byte[]> response = flatService.getXlsx();
-        return response;
+        return flatService.getXlsx();
     }
 
     // another

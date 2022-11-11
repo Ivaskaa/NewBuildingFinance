@@ -37,6 +37,7 @@
 
             <a th:href="@{/flats/flat/0}" class="btn btn-success popup-with-form">Add</a>
             <button onclick="getXlsx()" class="btn btn-primary popup-with-form">Download xlsx</button>
+            <button onclick="getXlsxExample()" class="btn btn-primary popup-with-form">Upload xlsx</button>
             <table class="table">
                 <thead>
                 <tr>
@@ -281,6 +282,10 @@
 
     function getXlsx(){
         window.location = url + "/flats/getXlsx";
+    }
+
+    function getXlsxExample(){
+        window.location = url + "/flats/getXlsxExample";
     }
 
     function deleteObject(id){
