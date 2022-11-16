@@ -111,7 +111,7 @@ public class BuyerController {
             @Valid @RequestBody BuyerDto buyerDto,
             BindingResult bindingResult
     ) throws IOException {
-        //validation
+        //validation t
         if(bindingResult.hasErrors()){
             Map<String, String> errors = new HashMap<>();
             for (FieldError error : bindingResult.getFieldErrors()) {
