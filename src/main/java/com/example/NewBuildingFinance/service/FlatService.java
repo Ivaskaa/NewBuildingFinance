@@ -109,7 +109,152 @@ public class FlatService {
         log.info("success");
     }
 
+    public ResponseEntity<byte[]> getXlsx() throws IOException {
+        log.info("get flats.xlsx");
+
+        Workbook workbook = new XSSFWorkbook();
+
+        Sheet sheet = workbook.createSheet("flats");
+        sheet.setColumnWidth(0, 3000);
+        sheet.setColumnWidth(1, 7000);
+        sheet.setColumnWidth(2, 3000);
+        sheet.setColumnWidth(3, 2500);
+        sheet.setColumnWidth(4, 2500);
+        sheet.setColumnWidth(5, 3500);
+        sheet.setColumnWidth(6, 3500);
+        sheet.setColumnWidth(7, 3500);
+        sheet.setColumnWidth(8, 3500);
+
+        Row header = sheet.createRow(0);
+
+        CellStyle headerStyle = workbook.createCellStyle();
+        headerStyle.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        XSSFFont font = ((XSSFWorkbook) workbook).createFont();
+        font.setFontName("Arial");
+        font.setFontHeightInPoints((short) 15);
+        headerStyle.setFont(font);
+
+        Cell headerCell = header.createCell(0);
+        headerCell.setCellValue("Number");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(1);
+        headerCell.setCellValue("Object");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(2);
+        headerCell.setCellValue("Status");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(3);
+        headerCell.setCellValue("Area");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(4);
+        headerCell.setCellValue("Price");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(5);
+        headerCell.setCellValue("Sale price");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(6);
+        headerCell.setCellValue("Advance");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(7);
+        headerCell.setCellValue("Entered");
+        headerCell.setCellStyle(headerStyle);
+
+        headerCell = header.createCell(8);
+        headerCell.setCellValue("Remains");
+        headerCell.setCellStyle(headerStyle);
+
+        CellStyle style = workbook.createCellStyle();
+        style.setWrapText(true);
+
+        List<Flat> flats = flatRepository.findAllByDeletedFalse();
+
+        for(int i = 0; i < flats.size(); i++){
+            Row row = sheet.createRow(i + 1);
+
+            Cell cell = row.createCell(0);
+            cell.setCellValue(flats.get(i).getNumber());
+            cell.setCellStyle(style);
+
+            cell = row.createCell(1);
+            cell.setCellValue(
+                    flats.get(i).getObject().getHouse() + "(" +
+                            flats.get(i).getObject().getSection() + ")");
+            cell.setCellStyle(style);
+
+            cell = row.createCell(2);
+            cell.setCellValue(flats.get(i).getStatus().getValue());
+            cell.setCellStyle(style);
+
+            cell = row.createCell(3);
+            cell.setCellValue(flats.get(i).getArea());
+            cell.setCellStyle(style);
+
+            cell = row.createCell(4);
+            cell.setCellValue(flats.get(i).getPrice());
+            cell.setCellStyle(style);
+
+            cell = row.createCell(5);
+            cell.setCellValue(flats.get(i).getSalePrice());
+            cell.setCellStyle(style);
+
+            Double advance = 0d;
+            Double entered = 0d;
+            Date date = new Date(99999999999999L);
+            for(FlatPayment flatPayment : flats.get(i).getFlatPayments()){
+                if(date.after(flatPayment.getDate())){
+                    date = flatPayment.getDate();
+                    advance = flatPayment.getPlanned();
+                    if(flatPayment.getActually() != null) {
+                        entered += flatPayment.getActually();
+                    }
+                }
+            }
+
+            cell = row.createCell(6);
+            cell.setCellValue(advance);
+            cell.setCellStyle(style);
+
+            cell = row.createCell(7);
+            cell.setCellValue(entered);
+            cell.setCellStyle(style);
+
+            cell = row.createCell(8);
+            cell.setCellValue(flats.get(i).getSalePrice() - entered);
+            cell.setCellStyle(style);
+        }
+
+        File file = new File("src/main/resources/flats.xlsx");
+
+        FileOutputStream outputStream = new FileOutputStream(file);
+        workbook.write(outputStream);
+        workbook.close();
+
+        byte[] content = Files.readAllBytes(file.toPath());
+
+        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData(
+                "flats" + format.format(new Date()) + ".xlsx",
+                "flats" + format.format(new Date()) + ".xlsx");
+        headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+        log.info("success get flats.xlsx");
+        return new ResponseEntity<>(content, headers, HttpStatus.OK);
+    }
+
     public ResponseEntity<byte[]> getXlsxExample() throws IOException {
+        log.info("get flats.xlsx example");
+
         Workbook workbook = new XSSFWorkbook();
 
         Sheet sheet = workbook.createSheet("flats");
@@ -260,11 +405,13 @@ public class FlatService {
                 "flatsExample" + format.format(new Date()) + ".xlsx");
         headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
 
-        log.info("success get flats.xlsx for income");
+        log.info("success get flats.xlsx example");
         return new ResponseEntity<>(content, headers, HttpStatus.OK);
     }
 
-    public ResponseEntity<byte[]> setXlsx(MultipartFile file) throws IOException {
+    public boolean setXlsx(MultipartFile file) throws IOException {
+        log.info("save flats.xlsx");
+
         Workbook workbook = new XSSFWorkbook(file.getInputStream());
 
         CellStyle cellStyleError = workbook.createCellStyle();
@@ -272,7 +419,7 @@ public class FlatService {
         cellStyleError.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
         CellStyle cellStyleCorrect = workbook.createCellStyle();
-        cellStyleCorrect.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+        cellStyleCorrect.setFillForegroundColor(IndexedColors.LIGHT_CORNFLOWER_BLUE.getIndex());
         cellStyleCorrect.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
         List<Flat> flats = new ArrayList<>();
@@ -280,8 +427,7 @@ public class FlatService {
         Sheet sheet = workbook.getSheetAt(0);
         boolean ok = false;
         for (Row row : sheet) {
-            if(sheet.getRow(0).equals(row)){continue;}
-            if(sheet.getRow(1).equals(row)){continue;}
+            if(sheet.getRow(0).equals(row) || sheet.getRow(1).equals(row)){continue;}
             Flat flat = new Flat();
 
             // cell0 number
@@ -327,13 +473,16 @@ public class FlatService {
             // cell4 object
             Cell cell4 = row.getCell(4);
             if(cell4.getCellType().equals(CellType.STRING)){
-                if(cell4.getStringCellValue().contains("\\(")){
+                if(cell4.getStringCellValue().contains("(")){
+                    System.out.println(cell4.getStringCellValue());
                     String[] words = cell4.getStringCellValue().split("\\(");
                     if (words.length == 2){
                         String house = words[0];
                         String section = words[1];
-                        if (section.contains("\\)")){
-                            section = section.replace("\\)", "");
+                        System.out.println("house " + house);
+                        System.out.println("section " + section);
+                        if (section.contains(")")){
+                            section = section.replace(")", "");
 
                             // search object
                             cell4.setCellStyle(cellStyleCorrect);
@@ -413,170 +562,37 @@ public class FlatService {
         }
 
         if(ok){
-            File responseFile = new File("src/main/resources/flats.xlsx");
+            log.info("error save flats.xlsx");
+            File responseFile = new File("src/main/resources/flatsErrors.xlsx");
 
             FileOutputStream outputStream = new FileOutputStream(responseFile);
             workbook.write(outputStream);
             workbook.close();
 
-            byte[] content = Files.readAllBytes(responseFile.toPath());
-
-            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentDispositionFormData(
-                    "flatsWithErrors" + format.format(new Date()) + ".xlsx",
-                    "flatsWithErrors" + format.format(new Date()) + ".xlsx");
-            headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
-
-            log.info("error save flats.xlsx");
-            return new ResponseEntity<>(content, headers, HttpStatus.OK);
+            return false;
         } else {
             log.info("success save flats.xlsx");
-            return null;
 //            flatRepository.saveAll(flats);
+            return true;
         }
     }
 
+    public ResponseEntity<byte[]> getXlsxErrors() throws IOException {
+        log.info("get flatsErrors.xlsx");
+        File responseFile = new File("src/main/resources/flatsErrors.xlsx");
 
-    public ResponseEntity<byte[]> getXlsx() throws IOException {
-        Workbook workbook = new XSSFWorkbook();
-
-        Sheet sheet = workbook.createSheet("flats");
-        sheet.setColumnWidth(0, 3000);
-        sheet.setColumnWidth(1, 7000);
-        sheet.setColumnWidth(2, 3000);
-        sheet.setColumnWidth(3, 2500);
-        sheet.setColumnWidth(4, 2500);
-        sheet.setColumnWidth(5, 3500);
-        sheet.setColumnWidth(6, 3500);
-        sheet.setColumnWidth(7, 3500);
-        sheet.setColumnWidth(8, 3500);
-
-        Row header = sheet.createRow(0);
-
-        CellStyle headerStyle = workbook.createCellStyle();
-        headerStyle.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
-        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
-        XSSFFont font = ((XSSFWorkbook) workbook).createFont();
-        font.setFontName("Arial");
-        font.setFontHeightInPoints((short) 15);
-        headerStyle.setFont(font);
-
-        Cell headerCell = header.createCell(0);
-        headerCell.setCellValue("Number");
-        headerCell.setCellStyle(headerStyle);
-
-        headerCell = header.createCell(1);
-        headerCell.setCellValue("Object");
-        headerCell.setCellStyle(headerStyle);
-
-        headerCell = header.createCell(2);
-        headerCell.setCellValue("Status");
-        headerCell.setCellStyle(headerStyle);
-
-        headerCell = header.createCell(3);
-        headerCell.setCellValue("Area");
-        headerCell.setCellStyle(headerStyle);
-
-        headerCell = header.createCell(4);
-        headerCell.setCellValue("Price");
-        headerCell.setCellStyle(headerStyle);
-
-        headerCell = header.createCell(5);
-        headerCell.setCellValue("Sale price");
-        headerCell.setCellStyle(headerStyle);
-
-        headerCell = header.createCell(6);
-        headerCell.setCellValue("Advance");
-        headerCell.setCellStyle(headerStyle);
-
-        headerCell = header.createCell(7);
-        headerCell.setCellValue("Entered");
-        headerCell.setCellStyle(headerStyle);
-
-        headerCell = header.createCell(8);
-        headerCell.setCellValue("Remains");
-        headerCell.setCellStyle(headerStyle);
-
-        CellStyle style = workbook.createCellStyle();
-        style.setWrapText(true);
-
-        List<Flat> flats = flatRepository.findAllByDeletedFalse();
-
-        for(int i = 0; i < flats.size(); i++){
-            Row row = sheet.createRow(i + 1);
-
-            Cell cell = row.createCell(0);
-            cell.setCellValue(flats.get(i).getNumber());
-            cell.setCellStyle(style);
-
-            cell = row.createCell(1);
-            cell.setCellValue(
-                    flats.get(i).getObject().getHouse() + "(" +
-                    flats.get(i).getObject().getSection() + ")");
-            cell.setCellStyle(style);
-
-            cell = row.createCell(2);
-            cell.setCellValue(flats.get(i).getStatus().getValue());
-            cell.setCellStyle(style);
-
-            cell = row.createCell(3);
-            cell.setCellValue(flats.get(i).getArea());
-            cell.setCellStyle(style);
-
-            cell = row.createCell(4);
-            cell.setCellValue(flats.get(i).getPrice());
-            cell.setCellStyle(style);
-
-            cell = row.createCell(5);
-            cell.setCellValue(flats.get(i).getSalePrice());
-            cell.setCellStyle(style);
-
-            Double advance = 0d;
-            Double entered = 0d;
-            Date date = new Date(99999999999999L);
-            for(FlatPayment flatPayment : flats.get(i).getFlatPayments()){
-                if(date.after(flatPayment.getDate())){
-                    date = flatPayment.getDate();
-                    advance = flatPayment.getPlanned();
-                    if(flatPayment.getActually() != null) {
-                        entered += flatPayment.getActually();
-                    }
-                }
-            }
-
-            cell = row.createCell(6);
-            cell.setCellValue(advance);
-            cell.setCellStyle(style);
-
-            cell = row.createCell(7);
-            cell.setCellValue(entered);
-            cell.setCellStyle(style);
-
-            cell = row.createCell(8);
-            cell.setCellValue(flats.get(i).getSalePrice() - entered);
-            cell.setCellStyle(style);
-        }
-
-        File file = new File("src/main/resources/flats.xlsx");
-
-        FileOutputStream outputStream = new FileOutputStream(file);
-        workbook.write(outputStream);
-        workbook.close();
-
-        byte[] content = Files.readAllBytes(file.toPath());
+        byte[] content = Files.readAllBytes(responseFile.toPath());
 
         SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
         headers.setContentDispositionFormData(
-                "flats" + format.format(new Date()) + ".xlsx",
-                "flats" + format.format(new Date()) + ".xlsx");
+                "flatsWithErrors" + format.format(new Date()) + ".xlsx",
+                "flatsWithErrors" + format.format(new Date()) + ".xlsx");
         headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
 
-        log.info("success get flats.xlsx for income");
+        log.info("error save flats.xlsx");
+        log.info("success get flatsErrors.xlsx");
         return new ResponseEntity<>(content, headers, HttpStatus.OK);
     }
 
@@ -641,6 +657,4 @@ public class FlatService {
     public boolean checkStatus(StatusFlat status) {
         return !status.equals(StatusFlat.ACTIVE);
     }
-
-
 }

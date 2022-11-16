@@ -1,11 +1,10 @@
-package com.example.NewBuildingFinance.service.auth;
+package com.example.NewBuildingFinance.service.auth.user;
 
 import com.example.NewBuildingFinance.entities.auth.Permission;
 import com.example.NewBuildingFinance.others.EmailContext;
 import com.example.NewBuildingFinance.entities.auth.SecureToken;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.others.MailThread;
-import com.example.NewBuildingFinance.repository.auth.SecureTokenRepository;
 import com.example.NewBuildingFinance.repository.auth.UserRepository;
 import com.example.NewBuildingFinance.service.MailService;
 import com.example.NewBuildingFinance.service.SecureTokenService;
@@ -21,10 +20,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.mail.MessagingException;
-import java.sql.Timestamp;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
@@ -32,7 +28,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Log4j2
-public class UserService implements UserDetailsService {
+public class UserServiceImpl implements UserDetailsService {
     @Autowired
     private UserRepository userRepository;
     @Autowired

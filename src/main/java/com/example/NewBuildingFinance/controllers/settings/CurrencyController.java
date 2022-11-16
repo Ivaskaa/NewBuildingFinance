@@ -5,7 +5,7 @@ import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.currency.InternalCurrency;
 import com.example.NewBuildingFinance.service.CurrencyService;
 import com.example.NewBuildingFinance.service.InternalCurrencyService;
-import com.example.NewBuildingFinance.service.auth.UserService;
+import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -28,7 +28,7 @@ import java.util.Map;
 public class CurrencyController {
     private final InternalCurrencyService internalCurrencyService;
     private final CurrencyService currencyService;
-    private final UserService userService;
+    private final UserServiceImpl userServiceImpl;
     private final ObjectMapper mapper;
 
     @GetMapping("/currency")
@@ -36,7 +36,7 @@ public class CurrencyController {
             Model model
     ) throws JsonProcessingException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.loadUserByUsername(authentication.getName());
+        User user = userServiceImpl.loadUserByUsername(authentication.getName());
         model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("currency", currencyService.getAll());
         model.addAttribute("user", user);

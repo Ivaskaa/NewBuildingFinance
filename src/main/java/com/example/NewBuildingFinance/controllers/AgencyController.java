@@ -3,10 +3,10 @@ package com.example.NewBuildingFinance.controllers;
 import com.example.NewBuildingFinance.dto.agency.AgencyDto;
 import com.example.NewBuildingFinance.entities.agency.Agency;
 import com.example.NewBuildingFinance.entities.auth.User;
-import com.example.NewBuildingFinance.service.AgencyService;
+import com.example.NewBuildingFinance.service.agency.AgencyServiceImpl;
 import com.example.NewBuildingFinance.service.ContractService;
 import com.example.NewBuildingFinance.service.InternalCurrencyService;
-import com.example.NewBuildingFinance.service.auth.UserService;
+import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -27,9 +27,10 @@ import java.util.*;
 @RequestMapping("/agencies")
 public class AgencyController {
     private final InternalCurrencyService internalCurrencyService;
-    private final UserService userService;
+    private final UserServiceImpl userServiceImpl;
     private final ContractService contractService;
-    private final AgencyService agencyService;
+    private final AgencyServiceImpl agencyServiceImpl;
+
     private final ObjectMapper mapper;
 
     @GetMapping()
@@ -37,7 +38,7 @@ public class AgencyController {
             Model model
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.loadUserByUsername(authentication.getName());
+        User user = userServiceImpl.loadUserByUsername(authentication.getName());
         model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("user", user);
         return "agency/agencies";
@@ -49,7 +50,7 @@ public class AgencyController {
             Model model
     ) throws JsonProcessingException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.loadUserByUsername(authentication.getName());
+        User user = userServiceImpl.loadUserByUsername(authentication.getName());
         model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("agencyId", id);
         model.addAttribute("userId", user.getId());
@@ -78,16 +79,16 @@ public class AgencyController {
             String field,
             String direction,
 
-            Optional<String> name,
-            Optional<String> director,
-            Optional<String> phone,
-            Optional<String> email,
-            Optional<Integer> count
+            String name,
+            String director,
+            String phone,
+            String email,
+            Integer count
     ) throws JsonProcessingException {
         if (page == 0){
             return null;
         }
-        return mapper.writeValueAsString(agencyService.findSortingAndSpecificationPage(
+        return mapper.writeValueAsString(agencyServiceImpl.findSortingAndSpecificationPage(
                 page, size, field, direction,
                 name,
                 director,
@@ -104,7 +105,7 @@ public class AgencyController {
     ) throws IOException {
         //validation
         System.out.println(agencyDto);
-        if(agencyService.checkAgencyName(agencyDto.getName())){
+        if(agencyServiceImpl.checkAgencyName(agencyDto.getName())){
             bindingResult.addError(new FieldError("agencyDto", "name", "We already have agency with that name"));
         }
         if(bindingResult.hasErrors()){
@@ -116,7 +117,7 @@ public class AgencyController {
         }
 
         //action
-        Agency agency = agencyService.save(agencyDto.build());
+        Agency agency = agencyServiceImpl.save(agencyDto.build());
         return mapper.writeValueAsString(agency.getId());
     }
 
@@ -128,9 +129,9 @@ public class AgencyController {
     ) throws IOException {
         //validation
         System.out.println(agencyDto);
-        Agency agency = agencyService.findById(agencyDto.getId());
+        Agency agency = agencyServiceImpl.findById(agencyDto.getId());
         if(!agency.getName().equals(agencyDto.getName())){
-            if(agencyService.checkAgencyName(agencyDto.getName())){
+            if(agencyServiceImpl.checkAgencyName(agencyDto.getName())){
                 bindingResult.addError(new FieldError("agencyDto", "name", "We already have agency with that name"));
             }
         }
@@ -142,7 +143,7 @@ public class AgencyController {
             return mapper.writeValueAsString(errors);
         }
         //action
-        agencyService.update(agencyDto.build());
+        agencyServiceImpl.update(agencyDto.build());
         return mapper.writeValueAsString(null);
     }
 
@@ -151,7 +152,7 @@ public class AgencyController {
     public String getAgencyById(
             Long id
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(agencyService.findById(id));
+        return mapper.writeValueAsString(agencyServiceImpl.findById(id));
     }
 
     @PostMapping("/deleteAgencyById")
@@ -159,7 +160,7 @@ public class AgencyController {
     public String deleteAgencyById(
             Long id
     ) throws JsonProcessingException {
-        agencyService.deleteById(id);
+        agencyServiceImpl.deleteById(id);
         return mapper.writeValueAsString("success");
     }
 
@@ -170,7 +171,7 @@ public class AgencyController {
     public String getUserPermissionsById(
             Long id
     ) throws JsonProcessingException {
-        List<String> permissions = userService.getUserPermissionsById(id);
+        List<String> permissions = userServiceImpl.getUserPermissionsById(id);
         return mapper.writeValueAsString(permissions);
     }
 }

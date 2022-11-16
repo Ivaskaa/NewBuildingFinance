@@ -4,7 +4,8 @@ import com.example.NewBuildingFinance.dto.BuyerDto;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
 import com.example.NewBuildingFinance.service.*;
-import com.example.NewBuildingFinance.service.auth.UserService;
+import com.example.NewBuildingFinance.service.agency.AgencyServiceImpl;
+import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -30,8 +31,8 @@ public class BuyerController {
     private final BuyerService buyerService;
     private final ContractService contractService;
     private final RealtorService realtorService;
-    private final AgencyService agencyService;
-    private final UserService userService;
+    private final AgencyServiceImpl agencyServiceImpl;
+    private final UserServiceImpl userServiceImpl;
     private final ObjectMapper mapper;
 
     @GetMapping()
@@ -39,7 +40,7 @@ public class BuyerController {
             Model model
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.loadUserByUsername(authentication.getName());
+        User user = userServiceImpl.loadUserByUsername(authentication.getName());
         model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("user", user);
         return "buyer/buyers";
@@ -51,7 +52,7 @@ public class BuyerController {
             Model model
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.loadUserByUsername(authentication.getName());
+        User user = userServiceImpl.loadUserByUsername(authentication.getName());
         model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("userId", user.getId());
         model.addAttribute("buyerId", buyerId);
@@ -149,14 +150,14 @@ public class BuyerController {
     public String getUserPermissionsById(
             Long id
     ) throws JsonProcessingException {
-        List<String> permissions = userService.getUserPermissionsById(id);
+        List<String> permissions = userServiceImpl.getUserPermissionsById(id);
         return mapper.writeValueAsString(permissions);
     }
 
     @GetMapping("/getAllAgencies")
     @ResponseBody
     public String getAllAgencies() throws JsonProcessingException {
-        return mapper.writeValueAsString(agencyService.findAll());
+        return mapper.writeValueAsString(agencyServiceImpl.findAll());
     }
 
     @GetMapping("/getRealtorsByAgenciesId")
@@ -168,6 +169,6 @@ public class BuyerController {
     @GetMapping("/getAllManagers")
     @ResponseBody
     public String getAllManagers() throws JsonProcessingException {
-        return mapper.writeValueAsString(userService.findManagers());
+        return mapper.writeValueAsString(userServiceImpl.findManagers());
     }
 }

@@ -6,7 +6,7 @@ import com.example.NewBuildingFinance.entities.object.Object;
 import com.example.NewBuildingFinance.entities.object.StatusObject;
 import com.example.NewBuildingFinance.service.InternalCurrencyService;
 import com.example.NewBuildingFinance.service.ObjectService;
-import com.example.NewBuildingFinance.service.auth.UserService;
+import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -32,7 +32,7 @@ import java.util.Map;
 public class ObjectController {
     private final InternalCurrencyService currencyService;
     private final ObjectService objectService;
-    private final UserService userService;
+    private final UserServiceImpl userServiceImpl;
     private final ObjectMapper mapper;
 
     @GetMapping()
@@ -40,7 +40,7 @@ public class ObjectController {
             Model model
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.loadUserByUsername(authentication.getName());
+        User user = userServiceImpl.loadUserByUsername(authentication.getName());
         model.addAttribute("currencies", currencyService.findAll());
         model.addAttribute("user", user);
         return "objects";

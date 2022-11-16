@@ -4,7 +4,7 @@ import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.contract.ContractTemplate;
 import com.example.NewBuildingFinance.service.ContractTemplateService;
 import com.example.NewBuildingFinance.service.InternalCurrencyService;
-import com.example.NewBuildingFinance.service.auth.UserService;
+import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -25,7 +25,7 @@ import java.util.Map;
 @AllArgsConstructor
 @RequestMapping("/contracts/templates")
 public class ContractTemplateController {
-    private final UserService userService;
+    private final UserServiceImpl userServiceImpl;
     private final InternalCurrencyService currencyService;
     private final ContractTemplateService contractTemplateService;
     private final ObjectMapper mapper;
@@ -35,7 +35,7 @@ public class ContractTemplateController {
             Model model
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.loadUserByUsername(authentication.getName());
+        User user = userServiceImpl.loadUserByUsername(authentication.getName());
         model.addAttribute("currencies", currencyService.findAll());
         model.addAttribute("user", user);
         return "contractTemplate";

@@ -1,4 +1,4 @@
-package com.example.NewBuildingFinance.service.auth;
+package com.example.NewBuildingFinance.service.auth.profile;
 
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.repository.auth.UserRepository;
@@ -17,11 +17,12 @@ import java.util.UUID;
 @Service
 @Log4j2
 @AllArgsConstructor
-public class ProfileService implements UserDetailsService{
+public class ProfileServiceImpl implements UserDetailsService, ProfileService{
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final StaticService service;
 
+    @Override
     public User update(User userForm, MultipartFile file) throws IOException {
         log.info("update user: {}", userForm);
         User user = userRepository.findById(userForm.getId()).orElseThrow();
@@ -51,44 +52,6 @@ public class ProfileService implements UserDetailsService{
         return user;
     }
 
-    public User changeUserActive(User userForm) {
-        log.info("change user active by id: {}", userForm.getId());
-        User user = userRepository.findById(userForm.getId()).orElseThrow();
-        user.setActive(!user.isActive());
-        userRepository.save(user);
-        log.info("success");
-        return user;
-    }
-
-    public boolean checkEmail(User user) {
-        return userRepository.findByUsername(user.getUsername()) != null;
-    }
-
-    public boolean checkPassword(User user, String password){
-        if(password != null && !password.equals("")){
-            if(passwordEncoder.matches(password, user.getPassword())){
-                return false;
-            } else {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean checkEqualsPassword(String first, String second){
-        return !first.equals(second);
-    }
-
-    public boolean checkPhone(String phone) {
-        return phone.contains("_");
-    }
-
-    public boolean checkViber(String viber) {
-        if(!viber.equals("+38(___)___-__-__")) {
-            return viber.contains("_");
-        }
-        return false;
-    }
     @Override
     public User loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username);
@@ -98,5 +61,36 @@ public class ProfileService implements UserDetailsService{
         }
         log.info("User with username: {} found", username);
         return user;
+    }
+
+    @Override
+    public boolean checkEmail(String email) {
+        return userRepository.findByUsername(email) != null;
+    }
+
+    @Override
+    public boolean checkRightPassword(String realPassword, String checkedPassword){
+        if(checkedPassword != null && !checkedPassword.equals("")){
+            return !passwordEncoder.matches(checkedPassword, realPassword);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean checkRepeatPassword(String first, String second){
+        return !first.equals(second);
+    }
+
+    @Override
+    public boolean checkPhone(String phone) {
+        return phone.contains("_");
+    }
+
+    @Override
+    public boolean checkViber(String viber) {
+        if(!viber.equals("+38(___)___-__-__")) {
+            return viber.contains("_");
+        }
+        return false;
     }
 }

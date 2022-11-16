@@ -37,7 +37,7 @@
 
             <a th:href="@{/flats/flat/0}" class="btn btn-success popup-with-form">Add</a>
             <button onclick="getXlsx()" class="btn btn-primary popup-with-form">Download xlsx</button>
-            <button onclick="getXlsxExample()" class="btn btn-primary popup-with-form">Upload xlsx</button>
+            <button onclick="openPopup()" class="btn btn-primary popup-with-form">Upload xlsx</button>
             <table class="table">
                 <thead>
                 <tr>
@@ -137,12 +137,16 @@
             </nav>
         </section>
     </div>
+    <div id="popup" class="modal">
+        <!-- popup -->
+    </div>
 </div>
 
 <div th:replace="blocks/scriptAdminLTE"></div>
 <script th:src="@{/js/validation.js}"></script>
 
 <script>
+    let modal = document.getElementById("popup");
 
     let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
     let url =window.location.protocol+"//"+ window.location.host +context;
@@ -286,6 +290,82 @@
 
     function getXlsxExample(){
         window.location = url + "/flats/getXlsxExample";
+    }
+
+    function getXlsxErrors(){
+        console.log('hello');
+        window.location = url + "/flats/getXlsxErrors";
+    }
+
+    function openPopup(){
+        modal.style.display = "block";
+        $("#popup").append($(
+            "<div class=\"modal-content\">\n" +
+            "           <span onclick=\"closePopup()\" class=\"close\">&times;</span>\n" +
+            "           <div class='container'>" +
+            "               <button onclick=\"getXlsxExample()\" class=\"btn btn-primary popup-with-form\">Xlsx example</button>" +
+            "               <div class=\"form-group mt-2\">\n" +
+            "                   <label>Xlsx file:</label>\n" +
+            "                   <input id='file' type='file' class=\"form-control\">" +
+            "                   <p id='fileMessage' style=\"color: red\"></p>" +
+            "               </div>\n" +
+            "               <button onclick='sendXls()' class=\"btn btn-success popup-with-form\">Send</button>" +
+            "           </div>\n" +
+            "       </div>"
+        ));
+    }
+
+    function closePopup(){
+        modal.style.display = "none";
+        $("#popup").empty();
+    }
+
+    function sendXls(){
+        let formData = new FormData();
+        let file = document.getElementById("file");
+        formData.append('file', file.files[0]);
+        $.ajax({
+            type: 'post',
+            url: url + '/flats/setXlsx',
+            contentType: false,
+            processData: false,
+            data: formData,
+            dataType: "json",
+            success: function (validation) {
+                if (validation == null){
+                    closePopup();
+                    updatePage(currentPage, size, sortingField, sortingDirection);
+                } else if (validation.file !== undefined){
+                    validationMessage(validation);
+                } else if (validation.fileErrors !== undefined){
+                    getXlsxErrors();
+                    validationMessage(validation);
+                }
+
+                // let blob = new Blob([data], { type: 'application/pdf' });
+                // let downloadUrl = URL.createObjectURL(blob);
+                // let a = document.createElement("a");
+                // a.href = downloadUrl;
+                // a.download = "downloadFile.xlsx";
+                // document.body.appendChild(a);
+                // a.click();
+
+            },
+            error: function () {
+                console.log('error /updateProfile');
+            }
+        });
+    }
+
+    function validationMessage(validation){
+        if(validation?.file ?? false){
+            document.getElementById('fileMessage').innerHTML = validation.file;
+            document.getElementById('file').style.border = "1px solid red";
+        }
+        if(validation?.fileErrors ?? false){
+            document.getElementById('fileMessage').innerHTML = validation.fileErrors;
+            document.getElementById('file').style.border = "1px solid red";
+        }
     }
 
     function deleteObject(id){

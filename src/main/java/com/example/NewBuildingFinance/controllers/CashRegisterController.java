@@ -12,7 +12,8 @@ import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
 import com.example.NewBuildingFinance.entities.cashRegister.Economic;
 import com.example.NewBuildingFinance.entities.cashRegister.StatusCashRegister;
 import com.example.NewBuildingFinance.service.*;
-import com.example.NewBuildingFinance.service.auth.UserService;
+import com.example.NewBuildingFinance.service.agency.AgencyServiceImpl;
+import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.text.DocumentException;
@@ -39,11 +40,11 @@ import java.util.*;
 @RequestMapping("/cashRegister")
 public class CashRegisterController {
     private final InternalCurrencyService internalCurrencyService;
-    private final UserService userService;
+    private final UserServiceImpl userServiceImpl;
     private final ObjectService objectService;
     private final FlatService flatService;
     private final FlatPaymentService flatPaymentService;
-    private final AgencyService agencyService;
+    private final AgencyServiceImpl agencyServiceImpl;
     private final RealtorService realtorService;
     private final CashRegisterService cashRegisterService;
 
@@ -54,7 +55,7 @@ public class CashRegisterController {
             Model model
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.loadUserByUsername(authentication.getName());
+        User user = userServiceImpl.loadUserByUsername(authentication.getName());
         model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("objects", objectService.findAll());
 
@@ -126,7 +127,7 @@ public class CashRegisterController {
             }
         }
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.loadUserByUsername(authentication.getName());
+        User user = userServiceImpl.loadUserByUsername(authentication.getName());
         model.addAttribute("currencies", internalCurrencyService.findAll());
 
         model.addAttribute("cashRegisterId", id);
@@ -142,7 +143,7 @@ public class CashRegisterController {
             Model model
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.loadUserByUsername(authentication.getName());
+        User user = userServiceImpl.loadUserByUsername(authentication.getName());
         model.addAttribute("currencies", internalCurrencyService.findAll());
 
         model.addAttribute("cashRegisterId", id);
@@ -405,19 +406,19 @@ public class CashRegisterController {
     @GetMapping("/getManagers")
     @ResponseBody
     public String getManagers() throws JsonProcessingException {
-        return mapper.writeValueAsString(userService.findManagers());
+        return mapper.writeValueAsString(userServiceImpl.findManagers());
     }
 
     @GetMapping("/getDirector")
     @ResponseBody
     public String getDirector() throws JsonProcessingException {
-        return mapper.writeValueAsString(userService.findDirector());
+        return mapper.writeValueAsString(userServiceImpl.findDirector());
     }
 
     @GetMapping("/getAgencies")
     @ResponseBody
     public String getAgencies() throws JsonProcessingException {
-        return mapper.writeValueAsString(agencyService.findAll());
+        return mapper.writeValueAsString(agencyServiceImpl.findAll());
     }
 
     @GetMapping("/getRealtorsByAgencyId")

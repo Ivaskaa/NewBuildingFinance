@@ -3,8 +3,8 @@ package com.example.NewBuildingFinance.controllers.settings;
 import com.example.NewBuildingFinance.dto.auth.RoleDto;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.service.InternalCurrencyService;
-import com.example.NewBuildingFinance.service.auth.RoleService;
-import com.example.NewBuildingFinance.service.auth.UserService;
+import com.example.NewBuildingFinance.service.auth.role.RoleServiceImpl;
+import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -27,8 +27,8 @@ import java.util.Map;
 @RequestMapping("/settings")
 public class RoleController {
     private final InternalCurrencyService currencyService;
-    private final RoleService roleService;
-    private final UserService userService;
+    private final RoleServiceImpl roleServiceImpl;
+    private final UserServiceImpl userServiceImpl;
     private final ObjectMapper mapper;
 
     @GetMapping( "/roles" )
@@ -36,7 +36,7 @@ public class RoleController {
             Model model
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.loadUserByUsername(authentication.getName());
+        User user = userServiceImpl.loadUserByUsername(authentication.getName());
         model.addAttribute("currencies", currencyService.findAll());
         model.addAttribute("user", user);
         return "roles";
@@ -49,7 +49,7 @@ public class RoleController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        if (roleService.checkName(roleDto.build())){
+        if (roleServiceImpl.checkName(roleDto.getName())){
             bindingResult.addError(new FieldError("roleDto", "name", "Role has already been created"));
         }
         if(bindingResult.hasErrors()){
@@ -61,7 +61,7 @@ public class RoleController {
         }
 
         //action
-        roleService.save(roleDto.build());
+        roleServiceImpl.save(roleDto.build());
         return mapper.writeValueAsString(null);
     }
 
@@ -71,14 +71,14 @@ public class RoleController {
             @RequestBody List<RoleDto> roleDtoList
     ) throws IOException {
         //action
-        roleService.update(roleDtoList);
+        roleServiceImpl.updateRoles(roleDtoList);
         return mapper.writeValueAsString(null);
     }
 
     @GetMapping("/getRoles")
     @ResponseBody
     public String getRoles() throws JsonProcessingException {
-        return mapper.writeValueAsString(roleService.findAll());
+        return mapper.writeValueAsString(roleServiceImpl.findAll());
     }
 
     @PostMapping("/deleteRoleById")
@@ -86,7 +86,7 @@ public class RoleController {
     public String deleteRoleById(
             Long id
     ) throws JsonProcessingException {
-        roleService.deleteById(id);
+        roleServiceImpl.deleteById(id);
         return mapper.writeValueAsString("success");
     }
 }

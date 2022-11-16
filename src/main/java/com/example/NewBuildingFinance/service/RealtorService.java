@@ -2,6 +2,7 @@ package com.example.NewBuildingFinance.service;
 
 import com.example.NewBuildingFinance.entities.agency.Realtor;
 import com.example.NewBuildingFinance.repository.RealtorRepository;
+import com.example.NewBuildingFinance.service.agency.AgencyServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -11,14 +12,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Log4j2
 @AllArgsConstructor
 public class RealtorService {
     private final RealtorRepository realtorRepository;
-    private final AgencyService agencyService;
+    private final AgencyServiceImpl agencyServiceImpl;
 
     public Page<Realtor> findPageByAgencyId(
             Integer currentPage,
@@ -45,7 +45,7 @@ public class RealtorService {
 
     public Realtor save(Realtor realtor, Long agencyId) {
         log.info("save realtor: {}", realtor);
-        realtor.setAgency(agencyService.findById(agencyId));
+        realtor.setAgency(agencyServiceImpl.findById(agencyId));
         if(realtor.isDirector()){
             Realtor latestDirector = realtorRepository.findDirectorByAgencyId(agencyId);
             if (latestDirector != null){

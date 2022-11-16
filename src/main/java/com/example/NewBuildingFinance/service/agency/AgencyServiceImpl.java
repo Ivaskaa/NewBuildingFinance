@@ -1,4 +1,4 @@
-package com.example.NewBuildingFinance.service;
+package com.example.NewBuildingFinance.service.agency;
 
 import com.example.NewBuildingFinance.dto.agency.AgencyTableDto;
 import com.example.NewBuildingFinance.entities.agency.Agency;
@@ -19,29 +19,31 @@ import java.util.Optional;
 @Service
 @Log4j2
 @AllArgsConstructor
-public class AgencyService {
+public class AgencyServiceImpl implements AgencyService{
     private final AgencyRepository agencyRepository;
 
+
+    @Override
     public Page<AgencyTableDto> findSortingAndSpecificationPage(
             Integer currentPage,
             Integer size,
             String sortingField,
             String sortingDirection,
 
-            Optional<String> name,
-            Optional<String> director,
-            Optional<String> phone,
-            Optional<String> email,
-            Optional<Integer> count
+            String name,
+            String director,
+            String phone,
+            String email,
+            Integer count
     ) {
         log.info("get agency page. page: {}, size: {} field: {}, direction: {}",
                 currentPage - 1, size, sortingField, sortingDirection);
         Specification<Agency> specification = Specification
-                .where(AgencySpecification.likeName(name.orElse(null)))
-                .and(AgencySpecification.likeDirector(director.orElse(null)))
-                .and(AgencySpecification.likePhone(phone.orElse(null)))
-                .and(AgencySpecification.likeEmail(email.orElse(null)))
-                .and(AgencySpecification.likeCount(count.orElse(null)));
+                .where(AgencySpecification.likeName(name))
+                .and(AgencySpecification.likeDirector(director))
+                .and(AgencySpecification.likePhone(phone))
+                .and(AgencySpecification.likeEmail(email))
+                .and(AgencySpecification.likeCount(count));
         Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
         Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
         Page<AgencyTableDto> agencies =
@@ -51,6 +53,7 @@ public class AgencyService {
         return agencies;
     }
 
+    @Override
     public List<Agency> findAll() {
         log.info("get all agency");
         List<Agency> agencyList = agencyRepository.findAll();
@@ -58,6 +61,7 @@ public class AgencyService {
         return agencyList;
     }
 
+    @Override
     public Agency save(Agency agency) {
         log.info("save agency: {}", agency);
         Agency agencyAfterSave = agencyRepository.save(agency);
@@ -65,6 +69,7 @@ public class AgencyService {
         return agencyAfterSave;
     }
 
+    @Override
     public Agency update(Agency agencyForm) {
         log.info("update agency: {}", agencyForm);
         Agency object = agencyRepository.findById(agencyForm.getId()).orElseThrow();
@@ -75,12 +80,14 @@ public class AgencyService {
         return object;
     }
 
+    @Override
     public void deleteById(Long id) {
         log.info("delete agency by id: {}", id);
         agencyRepository.deleteById(id);
         log.info("success");
     }
 
+    @Override
     public Agency findById(Long id) {
         log.info("get agency by id: {}", id);
         Agency agency = agencyRepository.findById(id).orElseThrow();
@@ -88,6 +95,7 @@ public class AgencyService {
         return agency;
     }
 
+    @Override
     public boolean checkAgencyName(String name) {
         Agency agency;
         agency = agencyRepository.findByName(name);

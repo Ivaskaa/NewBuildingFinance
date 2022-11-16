@@ -9,7 +9,7 @@ import com.example.NewBuildingFinance.entities.contract.ContractTemplate;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.object.Object;
 import com.example.NewBuildingFinance.service.*;
-import com.example.NewBuildingFinance.service.auth.UserService;
+import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -33,7 +33,7 @@ import java.util.*;
 @AllArgsConstructor
 @RequestMapping("/contracts")
 public class ContractController {
-    private final UserService userService;
+    private final UserServiceImpl userServiceImpl;
     private final BuyerService buyerService;
     private final InternalCurrencyService internalCurrencyService;
     private final ContractService contractService;
@@ -47,7 +47,7 @@ public class ContractController {
             Model model
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.loadUserByUsername(authentication.getName());
+        User user = userServiceImpl.loadUserByUsername(authentication.getName());
         model.addAttribute("objects", objectService.findAll());
         model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("user", user);
@@ -61,7 +61,7 @@ public class ContractController {
             Model model
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.loadUserByUsername(authentication.getName());
+        User user = userServiceImpl.loadUserByUsername(authentication.getName());
         model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("contractId", id);
         model.addAttribute("flatId", Objects.requireNonNullElse(flatId, 0));

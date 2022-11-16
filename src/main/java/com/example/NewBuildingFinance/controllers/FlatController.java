@@ -9,7 +9,8 @@ import com.example.NewBuildingFinance.entities.buyer.Buyer;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.flat.StatusFlat;
 import com.example.NewBuildingFinance.service.*;
-import com.example.NewBuildingFinance.service.auth.UserService;
+import com.example.NewBuildingFinance.service.agency.AgencyServiceImpl;
+import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -33,9 +34,9 @@ import java.util.*;
 @RequestMapping("/flats")
 public class FlatController {
     private final InternalCurrencyService currencyService;
-    private final UserService userService;
+    private final UserServiceImpl userServiceImpl;
     private final FlatService flatService;
-    private final AgencyService agencyService;
+    private final AgencyServiceImpl agencyServiceImpl;
     private final RealtorService realtorService;
     private final BuyerService buyerService;
     private final FlatPaymentService flatPaymentService;
@@ -47,7 +48,7 @@ public class FlatController {
             Model model
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.loadUserByUsername(authentication.getName());
+        User user = userServiceImpl.loadUserByUsername(authentication.getName());
         model.addAttribute("objects", objectService.findAll());
         List<Pair<StatusFlat, String>> list = new ArrayList<>();
         for(StatusFlat statusObject : StatusFlat.values()){
@@ -66,7 +67,7 @@ public class FlatController {
             Model model
     ) throws JsonProcessingException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.loadUserByUsername(authentication.getName());
+        User user = userServiceImpl.loadUserByUsername(authentication.getName());
         model.addAttribute("currencies", currencyService.findAll());
         model.addAttribute("flatId", id);
         model.addAttribute("userId", user.getId());
@@ -228,25 +229,37 @@ public class FlatController {
         return mapper.writeValueAsString("success");
     }
 
+    @GetMapping("/getXlsx")
+    public ResponseEntity<byte[]> getXlsx() throws IOException {
+        return flatService.getXlsx();
+    }
+
     @GetMapping("/getXlsxExample")
-    @ResponseBody
     public ResponseEntity<byte[]> getXlsxExample() throws IOException {
         return flatService.getXlsxExample();
     }
 
-    @PostMapping("/setXlsx")
-    @ResponseBody
-    public ResponseEntity<byte[]> setXlsx(
-            @RequestPart(value = "file", required = false) MultipartFile file
-    ) throws IOException {
-        ResponseEntity<byte[]> response = flatService.setXlsx(file);
-        return response;
+    @GetMapping("/getXlsxErrors")
+    public ResponseEntity<byte[]> getXlsxErrors() throws IOException {
+        return flatService.getXlsxErrors();
     }
 
-    @GetMapping("/getXlsx")
+    @PostMapping("/setXlsx")
     @ResponseBody
-    public ResponseEntity<byte[]> getXlsx() throws IOException {
-        return flatService.getXlsx();
+    public String setXlsx(
+            @RequestPart(value = "file", required = false) MultipartFile file
+    ) throws IOException {
+        Map<String, String> errors = new HashMap<>();
+        if(file == null){
+            errors.put("file", "Must not be empty");
+            return mapper.writeValueAsString(errors);
+        }
+        if(!flatService.setXlsx(file)){
+            errors.put("fileErrors", "Check errors in xlsx file");
+            return mapper.writeValueAsString(errors);
+        } else {
+            return mapper.writeValueAsString(null);
+        }
     }
 
     // another
@@ -254,7 +267,7 @@ public class FlatController {
     @GetMapping("/getAllAgencies")
     @ResponseBody
     public String getAllAgencies() throws JsonProcessingException {
-        List<Agency> agencyList = agencyService.findAll();
+        List<Agency> agencyList = agencyServiceImpl.findAll();
         return mapper.writeValueAsString(agencyList);
     }
 
@@ -336,13 +349,13 @@ public class FlatController {
     public String getUserPermissionsById(
             Long id
     ) throws JsonProcessingException {
-        List<String> permissions = userService.getUserPermissionsById(id);
+        List<String> permissions = userServiceImpl.getUserPermissionsById(id);
         return mapper.writeValueAsString(permissions);
     }
 
     @GetMapping("/getAllManagers")
     @ResponseBody
     public String getAllManagers() throws JsonProcessingException {
-        return mapper.writeValueAsString(userService.findManagers());
+        return mapper.writeValueAsString(userServiceImpl.findManagers());
     }
 }

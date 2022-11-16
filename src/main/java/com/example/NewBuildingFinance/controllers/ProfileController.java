@@ -3,7 +3,7 @@ package com.example.NewBuildingFinance.controllers;
 import com.example.NewBuildingFinance.dto.auth.ProfileDto;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.service.InternalCurrencyService;
-import com.example.NewBuildingFinance.service.auth.ProfileService;
+import com.example.NewBuildingFinance.service.auth.profile.ProfileServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -26,7 +26,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class ProfileController {
     private final InternalCurrencyService currencyService;
-    private final ProfileService profileService;
+    private final ProfileServiceImpl profileServiceImpl;
     private final ObjectMapper mapper;
 
     @GetMapping( "/profile" )
@@ -34,7 +34,7 @@ public class ProfileController {
             Model model
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = profileService.loadUserByUsername(authentication.getName());
+        User user = profileServiceImpl.loadUserByUsername(authentication.getName());
         model.addAttribute("currencies", currencyService.findAll());
         model.addAttribute("user", user);
         return "profile";
@@ -49,22 +49,22 @@ public class ProfileController {
     ) throws IOException, ParseException {
         //validation
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = profileService.loadUserByUsername(authentication.getName());
-        if (profileService.checkPhone(profile.getPhone())) {
+        User user = profileServiceImpl.loadUserByUsername(authentication.getName());
+        if (profileServiceImpl.checkPhone(profile.getPhone())) {
             bindingResult.addError(new FieldError("profileDto", "phone", "Phone must be valid"));
         }
-        if (profileService.checkViber(profile.getViber())) {
+        if (profileServiceImpl.checkViber(profile.getViber())) {
             bindingResult.addError(new FieldError("profileDto", "viber", "Viber must be valid"));
         }
         if (!user.getUsername().equals(profile.getUsername())) {
-            if (profileService.checkEmail(profile.build())) {
+            if (profileServiceImpl.checkEmail(profile.getUsername())) {
                 bindingResult.addError(new FieldError("profileDto", "username", "Email is already registered"));
             }
         }
-        if (profileService.checkPassword(user, profile.getPassword())) {
+        if (profileServiceImpl.checkRightPassword(user.getPassword(), profile.getPassword())) {
             bindingResult.addError(new FieldError("profileDto", "password", "Wrong password"));
         } else {
-            if (profileService.checkEqualsPassword(profile.getFirstPassword(), profile.getSecondPassword())) {
+            if (profileServiceImpl.checkRepeatPassword(profile.getFirstPassword(), profile.getSecondPassword())) {
                 bindingResult.addError(new FieldError("profileDto", "firstPassword", "Passwords must be equals"));
                 bindingResult.addError(new FieldError("profileDto", "secondPassword", "Passwords must be equals"));
             }
@@ -78,7 +78,7 @@ public class ProfileController {
         }
 
         //action
-        profileService.update(profile.build(), file);
+        profileServiceImpl.update(profile.build(), file);
         return mapper.writeValueAsString(null);
     }
 
@@ -86,7 +86,7 @@ public class ProfileController {
     @ResponseBody
     public String getProfile() throws JsonProcessingException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = profileService.loadUserByUsername(authentication.getName());
+        User user = profileServiceImpl.loadUserByUsername(authentication.getName());
         return mapper.writeValueAsString(user);
     }
 }
