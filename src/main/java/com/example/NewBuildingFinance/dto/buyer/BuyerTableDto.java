@@ -1,4 +1,4 @@
-package com.example.NewBuildingFinance.dto;
+package com.example.NewBuildingFinance.dto.buyer;
 
 import lombok.Data;
 

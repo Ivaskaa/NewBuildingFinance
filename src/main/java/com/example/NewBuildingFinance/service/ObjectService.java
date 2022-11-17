@@ -1,6 +1,6 @@
 package com.example.NewBuildingFinance.service;
 
-import com.example.NewBuildingFinance.dto.ObjectTableDto;
+import com.example.NewBuildingFinance.dto.object.ObjectTableDto;
 import com.example.NewBuildingFinance.entities.object.Object;
 import com.example.NewBuildingFinance.repository.ObjectRepository;
 import lombok.AllArgsConstructor;

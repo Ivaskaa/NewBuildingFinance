@@ -1,4 +1,4 @@
-package com.example.NewBuildingFinance.dto;
+package com.example.NewBuildingFinance.dto.object;
 
 import com.example.NewBuildingFinance.entities.object.Object;
 import com.example.NewBuildingFinance.entities.object.StatusObject;

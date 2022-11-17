@@ -1,4 +1,4 @@
-package com.example.NewBuildingFinance.service;
+package com.example.NewBuildingFinance.service.cashRegister;
 
 import com.example.NewBuildingFinance.dto.cashRegister.CashRegisterTableDto;
 import com.example.NewBuildingFinance.dto.cashRegister.IncomeUploadDto;
@@ -42,12 +42,13 @@ import java.util.stream.Stream;
 @Service
 @Log4j2
 @AllArgsConstructor
-public class CashRegisterService {
+public class CashRegisterServiceImpl implements CashRegisterService{
     private final CashRegisterRepository cashRegisterRepository;
     private final FlatPaymentRepository flatPaymentRepository;
     private final RealtorRepository realtorRepository;
     private final UserRepository userRepository;
 
+    @Override
     public Page<CashRegisterTableDto> findSortingAndSpecificationPage(
             Integer currentPage,
             Integer size,
@@ -84,6 +85,7 @@ public class CashRegisterService {
         return cashRegisterPage;
     }
 
+    @Override
     public CashRegister saveIncome(CashRegister income) {
         log.info("save income: {}", income);
         CashRegister cashRegister = cashRegisterRepository.save(income);
@@ -103,6 +105,7 @@ public class CashRegisterService {
         return cashRegister;
     }
 
+    @Override
     public IncomeUploadDto updateIncome(CashRegister income) {
         log.info("update income: {}", income);
         CashRegister cashRegister = cashRegisterRepository.findById(income.getId()).orElseThrow();
@@ -138,6 +141,7 @@ public class CashRegisterService {
         return cashRegisterAfterSave.buildIncomeUploadDto();
     }
 
+    @Override
     public CashRegister saveSpending(CashRegister spending) {
         log.info("save spending: {}", spending);
         if(spending.getArticle().equals(Article.COMMISSION_AGENCIES)){
@@ -155,6 +159,7 @@ public class CashRegisterService {
         return cashRegister;
     }
 
+    @Override
     public SpendingUploadDto updateSpending(CashRegister spending) {
         log.info("update spending: {}", spending);
         if(spending.getArticle().equals(Article.COMMISSION_AGENCIES)){
@@ -172,6 +177,7 @@ public class CashRegisterService {
         return cashRegister.buildSpendingUploadDto();
     }
 
+    @Override
     public void deleteSpendingById(Long id) {
         log.info("delete spending by id: {}", id);
         CashRegister cashRegister = cashRegisterRepository.findById(id).orElseThrow();
@@ -180,6 +186,7 @@ public class CashRegisterService {
         log.info("success delete spending by id");
     }
 
+    @Override
     public void deleteIncomeById(Long id) {
         log.info("delete income by id: {}", id);
         CashRegister cashRegister = cashRegisterRepository.findById(id).orElseThrow();
@@ -198,6 +205,7 @@ public class CashRegisterService {
         log.info("success delete income by id");
     }
 
+    @Override
     public IncomeUploadDto findIncomeById(Long id) {
         log.info("get income by id: {}", id);
         CashRegister cashRegister = cashRegisterRepository.findById(id).orElseThrow();
@@ -206,6 +214,7 @@ public class CashRegisterService {
         return cashRegisterIncomeUploadDto;
     }
 
+    @Override
     public SpendingUploadDto findSpendingById(Long id) {
         log.info("get spending by id: {}", id);
         CashRegister cashRegister = cashRegisterRepository.findById(id).orElseThrow();
@@ -214,6 +223,7 @@ public class CashRegisterService {
         return cashRegisterSpendingUploadDto;
     }
 
+    @Override
     public CashRegister findById(Long id) {
         log.info("get cash register by id: {}", id);
         CashRegister cashRegister = cashRegisterRepository.findById(id).orElseThrow();
@@ -221,6 +231,7 @@ public class CashRegisterService {
         return cashRegister;
     }
 
+    @Override
     public CashRegister findIncomeByFlatPaymentId(Long flatPaymentId) {
         log.info("get income by flat payment id: {}", flatPaymentId);
         CashRegister cashRegister = cashRegisterRepository.findByFlatPaymentId(flatPaymentId).orElse(null);
@@ -228,6 +239,7 @@ public class CashRegisterService {
         return cashRegister;
     }
 
+    @Override
     public CashRegister findSpendingByFlatId(Long flatId) {
         log.info("get spending by flat id: {}", flatId);
         CashRegister cashRegister = cashRegisterRepository.findByFlatId(flatId).orElse(null);
@@ -235,7 +247,8 @@ public class CashRegisterService {
         return cashRegister;
     }
 
-    public ResponseEntity<byte[]> getPdfIncome(Long id) throws IOException, DocumentException, TransformerException {
+    @Override
+    public ResponseEntity<byte[]> getPdfIncome(Long id) throws IOException, DocumentException {
         log.info("get pdf for income by id: {}", id);
         CashRegister income = cashRegisterRepository.findById(id).orElseThrow();
 
@@ -323,7 +336,8 @@ public class CashRegisterService {
         return new ResponseEntity<>(content, headers, HttpStatus.OK);
     }
 
-    public ResponseEntity<byte[]> getPdfSpending(Long id) throws IOException, DocumentException, TransformerException {
+    @Override
+    public ResponseEntity<byte[]> getPdfSpending(Long id) throws IOException, DocumentException {
         log.info("get pdf for spending by id: {}", id);
         CashRegister spending = cashRegisterRepository.findById(id).orElseThrow();
 
@@ -388,11 +402,13 @@ public class CashRegisterService {
         return new ResponseEntity<>(content, headers, HttpStatus.OK);
     }
 
+    @Override
     public boolean checkNumber(Long number) {
         CashRegister cashRegister = cashRegisterRepository.findByNumber(number);
         return cashRegister != null;
     }
 
+    @Override
     public boolean checkCashRegister(Long id) {
         CashRegister cashRegister = null;
         if (id != null) {

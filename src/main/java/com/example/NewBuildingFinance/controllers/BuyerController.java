@@ -1,11 +1,13 @@
 package com.example.NewBuildingFinance.controllers;
 
-import com.example.NewBuildingFinance.dto.BuyerDto;
+import com.example.NewBuildingFinance.dto.buyer.BuyerDto;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
 import com.example.NewBuildingFinance.service.*;
 import com.example.NewBuildingFinance.service.agency.AgencyServiceImpl;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
+import com.example.NewBuildingFinance.service.buyer.BuyerServiceImpl;
+import com.example.NewBuildingFinance.service.contract.ContractServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -28,8 +30,8 @@ import java.util.Map;
 @RequestMapping("/buyers")
 public class BuyerController {
     private final InternalCurrencyService internalCurrencyService;
-    private final BuyerService buyerService;
-    private final ContractService contractService;
+    private final BuyerServiceImpl buyerServiceImpl;
+    private final ContractServiceImpl contractServiceImpl;
     private final RealtorService realtorService;
     private final AgencyServiceImpl agencyServiceImpl;
     private final UserServiceImpl userServiceImpl;
@@ -69,7 +71,7 @@ public class BuyerController {
             String direction,
             Long buyerId
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(contractService.findSortingPageByBuyerId(
+        return mapper.writeValueAsString(contractServiceImpl.findSortingPageByBuyerId(
                 page, size, field, direction, buyerId));
     }
 
@@ -81,7 +83,7 @@ public class BuyerController {
             String field,
             String direction
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(buyerService.findSortingPage(
+        return mapper.writeValueAsString(buyerServiceImpl.findSortingPage(
                 page, size, field, direction));
     }
 
@@ -101,7 +103,7 @@ public class BuyerController {
         }
 
         //action
-        buyerService.save(buyerDto.build());
+        buyerServiceImpl.save(buyerDto.build());
         return mapper.writeValueAsString(null);
     }
 
@@ -111,7 +113,7 @@ public class BuyerController {
             @Valid @RequestBody BuyerDto buyerDto,
             BindingResult bindingResult
     ) throws IOException {
-        //validation t
+        //validation
         if(bindingResult.hasErrors()){
             Map<String, String> errors = new HashMap<>();
             for (FieldError error : bindingResult.getFieldErrors()) {
@@ -121,7 +123,7 @@ public class BuyerController {
         }
 
         //action
-        buyerService.update(buyerDto.build());
+        buyerServiceImpl.update(buyerDto.build());
         return mapper.writeValueAsString(null);
     }
 
@@ -130,7 +132,7 @@ public class BuyerController {
     public String getBuyerById(
             Long id
     ) throws JsonProcessingException {
-        Buyer buyer = buyerService.findById(id);
+        Buyer buyer = buyerServiceImpl.findById(id);
         return mapper.writeValueAsString(buyer);
     }
 
@@ -139,7 +141,7 @@ public class BuyerController {
     public String deleteObjectById(
             Long id
     ) throws JsonProcessingException {
-        buyerService.deleteById(id);
+        buyerServiceImpl.deleteById(id);
         return mapper.writeValueAsString("success");
     }
 

@@ -4,7 +4,7 @@ import com.example.NewBuildingFinance.dto.agency.AgencyDto;
 import com.example.NewBuildingFinance.entities.agency.Agency;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.service.agency.AgencyServiceImpl;
-import com.example.NewBuildingFinance.service.ContractService;
+import com.example.NewBuildingFinance.service.contract.ContractServiceImpl;
 import com.example.NewBuildingFinance.service.InternalCurrencyService;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -28,7 +28,7 @@ import java.util.*;
 public class AgencyController {
     private final InternalCurrencyService internalCurrencyService;
     private final UserServiceImpl userServiceImpl;
-    private final ContractService contractService;
+    private final ContractServiceImpl contractServiceImpl;
     private final AgencyServiceImpl agencyServiceImpl;
 
     private final ObjectMapper mapper;
@@ -67,7 +67,7 @@ public class AgencyController {
             String direction,
             Long agencyId
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(contractService.findSortingPageByAgencyId(
+        return mapper.writeValueAsString(contractServiceImpl.findSortingPageByAgencyId(
                 page, size, field, direction, agencyId));
     }
 

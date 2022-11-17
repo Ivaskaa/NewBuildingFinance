@@ -1,5 +1,6 @@
 package com.example.NewBuildingFinance.service;
 
+import com.example.NewBuildingFinance.entities.agency.Agency;
 import com.example.NewBuildingFinance.entities.agency.Realtor;
 import com.example.NewBuildingFinance.repository.RealtorRepository;
 import com.example.NewBuildingFinance.service.agency.AgencyServiceImpl;
@@ -45,7 +46,9 @@ public class RealtorService {
 
     public Realtor save(Realtor realtor, Long agencyId) {
         log.info("save realtor: {}", realtor);
-        realtor.setAgency(agencyServiceImpl.findById(agencyId));
+        Agency agency = new Agency();
+        agency.setId(agencyId); // fixme create dto
+        realtor.setAgency(agency);
         if(realtor.isDirector()){
             Realtor latestDirector = realtorRepository.findDirectorByAgencyId(agencyId);
             if (latestDirector != null){

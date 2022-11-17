@@ -14,6 +14,7 @@ import com.example.NewBuildingFinance.entities.cashRegister.StatusCashRegister;
 import com.example.NewBuildingFinance.service.*;
 import com.example.NewBuildingFinance.service.agency.AgencyServiceImpl;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
+import com.example.NewBuildingFinance.service.cashRegister.CashRegisterServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.text.DocumentException;
@@ -46,7 +47,7 @@ public class CashRegisterController {
     private final FlatPaymentService flatPaymentService;
     private final AgencyServiceImpl agencyServiceImpl;
     private final RealtorService realtorService;
-    private final CashRegisterService cashRegisterService;
+    private final CashRegisterServiceImpl cashRegisterServiceImpl;
 
     private final ObjectMapper mapper;
 
@@ -100,7 +101,7 @@ public class CashRegisterController {
             String counterparty
     ) throws IOException, ParseException {
         //action
-        return mapper.writeValueAsString(cashRegisterService.findSortingAndSpecificationPage(
+        return mapper.writeValueAsString(cashRegisterServiceImpl.findSortingAndSpecificationPage(
                 page, size, field, direction,
                 number,
                 dateStart, dateFin,
@@ -121,7 +122,7 @@ public class CashRegisterController {
             Model model
     ) {
         if (flatPaymentId != null) {
-            CashRegister cashRegister = cashRegisterService.findIncomeByFlatPaymentId(flatPaymentId);
+            CashRegister cashRegister = cashRegisterServiceImpl.findIncomeByFlatPaymentId(flatPaymentId);
             if (cashRegister != null) {
                 return "redirect:/cashRegister/income/" + cashRegister.getId();
             }
@@ -159,7 +160,7 @@ public class CashRegisterController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        if(cashRegisterService.checkNumber(incomeSaveDto.getNumber())){
+        if(cashRegisterServiceImpl.checkNumber(incomeSaveDto.getNumber())){
             bindingResult.addError(new FieldError("incomeSaveDto", "number", "Number is exists"));
         }
         if (incomeSaveDto.getArticle() != null) {
@@ -183,7 +184,7 @@ public class CashRegisterController {
             return mapper.writeValueAsString(errors);
         }
         //action
-        CashRegister cashRegister = cashRegisterService.saveIncome(incomeSaveDto.build());
+        CashRegister cashRegister = cashRegisterServiceImpl.saveIncome(incomeSaveDto.build());
         return mapper.writeValueAsString(cashRegister.getId());
     }
 
@@ -194,9 +195,9 @@ public class CashRegisterController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        CashRegister cashRegister = cashRegisterService.findById(incomeSaveDto.getId());
+        CashRegister cashRegister = cashRegisterServiceImpl.findById(incomeSaveDto.getId());
         if(!cashRegister.getNumber().equals(incomeSaveDto.getNumber())){
-            if(cashRegisterService.checkNumber(incomeSaveDto.getNumber())){
+            if(cashRegisterServiceImpl.checkNumber(incomeSaveDto.getNumber())){
                 bindingResult.addError(new FieldError("incomeSaveDto", "number", "Number is exists"));
             }
         }
@@ -221,7 +222,7 @@ public class CashRegisterController {
             return mapper.writeValueAsString(errors);
         }
         //action
-        IncomeUploadDto incomeUploadDto = cashRegisterService.updateIncome(incomeSaveDto.build());
+        IncomeUploadDto incomeUploadDto = cashRegisterServiceImpl.updateIncome(incomeSaveDto.build());
         return mapper.writeValueAsString(null);
     }
 
@@ -232,7 +233,7 @@ public class CashRegisterController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        if(cashRegisterService.checkNumber(spendingSaveDto.getNumber())){
+        if(cashRegisterServiceImpl.checkNumber(spendingSaveDto.getNumber())){
             bindingResult.addError(new FieldError("spendingSaveDto", "number", "Number is exists"));
         }
         if (spendingSaveDto.getArticle() != null) {
@@ -274,7 +275,7 @@ public class CashRegisterController {
             return mapper.writeValueAsString(errors);
         }
         //action
-        CashRegister cashRegister = cashRegisterService.saveSpending(spendingSaveDto.build());
+        CashRegister cashRegister = cashRegisterServiceImpl.saveSpending(spendingSaveDto.build());
         return mapper.writeValueAsString(cashRegister.getId());
     }
 
@@ -285,9 +286,9 @@ public class CashRegisterController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        CashRegister cashRegister = cashRegisterService.findById(spendingSaveDto.getId());
+        CashRegister cashRegister = cashRegisterServiceImpl.findById(spendingSaveDto.getId());
         if(!cashRegister.getNumber().equals(spendingSaveDto.getNumber())){
-            if(cashRegisterService.checkNumber(spendingSaveDto.getNumber())){
+            if(cashRegisterServiceImpl.checkNumber(spendingSaveDto.getNumber())){
                 bindingResult.addError(new FieldError("spendingSaveDto", "number", "Number is exists"));
             }
         }
@@ -330,7 +331,7 @@ public class CashRegisterController {
             return mapper.writeValueAsString(errors);
         }
         //action
-        cashRegisterService.updateSpending(spendingSaveDto.build());
+        cashRegisterServiceImpl.updateSpending(spendingSaveDto.build());
         return mapper.writeValueAsString(null);
     }
 
@@ -339,7 +340,7 @@ public class CashRegisterController {
     public String getIncomeById(
             Long id
     ) throws JsonProcessingException {
-        IncomeUploadDto cashRegister = cashRegisterService.findIncomeById(id);
+        IncomeUploadDto cashRegister = cashRegisterServiceImpl.findIncomeById(id);
         return mapper.writeValueAsString(cashRegister);
     }
 
@@ -348,7 +349,7 @@ public class CashRegisterController {
     public String getSpendingById(
             Long id
     ) throws JsonProcessingException {
-        SpendingUploadDto cashRegister = cashRegisterService.findSpendingById(id);
+        SpendingUploadDto cashRegister = cashRegisterServiceImpl.findSpendingById(id);
         return mapper.writeValueAsString(cashRegister);
     }
 
@@ -357,11 +358,11 @@ public class CashRegisterController {
             @PathVariable(required = false) Long id
     ) throws IOException, DocumentException, TransformerException {
         //validation
-        if(cashRegisterService.checkCashRegister(id)){
+        if(cashRegisterServiceImpl.checkCashRegister(id)){
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         //action
-        return cashRegisterService.getPdfIncome(id);
+        return cashRegisterServiceImpl.getPdfIncome(id);
     }
 
     @GetMapping("/getPdfSpending/{id}")
@@ -369,11 +370,11 @@ public class CashRegisterController {
             @PathVariable(required = false) Long id
     ) throws IOException, DocumentException, TransformerException {
         //validation
-        if(cashRegisterService.checkCashRegister(id)){
+        if(cashRegisterServiceImpl.checkCashRegister(id)){
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         //action
-        return cashRegisterService.getPdfSpending(id);
+        return cashRegisterServiceImpl.getPdfSpending(id);
     }
 
     @PostMapping("/deleteIncomeById")
@@ -381,7 +382,7 @@ public class CashRegisterController {
     public String deleteIncomeById(
             Long id
     ) throws JsonProcessingException {
-        cashRegisterService.deleteIncomeById(id);
+        cashRegisterServiceImpl.deleteIncomeById(id);
         return mapper.writeValueAsString(null);
     }
 
@@ -390,7 +391,7 @@ public class CashRegisterController {
     public String deleteSpendingById(
             Long id
     ) throws JsonProcessingException {
-        cashRegisterService.deleteSpendingById(id);
+        cashRegisterServiceImpl.deleteSpendingById(id);
         return mapper.writeValueAsString(null);
     }
 

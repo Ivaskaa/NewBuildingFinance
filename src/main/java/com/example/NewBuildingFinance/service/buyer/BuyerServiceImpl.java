@@ -1,6 +1,6 @@
-package com.example.NewBuildingFinance.service;
+package com.example.NewBuildingFinance.service.buyer;
 
-import com.example.NewBuildingFinance.dto.BuyerTableDto;
+import com.example.NewBuildingFinance.dto.buyer.BuyerTableDto;
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
 import com.example.NewBuildingFinance.repository.BuyerRepository;
 import lombok.AllArgsConstructor;
@@ -16,9 +16,10 @@ import java.util.List;
 @Service
 @Log4j2
 @AllArgsConstructor
-public class BuyerService {
+public class BuyerServiceImpl implements BuyerService{
     private final BuyerRepository buyerRepository;
 
+    @Override
     public Page<BuyerTableDto> findSortingPage(
             Integer currentPage,
             Integer size,
@@ -32,6 +33,7 @@ public class BuyerService {
         return buyerPage;
     }
 
+    @Override
     public Buyer save(Buyer buyer) {
         log.info("save buyer: {}", buyer);
         Buyer buyerAfterSave = buyerRepository.save(buyer);
@@ -39,6 +41,7 @@ public class BuyerService {
         return buyerAfterSave;
     }
 
+    @Override
     public Buyer update(Buyer objectForm) {
         log.info("update buyer: {}", objectForm);
         Buyer object = buyerRepository.findById(objectForm.getId()).orElseThrow();
@@ -59,12 +62,14 @@ public class BuyerService {
         return object;
     }
 
+    @Override
     public void deleteById(Long id) {
         log.info("delete buyer by id: {}", id);
         buyerRepository.deleteById(id);
         log.info("success");
     }
 
+    @Override
     public List<Buyer> findByName(String name) {
         log.info("get buyers by name: {}", name);
         List<Buyer> buyers = null;
@@ -81,6 +86,7 @@ public class BuyerService {
         return buyers;
     }
 
+    @Override
     public Buyer findById(Long id) {
         log.info("get buyer by id: {}", id);
         Buyer object = buyerRepository.findById(id).orElseThrow();

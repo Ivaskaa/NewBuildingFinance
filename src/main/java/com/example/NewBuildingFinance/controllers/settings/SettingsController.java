@@ -50,7 +50,7 @@ public class SettingsController {
     @GetMapping("/getSettings")
     @ResponseBody
     public String getSettings() throws JsonProcessingException {
-        return mapper.writeValueAsString(settingServiceImpl.getSetting());
+        return mapper.writeValueAsString(settingServiceImpl.getSettings());
     }
 
     @PostMapping("/updateSettings")
@@ -69,7 +69,7 @@ public class SettingsController {
         }
 
         //action
-        settingServiceImpl.updateSetting(setting);
+        settingServiceImpl.updateSettings(setting);
         return mapper.writeValueAsString(null);
     }
 }

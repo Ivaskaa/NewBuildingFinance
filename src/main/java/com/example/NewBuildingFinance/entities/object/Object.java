@@ -1,6 +1,6 @@
 package com.example.NewBuildingFinance.entities.object;
 
-import com.example.NewBuildingFinance.dto.ObjectTableDto;
+import com.example.NewBuildingFinance.dto.object.ObjectTableDto;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Getter;

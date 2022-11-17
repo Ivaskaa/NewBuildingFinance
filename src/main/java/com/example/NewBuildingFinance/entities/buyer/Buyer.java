@@ -1,21 +1,16 @@
 package com.example.NewBuildingFinance.entities.buyer;
 
 
-import com.example.NewBuildingFinance.dto.BuyerTableDto;
-import com.example.NewBuildingFinance.entities.agency.Agency;
+import com.example.NewBuildingFinance.dto.buyer.BuyerTableDto;
 import com.example.NewBuildingFinance.entities.agency.Realtor;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.flat.Flat;
-import com.example.NewBuildingFinance.service.RealtorService;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.*;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
 import java.util.Set;
 
 @Getter

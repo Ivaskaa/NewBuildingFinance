@@ -4,6 +4,7 @@ import com.example.NewBuildingFinance.dto.agency.AgencyTableDto;
 import com.example.NewBuildingFinance.entities.agency.Agency;
 import com.example.NewBuildingFinance.others.specifications.AgencySpecification;
 import com.example.NewBuildingFinance.repository.AgencyRepository;
+import com.example.NewBuildingFinance.service.NotificationService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -21,7 +22,7 @@ import java.util.Optional;
 @AllArgsConstructor
 public class AgencyServiceImpl implements AgencyService{
     private final AgencyRepository agencyRepository;
-
+    private final NotificationService notificationService;
 
     @Override
     public Page<AgencyTableDto> findSortingAndSpecificationPage(
@@ -65,6 +66,7 @@ public class AgencyServiceImpl implements AgencyService{
     public Agency save(Agency agency) {
         log.info("save agency: {}", agency);
         Agency agencyAfterSave = agencyRepository.save(agency);
+        notificationService.createNotificationFromAgency(agencyAfterSave.getId());
         log.info("success");
         return agencyAfterSave;
     }

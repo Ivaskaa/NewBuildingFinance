@@ -9,10 +9,22 @@ import org.springframework.stereotype.Service;
 @Service
 @Log4j2
 @AllArgsConstructor
-public class SettingServiceImpl {
+public class SettingServiceImpl implements SettingService{
     private final SettingRepository settingRepository;
 
-    public Setting updateSetting(Setting setting) {
+    @Override
+    public Setting getSettings() {
+        log.info("get settings");
+        Setting setting = settingRepository.findById(1L).orElse(null);
+        if(setting == null){
+            setting = createSettings();
+        }
+        log.info("success get settings");
+        return setting;
+    }
+
+    @Override
+    public Setting updateSettings(Setting setting) {
         log.info("update setting: {}", setting);
         setting.setId(1L);
         Setting settingAfterSave = settingRepository.save(setting);
@@ -20,17 +32,8 @@ public class SettingServiceImpl {
         return settingAfterSave;
     }
 
-    public Setting getSetting() {
-        log.info("get settings");
-        Setting setting = settingRepository.findById(1L).orElse(null);
-        if(setting == null){
-            setting = createSetting();
-        }
-        log.info("success get settings");
-        return setting;
-    }
-
-    public Setting createSetting() {
+    @Override
+    public Setting createSettings() {
         log.info("create settings");
         Setting setting = new Setting();
         setting.setId(1L);

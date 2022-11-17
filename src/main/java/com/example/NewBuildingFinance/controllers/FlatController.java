@@ -1,6 +1,6 @@
 package com.example.NewBuildingFinance.controllers;
 
-import com.example.NewBuildingFinance.dto.BuyerDto;
+import com.example.NewBuildingFinance.dto.buyer.BuyerDto;
 import com.example.NewBuildingFinance.dto.flat.FlatSaveDto;
 import com.example.NewBuildingFinance.entities.agency.Agency;
 import com.example.NewBuildingFinance.entities.agency.Realtor;
@@ -11,6 +11,7 @@ import com.example.NewBuildingFinance.entities.flat.StatusFlat;
 import com.example.NewBuildingFinance.service.*;
 import com.example.NewBuildingFinance.service.agency.AgencyServiceImpl;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
+import com.example.NewBuildingFinance.service.buyer.BuyerServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -38,7 +39,7 @@ public class FlatController {
     private final FlatService flatService;
     private final AgencyServiceImpl agencyServiceImpl;
     private final RealtorService realtorService;
-    private final BuyerService buyerService;
+    private final BuyerServiceImpl buyerServiceImpl;
     private final FlatPaymentService flatPaymentService;
     private final ObjectService objectService;
     private final ObjectMapper mapper;
@@ -285,7 +286,7 @@ public class FlatController {
     public String getBuyerById(
             Long id
     ) throws JsonProcessingException {
-        Buyer buyer = buyerService.findById(id);
+        Buyer buyer = buyerServiceImpl.findById(id);
         return mapper.writeValueAsString(buyer);
     }
 
@@ -303,7 +304,7 @@ public class FlatController {
     public String getBuyersByName(
             String q
     ) throws JsonProcessingException {
-        List<Buyer> buyers = buyerService.findByName(q);
+        List<Buyer> buyers = buyerServiceImpl.findByName(q);
         return mapper.writeValueAsString(buyers);
     }
 
@@ -312,7 +313,9 @@ public class FlatController {
     public String getStatuses() throws JsonProcessingException {
         List<Pair<StatusFlat, String>> list = new ArrayList<>();
         for(StatusFlat statusObject : StatusFlat.values()){
-            list.add(Pair.of(statusObject, statusObject.getValue()));
+            if(!statusObject.equals(StatusFlat.SOLD)) {
+                list.add(Pair.of(statusObject, statusObject.getValue()));
+            }
         }
         return mapper.writeValueAsString(list);
     }
@@ -340,7 +343,7 @@ public class FlatController {
             return mapper.writeValueAsString(errors);
         }
         //action
-        Buyer buyer = buyerService.save(buyerDto.build());
+        Buyer buyer = buyerServiceImpl.save(buyerDto.build());
         return mapper.writeValueAsString(buyer.getId());
     }
 

@@ -1,13 +1,15 @@
 package com.example.NewBuildingFinance.service;
 
-import com.example.NewBuildingFinance.controllers.WebSocketsController;
+import com.example.NewBuildingFinance.entities.buyer.Buyer;
+import com.example.NewBuildingFinance.entities.contract.Contract;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
 import com.example.NewBuildingFinance.entities.notification.Notification;
 import com.example.NewBuildingFinance.repository.FlatPaymentRepository;
 import com.example.NewBuildingFinance.repository.NotificationRepository;
+import com.example.NewBuildingFinance.service.buyer.BuyerServiceImpl;
+import com.example.NewBuildingFinance.service.setting.SettingServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import net.bytebuddy.implementation.bytecode.assign.TypeCasting;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -21,19 +23,44 @@ public class NotificationService {
     private final SimpMessagingTemplate template;
     private final NotificationRepository notificationRepository;
     private final FlatPaymentRepository flatPaymentRepository;
+    private final SettingServiceImpl settingService;
+    private final BuyerServiceImpl buyerServiceImpl;
 
-//    public Page<ObjectTableDto> findSortingPage(
-//            Integer currentPage,
-//            Integer size,
-//            String sortingField,
-//            String sortingDirection) {
-//        log.info("get object page: {}, field: {}, direction: {}", currentPage - 1, sortingField, sortingDirection);
-//        Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
-//        Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
-//        Page<ObjectTableDto> objectPage = objectRepository.findAll(pageable).map(Object::build);
-//        log.info("success");
-//        return objectPage;
-//    }
+    public void createNotificationFromContract(Contract contract) {
+        if(settingService.getSettings().isNotificationContract()) {
+            Notification notification = new Notification();
+            Buyer buyer = buyerServiceImpl.findById(contract.getBuyer().getId());
+            notification.setName("New contract. buyer: " + buyer.getSurname() + " " + buyer.getName());
+            notification.setContract(contract);
+            notification.setUrl("/contracts/contract/" + contract.getId());
+            save(notification);
+            template.convertAndSend("/topic/notifications", "Hello");
+        }
+    }
+
+    public void updateNotificationFromContract(Contract contract) {
+        if(settingService.getSettings().isNotificationContract()) {
+            Notification notification = findByContractId(contract.getId());
+            Buyer buyer = buyerServiceImpl.findById(contract.getBuyer().getId());
+            notification.setName("Update contract. buyer: " + buyer.getSurname() + " " + buyer.getName());
+            notification.setContract(contract);
+            notification.setUrl("/contracts/contract/" + contract.getId());
+            notification.setReviewed(false);
+            notification.setInList(true);
+            save(notification);
+            template.convertAndSend("/topic/notifications", "Hello");
+        }
+    }
+
+    public void createNotificationFromAgency(Long agencyId) {
+        if(settingService.getSettings().isNotificationAgency()) {
+            Notification notification = new Notification();
+            notification.setName("New agency");
+            notification.setUrl("/agencies/agency/" + agencyId);
+            save(notification);
+            template.convertAndSend("/topic/notifications", "Hello");
+        }
+    }
 
     public List<Notification> findAll() {
         log.info("get all not reviewed notifications");
@@ -72,7 +99,7 @@ public class NotificationService {
         return notification;
     }
 
-    public void updateNotifications() throws Exception {
+    public void updateNotifications() {
         log.info("update notification");
         List<Notification> notifications = notificationRepository.findAllByInListTrue();
         List<FlatPayment> flatPayments = flatPaymentRepository.findAllArrears();
@@ -85,19 +112,23 @@ public class NotificationService {
                 flatPayments.removeIf(flatPayment -> Objects.equals(flatPayment.getId(), notification.getFlatPayment().getId()));
             }
         }
-        for (FlatPayment flatPayment : flatPayments) {
-            if(flatPayment.getFlat().getContract() != null) {
-                Notification notification = new Notification();
-                notification.setName(flatPayment.getPlanned().intValue() + " owed payment: "
-                        + flatPayment.getFlat().getBuyer().getSurname() + " "
-                        + flatPayment.getFlat().getBuyer().getName());
-                notification.setFlatPayment(flatPayment);
-                notification.setUrl("/flats/flat/" + flatPayment.getFlat().getId() + "?flatPaymentId=" + flatPayment.getId());
-                notifications.add(notification);
+        if(settingService.getSettings().isNotificationFlatPayment()) {
+            for (FlatPayment flatPayment : flatPayments) {
+                if (flatPayment.getFlat().getContract() != null) {
+                    Notification notification = new Notification();
+                    notification.setName(flatPayment.getPlanned().intValue() + " owed payment: "
+                            + flatPayment.getFlat().getBuyer().getSurname() + " "
+                            + flatPayment.getFlat().getBuyer().getName());
+                    notification.setFlatPayment(flatPayment);
+                    notification.setUrl("/flats/flat/" + flatPayment.getFlat().getId() + "?flatPaymentId=" + flatPayment.getId());
+                    notifications.add(notification);
+                }
             }
         }
         notificationRepository.saveAll(notifications);
         template.convertAndSend("/topic/notifications", "Hello");
         log.info("success update notification");
     }
+
+
 }

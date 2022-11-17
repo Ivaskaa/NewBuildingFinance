@@ -48,10 +48,10 @@ public class UserController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        if (userServiceImpl.checkPhone(userDto.build())) {
+        if (userServiceImpl.checkPhone(userDto.getUsername())) {
             bindingResult.addError(new FieldError("userDto", "phone", "Phone must be valid"));
         }
-        if (userServiceImpl.checkEmail(userDto.build())) {
+        if (userServiceImpl.checkEmail(userDto.getPhone())) {
             bindingResult.addError(new FieldError("userDto", "username", "Email is already registered"));
         }
         if(bindingResult.hasErrors()){
@@ -75,7 +75,7 @@ public class UserController {
     ) throws IOException {
         //validation
         if (!userDto.getLatestUsername().equals(userDto.getUsername())) {
-            if (userServiceImpl.checkEmail(userDto.build())) {
+            if (userServiceImpl.checkEmail(userDto.getUsername())) {
                 bindingResult.addError(new FieldError("userDto", "username", "Email is already registered"));
             }
         }

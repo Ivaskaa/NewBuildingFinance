@@ -1,6 +1,6 @@
 package com.example.NewBuildingFinance.controllers;
 
-import com.example.NewBuildingFinance.dto.ObjectDto;
+import com.example.NewBuildingFinance.dto.object.ObjectDto;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.object.Object;
 import com.example.NewBuildingFinance.entities.object.StatusObject;

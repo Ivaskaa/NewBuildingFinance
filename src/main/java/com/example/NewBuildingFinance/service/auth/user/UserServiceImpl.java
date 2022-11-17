@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Log4j2
-public class UserServiceImpl implements UserDetailsService {
+public class UserServiceImpl implements UserDetailsService, UserService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -41,8 +41,13 @@ public class UserServiceImpl implements UserDetailsService {
     @Value("${site.base.url.http}")
     private String baseURL;
 
-    public Page<User> findSortingPage(Integer currentPage, Integer size, String sortingField, String sortingDirection) {
-        log.info("get object page: {}, field: {}, direction: {}", currentPage - 1, sortingField, sortingDirection);
+    @Override
+    public Page<User> findSortingPage(
+            Integer currentPage,
+            Integer size,
+            String sortingField,
+            String sortingDirection) {
+        log.info("get users page: {}, field: {}, direction: {}", currentPage - 1, sortingField, sortingDirection);
         Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
         Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
         Page<User> userPage = userRepository.findAll(pageable);
@@ -50,6 +55,7 @@ public class UserServiceImpl implements UserDetailsService {
         return userPage;
     }
 
+    @Override
     public User findDirector() {
         log.info("get director");
         User user = userRepository.findById(1L).orElseThrow();
@@ -57,13 +63,15 @@ public class UserServiceImpl implements UserDetailsService {
         return user;
     }
 
+    @Override
     public List<User> findManagers() {
-        log.info("get users where role permission manager");
+        log.info("get users where role permission buyers");
         List<User> userPage = userRepository.findManagers();
         log.info("success");
         return userPage;
     }
 
+    @Override
     public User save(User user) {
         log.info("save user: {}", user);
         userRepository.save(user);
@@ -72,6 +80,7 @@ public class UserServiceImpl implements UserDetailsService {
         return user;
     }
 
+    @Override
     public User update(User userForm) {
         log.info("update user: {}", userForm);
         User user = userRepository.findById(userForm.getId()).orElseThrow();
@@ -86,12 +95,14 @@ public class UserServiceImpl implements UserDetailsService {
         return user;
     }
 
+    @Override
     public void deleteById(Long id) {
         log.info("delete user by id: {}", id);
         userRepository.deleteById(id);
         log.info("success");
     }
 
+    @Override
     public User findById(Long id) {
         log.info("get user by id: {}", id);
         User user = userRepository.findById(id).orElseThrow();
@@ -99,8 +110,10 @@ public class UserServiceImpl implements UserDetailsService {
         return user;
     }
 
+    @Override
     public List<String> getUserPermissionsById(Long id) {
         log.info("get user permissions by id: {}", id);
+        //
         User user = userRepository.findById(id).orElseThrow();
         List<String> permissions = user.getRole().getPermissions()
                 .stream()
@@ -121,6 +134,7 @@ public class UserServiceImpl implements UserDetailsService {
         return user;
     }
 
+    @Override
     public User changeUserActiveById(Long id) {
         log.info("change user active by id: {}", id);
         User user = userRepository.findById(id).orElseThrow();
@@ -130,15 +144,19 @@ public class UserServiceImpl implements UserDetailsService {
         return user;
     }
 
-    public boolean checkEmail(User user) {
-        return userRepository.findByUsername(user.getUsername()) != null;
+    @Override
+    public boolean checkEmail(String email) {
+        return userRepository.findByUsername(email) != null;
     }
 
-    public boolean checkPhone(User user) {
-        return user.getPhone().contains("_");
+    @Override
+    public boolean checkPhone(String phone) {
+        return phone.contains("_");
     }
+
 
     // registration from the user side
+    @Override
     public void sendRegistrationEmail(User user){
         SecureToken secureToken = secureTokenService.createSecureToken();
         secureToken.setUser(user);
@@ -150,7 +168,8 @@ public class UserServiceImpl implements UserDetailsService {
         new MailThread(mailService, emailContext).start();
     }
 
-    public User findUserByToken(String token) throws ParseException {
+    @Override
+    public User findUserByToken(String token) {
         SecureToken secureToken = secureTokenService.findByToken(token);
         if(secureToken != null) {
             Date out = Date.from(secureToken.getExpireAt().atZone(ZoneId.systemDefault()).toInstant());
@@ -163,12 +182,14 @@ public class UserServiceImpl implements UserDetailsService {
         return null;
     }
 
+    @Override
     public void savePassword(User user, String password) {
         user.setPassword(passwordEncoder.encode(password));
         user.setActive(true);
         userRepository.save(user);
     }
 
+    @Override
     public void deleteToken(String token) {
         SecureToken secureToken = secureTokenService.findByToken(token);
         secureTokenService.delete(secureToken);
