@@ -10,8 +10,7 @@ import com.example.NewBuildingFinance.others.specifications.ContractSpecificatio
 import com.example.NewBuildingFinance.repository.ContractRepository;
 import com.example.NewBuildingFinance.repository.FlatRepository;
 import com.example.NewBuildingFinance.repository.ObjectRepository;
-import com.example.NewBuildingFinance.service.NotificationService;
-import com.example.NewBuildingFinance.service.buyer.BuyerServiceImpl;
+import com.example.NewBuildingFinance.service.notification.NotificationServiceImpl;
 import com.itextpdf.html2pdf.HtmlConverter;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import lombok.AllArgsConstructor;
@@ -40,7 +39,7 @@ public class ContractServiceImpl implements ContractService {
     private final FlatRepository flatRepository;
     private final ObjectRepository objectRepository;
 
-    private final NotificationService notificationService;
+    private final NotificationServiceImpl notificationServiceImpl;
 
     @Override
     public Page<ContractTableDto> findSortingAndSpecificationPage(
@@ -133,7 +132,7 @@ public class ContractServiceImpl implements ContractService {
         contractUploadDto.setFlat(flat);
         contractUploadDto.setObject(flat.getObject());
 
-        notificationService.createNotificationFromContract(contractAfterSave);
+        notificationServiceImpl.createNotificationFromContract(contractAfterSave);
 
         log.info("success");
         return contractUploadDto;
@@ -163,7 +162,7 @@ public class ContractServiceImpl implements ContractService {
         contractUploadDto.setFlat(flat);
         contractUploadDto.setObject(flat.getObject());
 
-        notificationService.updateNotificationFromContract(contractAfterSave);
+        notificationServiceImpl.updateNotificationFromContract(contractAfterSave);
 
         log.info("success update contract");
         return contractUploadDto;

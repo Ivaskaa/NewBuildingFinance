@@ -3,11 +3,12 @@ package com.example.NewBuildingFinance.controllers;
 import com.example.NewBuildingFinance.dto.buyer.BuyerDto;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
-import com.example.NewBuildingFinance.service.*;
 import com.example.NewBuildingFinance.service.agency.AgencyServiceImpl;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.example.NewBuildingFinance.service.buyer.BuyerServiceImpl;
 import com.example.NewBuildingFinance.service.contract.ContractServiceImpl;
+import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
+import com.example.NewBuildingFinance.service.realtor.RealtorServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -29,10 +30,10 @@ import java.util.Map;
 @AllArgsConstructor
 @RequestMapping("/buyers")
 public class BuyerController {
-    private final InternalCurrencyService internalCurrencyService;
+    private final InternalCurrencyServiceImpl internalCurrencyServiceImpl;
     private final BuyerServiceImpl buyerServiceImpl;
     private final ContractServiceImpl contractServiceImpl;
-    private final RealtorService realtorService;
+    private final RealtorServiceImpl realtorServiceImpl;
     private final AgencyServiceImpl agencyServiceImpl;
     private final UserServiceImpl userServiceImpl;
     private final ObjectMapper mapper;
@@ -43,7 +44,7 @@ public class BuyerController {
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", internalCurrencyService.findAll());
+        model.addAttribute("currencies", internalCurrencyServiceImpl.findAll());
         model.addAttribute("user", user);
         return "buyer/buyers";
     }
@@ -55,7 +56,7 @@ public class BuyerController {
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", internalCurrencyService.findAll());
+        model.addAttribute("currencies", internalCurrencyServiceImpl.findAll());
         model.addAttribute("userId", user.getId());
         model.addAttribute("buyerId", buyerId);
         model.addAttribute("user", user);
@@ -165,7 +166,7 @@ public class BuyerController {
     @GetMapping("/getRealtorsByAgenciesId")
     @ResponseBody
     public String getRealtorsByAgenciesId(Long id) throws JsonProcessingException {
-        return mapper.writeValueAsString(realtorService.findAllByAgencyId(id));
+        return mapper.writeValueAsString(realtorServiceImpl.findAllByAgencyId(id));
     }
 
     @GetMapping("/getAllManagers")

@@ -2,7 +2,7 @@ package com.example.NewBuildingFinance.controllers.settings;
 
 import com.example.NewBuildingFinance.dto.auth.UserDto;
 import com.example.NewBuildingFinance.entities.auth.User;
-import com.example.NewBuildingFinance.service.InternalCurrencyService;
+import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,7 +25,7 @@ import java.util.Map;
 @AllArgsConstructor
 @RequestMapping("/settings")
 public class UserController {
-    private final InternalCurrencyService currencyService;
+    private final InternalCurrencyServiceImpl currencyService;
     private final RestTemplate restTemplate;
     private final UserServiceImpl userServiceImpl;
     private final ObjectMapper mapper;

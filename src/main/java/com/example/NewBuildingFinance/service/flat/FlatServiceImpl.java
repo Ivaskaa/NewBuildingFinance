@@ -1,4 +1,4 @@
-package com.example.NewBuildingFinance.service;
+package com.example.NewBuildingFinance.service.flat;
 
 import com.example.NewBuildingFinance.dto.flat.FlatTableDto;
 import com.example.NewBuildingFinance.entities.flat.Flat;
@@ -34,10 +34,11 @@ import java.util.*;
 @Service
 @Log4j2
 @AllArgsConstructor
-public class FlatService {
+public class FlatServiceImpl implements FlatService{
     private final FlatRepository flatRepository;
     private final ObjectRepository objectRepository;
 
+    @Override
     public Page<FlatTableDto> findSortingAndSpecificationPage(
             Integer currentPage,
             Integer size,
@@ -74,6 +75,7 @@ public class FlatService {
         return flats;
     }
 
+    @Override
     public Flat save(Flat flat) {
         log.info("save flat: {}", flat);
         Flat flatAfterSave = flatRepository.save(flat);
@@ -81,6 +83,7 @@ public class FlatService {
         return flatAfterSave;
     }
 
+    @Override
     public Flat update(Flat flatForm) {
         log.info("update object: {}", flatForm);
         Flat object = flatRepository.findById(flatForm.getId()).orElseThrow();
@@ -103,12 +106,14 @@ public class FlatService {
         return object;
     }
 
+    @Override
     public void deleteById(Long id) {
         log.info("delete flat by id: {}", id);
         flatRepository.deleteById(id);
         log.info("success");
     }
 
+    @Override
     public ResponseEntity<byte[]> getXlsx() throws IOException {
         log.info("get flats.xlsx");
 
@@ -252,6 +257,7 @@ public class FlatService {
         return new ResponseEntity<>(content, headers, HttpStatus.OK);
     }
 
+    @Override
     public ResponseEntity<byte[]> getXlsxExample() throws IOException {
         log.info("get flats.xlsx example");
 
@@ -409,6 +415,7 @@ public class FlatService {
         return new ResponseEntity<>(content, headers, HttpStatus.OK);
     }
 
+    @Override
     public boolean setXlsx(MultipartFile file) throws IOException {
         log.info("save flats.xlsx");
 
@@ -577,6 +584,7 @@ public class FlatService {
         }
     }
 
+    @Override
     public ResponseEntity<byte[]> getXlsxErrors() throws IOException {
         log.info("get flatsErrors.xlsx");
         File responseFile = new File("src/main/resources/flatsErrors.xlsx");
@@ -596,6 +604,7 @@ public class FlatService {
         return new ResponseEntity<>(content, headers, HttpStatus.OK);
     }
 
+    @Override
     public Flat findById(Long id) {
         log.info("get flat by id: {}", id);
         Flat flat = null;
@@ -606,6 +615,7 @@ public class FlatService {
         return flat;
     }
 
+    @Override
     public Flat findByContractId(Long id) {
         log.info("get flat by contract id: {}", id);
         Flat flat = flatRepository.findFlatByContractId(id).orElseThrow();
@@ -613,6 +623,7 @@ public class FlatService {
         return flat;
     }
 
+    @Override
     public List<Flat> getWithContractWithFlatPaymentByObjectId(Long id, Long flatId) {
         log.info("get flats with contract with flat payments by object id: {}", id);
         List<Flat> flats;
@@ -625,6 +636,7 @@ public class FlatService {
         return flats;
     }
 
+    @Override
     public List<Flat> getFlatsWithoutContractByObjectId(Long id, Long flatId) {
         log.info("get flats without contracts by object id: {}", id);
         List<Flat> flats;
@@ -637,10 +649,12 @@ public class FlatService {
         return flats;
     }
 
+    @Override
     public boolean checkPrice(Double price, Double salePrice) {
         return price < salePrice;
     }
 
+    @Override
     public boolean checkPercentages(Integer agency, Integer manager) {
         if (agency == null || manager == null){
             return false;
@@ -648,12 +662,14 @@ public class FlatService {
         return agency + manager > 100;
     }
 
+    @Override
     public boolean checkFlatNumber(Integer number, Long objectId) {
         Flat flat;
         flat = flatRepository.findFlatInObject(number, objectId);
         return flat != null;
     }
 
+    @Override
     public boolean checkStatus(StatusFlat status) {
         return !status.equals(StatusFlat.ACTIVE);
     }

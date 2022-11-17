@@ -1,4 +1,4 @@
-package com.example.NewBuildingFinance.service;
+package com.example.NewBuildingFinance.service.mail;
 
 import com.example.NewBuildingFinance.others.AbstractEmailContext;
 import lombok.AllArgsConstructor;
@@ -17,10 +17,11 @@ import java.nio.charset.StandardCharsets;
 @Service
 @Log4j2
 @AllArgsConstructor
-public class MailService {
+public class MailServiceImpl implements MailService{
     private final JavaMailSender emailSender;
     private final SpringTemplateEngine templateEngine;
 
+    @Override
     public void send(AbstractEmailContext email) throws MessagingException {
         log.info("send email to: {}", email.getTo());
         MimeMessage message = emailSender.createMimeMessage();

@@ -1,4 +1,4 @@
-package com.example.NewBuildingFinance.service;
+package com.example.NewBuildingFinance.service.notification;
 
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
 import com.example.NewBuildingFinance.entities.contract.Contract;
@@ -19,13 +19,14 @@ import java.util.Objects;
 @Service
 @Log4j2
 @AllArgsConstructor
-public class NotificationService {
+public class NotificationServiceImpl implements NotificationService{
     private final SimpMessagingTemplate template;
     private final NotificationRepository notificationRepository;
     private final FlatPaymentRepository flatPaymentRepository;
     private final SettingServiceImpl settingService;
     private final BuyerServiceImpl buyerServiceImpl;
 
+    @Override
     public void createNotificationFromContract(Contract contract) {
         if(settingService.getSettings().isNotificationContract()) {
             Notification notification = new Notification();
@@ -38,6 +39,7 @@ public class NotificationService {
         }
     }
 
+    @Override
     public void updateNotificationFromContract(Contract contract) {
         if(settingService.getSettings().isNotificationContract()) {
             Notification notification = findByContractId(contract.getId());
@@ -52,6 +54,7 @@ public class NotificationService {
         }
     }
 
+    @Override
     public void createNotificationFromAgency(Long agencyId) {
         if(settingService.getSettings().isNotificationAgency()) {
             Notification notification = new Notification();
@@ -62,6 +65,7 @@ public class NotificationService {
         }
     }
 
+    @Override
     public List<Notification> findAll() {
         log.info("get all not reviewed notifications");
         List<Notification> notifications = notificationRepository.findAllByInListTrue();
@@ -69,6 +73,7 @@ public class NotificationService {
         return notifications;
     }
 
+    @Override
     public Notification save(Notification object) {
         log.info("save notification: {}", object);
         notificationRepository.save(object);
@@ -76,6 +81,7 @@ public class NotificationService {
         return object;
     }
 
+    @Override
     public Notification findById(Long id) {
         log.info("get notification by id: {}", id);
         Notification notification = notificationRepository.findById(id).orElseThrow();
@@ -83,6 +89,7 @@ public class NotificationService {
         return notification;
     }
 
+    @Override
     public Notification findByContractId(Long id) {
         log.info("get notification by id: {}", id);
         Notification notification = notificationRepository.findByContractId(id).orElseThrow();
@@ -90,6 +97,7 @@ public class NotificationService {
         return notification;
     }
 
+    @Override
     public Notification setReviewed(Long id) {
         log.info("set reviewed by id: {}", id);
         Notification notification = notificationRepository.findById(id).orElseThrow();
@@ -99,6 +107,7 @@ public class NotificationService {
         return notification;
     }
 
+    @Override
     public void updateNotifications() {
         log.info("update notification");
         List<Notification> notifications = notificationRepository.findAllByInListTrue();

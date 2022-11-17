@@ -6,8 +6,8 @@ import com.example.NewBuildingFinance.entities.auth.SecureToken;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.others.MailThread;
 import com.example.NewBuildingFinance.repository.auth.UserRepository;
-import com.example.NewBuildingFinance.service.MailService;
-import com.example.NewBuildingFinance.service.SecureTokenService;
+import com.example.NewBuildingFinance.service.mail.MailServiceImpl;
+import com.example.NewBuildingFinance.service.secureToken.SecureTokenServiceImpl;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +20,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.text.ParseException;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
@@ -32,11 +31,11 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private SecureTokenService secureTokenService;
+    private SecureTokenServiceImpl secureTokenServiceImpl;
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
     @Autowired
-    private MailService mailService;
+    private MailServiceImpl mailServiceImpl;
 
     @Value("${site.base.url.http}")
     private String baseURL;
@@ -158,19 +157,19 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     // registration from the user side
     @Override
     public void sendRegistrationEmail(User user){
-        SecureToken secureToken = secureTokenService.createSecureToken();
+        SecureToken secureToken = secureTokenServiceImpl.createSecureToken();
         secureToken.setUser(user);
-        secureTokenService.save(secureToken);
+        secureTokenServiceImpl.save(secureToken);
         EmailContext emailContext = new EmailContext();
         emailContext.init(user);
         emailContext.setToken(secureToken.getToken());
         emailContext.buildVerificationUrl(baseURL, secureToken.getToken());
-        new MailThread(mailService, emailContext).start();
+        new MailThread(mailServiceImpl, emailContext).start();
     }
 
     @Override
     public User findUserByToken(String token) {
-        SecureToken secureToken = secureTokenService.findByToken(token);
+        SecureToken secureToken = secureTokenServiceImpl.findByToken(token);
         if(secureToken != null) {
             Date out = Date.from(secureToken.getExpireAt().atZone(ZoneId.systemDefault()).toInstant());
             if (new Date().after(out)){
@@ -191,7 +190,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 
     @Override
     public void deleteToken(String token) {
-        SecureToken secureToken = secureTokenService.findByToken(token);
-        secureTokenService.delete(secureToken);
+        SecureToken secureToken = secureTokenServiceImpl.findByToken(token);
+        secureTokenServiceImpl.delete(secureToken);
     }
 }

@@ -11,10 +11,14 @@ import com.example.NewBuildingFinance.entities.cashRegister.Article;
 import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
 import com.example.NewBuildingFinance.entities.cashRegister.Economic;
 import com.example.NewBuildingFinance.entities.cashRegister.StatusCashRegister;
-import com.example.NewBuildingFinance.service.*;
 import com.example.NewBuildingFinance.service.agency.AgencyServiceImpl;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.example.NewBuildingFinance.service.cashRegister.CashRegisterServiceImpl;
+import com.example.NewBuildingFinance.service.flat.FlatServiceImpl;
+import com.example.NewBuildingFinance.service.flatPayment.FlatPaymentServiceImpl;
+import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
+import com.example.NewBuildingFinance.service.object.ObjectServiceImpl;
+import com.example.NewBuildingFinance.service.realtor.RealtorServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.text.DocumentException;
@@ -40,13 +44,13 @@ import java.util.*;
 @AllArgsConstructor
 @RequestMapping("/cashRegister")
 public class CashRegisterController {
-    private final InternalCurrencyService internalCurrencyService;
+    private final InternalCurrencyServiceImpl internalCurrencyServiceImpl;
     private final UserServiceImpl userServiceImpl;
-    private final ObjectService objectService;
-    private final FlatService flatService;
-    private final FlatPaymentService flatPaymentService;
+    private final ObjectServiceImpl objectServiceImpl;
+    private final FlatServiceImpl flatServiceImpl;
+    private final FlatPaymentServiceImpl flatPaymentServiceImpl;
     private final AgencyServiceImpl agencyServiceImpl;
-    private final RealtorService realtorService;
+    private final RealtorServiceImpl realtorServiceImpl;
     private final CashRegisterServiceImpl cashRegisterServiceImpl;
 
     private final ObjectMapper mapper;
@@ -57,8 +61,8 @@ public class CashRegisterController {
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", internalCurrencyService.findAll());
-        model.addAttribute("objects", objectService.findAll());
+        model.addAttribute("currencies", internalCurrencyServiceImpl.findAll());
+        model.addAttribute("objects", objectServiceImpl.findAll());
 
         List<Pair<Economic, String>> economics = new ArrayList<>();
         for(Economic economic : Economic.values()){
@@ -129,7 +133,7 @@ public class CashRegisterController {
         }
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", internalCurrencyService.findAll());
+        model.addAttribute("currencies", internalCurrencyServiceImpl.findAll());
 
         model.addAttribute("cashRegisterId", id);
         model.addAttribute("flatPaymentId", Objects.requireNonNullElse(flatPaymentId, 0));
@@ -145,7 +149,7 @@ public class CashRegisterController {
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", internalCurrencyService.findAll());
+        model.addAttribute("currencies", internalCurrencyServiceImpl.findAll());
 
         model.addAttribute("cashRegisterId", id);
         model.addAttribute("flatId", Objects.requireNonNullElse(flatId, 0));
@@ -401,7 +405,7 @@ public class CashRegisterController {
     @GetMapping("/getCurrencies")
     @ResponseBody
     public String getCurrencies() throws JsonProcessingException {
-        return mapper.writeValueAsString(internalCurrencyService.findAll());
+        return mapper.writeValueAsString(internalCurrencyServiceImpl.findAll());
     }
 
     @GetMapping("/getManagers")
@@ -427,7 +431,7 @@ public class CashRegisterController {
     public String getRealtorsByAgencyId(
             Long id
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(realtorService.findAllByAgencyId(id));
+        return mapper.writeValueAsString(realtorServiceImpl.findAllByAgencyId(id));
     }
 
     @GetMapping("/getArticlesForIncome")
@@ -453,7 +457,7 @@ public class CashRegisterController {
     @GetMapping("/getObjects")
     @ResponseBody
     public String getObjects() throws JsonProcessingException {
-        return mapper.writeValueAsString(objectService.findAllOnSale());
+        return mapper.writeValueAsString(objectServiceImpl.findAllOnSale());
     }
 
     @GetMapping("/getFlatsWithContractWithFlatPaymentsByObjectId")
@@ -462,7 +466,7 @@ public class CashRegisterController {
             Long id,
             Long flatId
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(flatService.getWithContractWithFlatPaymentByObjectId(id, flatId));
+        return mapper.writeValueAsString(flatServiceImpl.getWithContractWithFlatPaymentByObjectId(id, flatId));
     }
 
     @GetMapping("/getFlatPaymentsByFlatId")
@@ -471,7 +475,7 @@ public class CashRegisterController {
             Long id,
             Long flatPaymentId
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(flatPaymentService.getByFlatId(id, flatPaymentId));
+        return mapper.writeValueAsString(flatPaymentServiceImpl.getByFlatId(id, flatPaymentId));
     }
 
     @GetMapping("/getFlatPaymentById")
@@ -479,7 +483,7 @@ public class CashRegisterController {
     public String getFlatPaymentById(
             Long id
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(flatPaymentService.findById(id));
+        return mapper.writeValueAsString(flatPaymentServiceImpl.findById(id));
     }
 
     @GetMapping("/getCurrencyById")
@@ -487,7 +491,7 @@ public class CashRegisterController {
     public String getCurrencyById(
             Long id
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(internalCurrencyService.findById(id));
+        return mapper.writeValueAsString(internalCurrencyServiceImpl.findById(id));
     }
 
     @GetMapping("/getFlatById")
@@ -495,7 +499,7 @@ public class CashRegisterController {
     public String getFlatById(
             Long id
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(flatService.findById(id));
+        return mapper.writeValueAsString(flatServiceImpl.findById(id));
     }
 
     @PostMapping("/addRealtor")
@@ -505,7 +509,7 @@ public class CashRegisterController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        if (realtorService.checkPhone(realtorDto.getPhone())) {
+        if (realtorServiceImpl.checkPhone(realtorDto.getPhone())) {
             bindingResult.addError(new FieldError("userDto", "phone", "Phone must be valid"));
         }
         if(bindingResult.hasErrors()){
@@ -518,7 +522,7 @@ public class CashRegisterController {
 
         //action
         realtorDto.setDirector(false);
-        Realtor realtor = realtorService.save(realtorDto.build(), realtorDto.getAgencyId());
+        Realtor realtor = realtorServiceImpl.save(realtorDto.build(), realtorDto.getAgencyId());
         return mapper.writeValueAsString(realtor.getId());
     }
 

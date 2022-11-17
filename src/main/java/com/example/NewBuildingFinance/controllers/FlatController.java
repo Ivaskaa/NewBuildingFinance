@@ -8,10 +8,14 @@ import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.flat.StatusFlat;
-import com.example.NewBuildingFinance.service.*;
 import com.example.NewBuildingFinance.service.agency.AgencyServiceImpl;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.example.NewBuildingFinance.service.buyer.BuyerServiceImpl;
+import com.example.NewBuildingFinance.service.flat.FlatServiceImpl;
+import com.example.NewBuildingFinance.service.flatPayment.FlatPaymentServiceImpl;
+import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
+import com.example.NewBuildingFinance.service.object.ObjectServiceImpl;
+import com.example.NewBuildingFinance.service.realtor.RealtorServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -34,14 +38,14 @@ import java.util.*;
 @AllArgsConstructor
 @RequestMapping("/flats")
 public class FlatController {
-    private final InternalCurrencyService currencyService;
+    private final InternalCurrencyServiceImpl currencyService;
     private final UserServiceImpl userServiceImpl;
-    private final FlatService flatService;
+    private final FlatServiceImpl flatServiceImpl;
     private final AgencyServiceImpl agencyServiceImpl;
-    private final RealtorService realtorService;
+    private final RealtorServiceImpl realtorServiceImpl;
     private final BuyerServiceImpl buyerServiceImpl;
-    private final FlatPaymentService flatPaymentService;
-    private final ObjectService objectService;
+    private final FlatPaymentServiceImpl flatPaymentServiceImpl;
+    private final ObjectServiceImpl objectServiceImpl;
     private final ObjectMapper mapper;
 
     @GetMapping()
@@ -50,7 +54,7 @@ public class FlatController {
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("objects", objectService.findAll());
+        model.addAttribute("objects", objectServiceImpl.findAll());
         List<Pair<StatusFlat, String>> list = new ArrayList<>();
         for(StatusFlat statusObject : StatusFlat.values()){
             list.add(Pair.of(statusObject, statusObject.getValue()));
@@ -95,7 +99,7 @@ public class FlatController {
             Optional<Integer> advanceStart,
             Optional<Integer> advanceFin
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(flatService.findSortingAndSpecificationPage(
+        return mapper.writeValueAsString(flatServiceImpl.findSortingAndSpecificationPage(
                 page, size, field, direction,
                 number,
                 objectId,
@@ -113,14 +117,14 @@ public class FlatController {
     ) throws IOException {
         //validation
         System.out.println(flatSaveDto);
-        if(flatService.checkFlatNumber(flatSaveDto.getNumber(), flatSaveDto.getObjectId())){
+        if(flatServiceImpl.checkFlatNumber(flatSaveDto.getNumber(), flatSaveDto.getObjectId())){
             bindingResult.addError(new FieldError("flatSaveDto", "number", "In selected object the flat with this number is exists"));
         }
-        if(flatService.checkPrice(flatSaveDto.getPrice(), flatSaveDto.getSalePrice())){
+        if(flatServiceImpl.checkPrice(flatSaveDto.getPrice(), flatSaveDto.getSalePrice())){
             bindingResult.addError(new FieldError("flatSaveDto", "price", "Price must be rather then sale price"));
             bindingResult.addError(new FieldError("flatSaveDto", "salePrice", "Price must be rather then sale price"));
         }
-        if(flatService.checkPercentages(flatSaveDto.getAgency(), flatSaveDto.getManager())){
+        if(flatServiceImpl.checkPercentages(flatSaveDto.getAgency(), flatSaveDto.getManager())){
             bindingResult.addError(new FieldError("flatSaveDto", "agency", "The sum of percentages must be less than 100"));
             bindingResult.addError(new FieldError("flatSaveDto", "manager", "The sum of percentages must be less than 100"));
         }
@@ -132,7 +136,7 @@ public class FlatController {
             return mapper.writeValueAsString(errors);
         }
         //action
-        Flat flat = flatService.save(flatSaveDto.build());
+        Flat flat = flatServiceImpl.save(flatSaveDto.build());
         return mapper.writeValueAsString(flat.getId());
     }
 
@@ -143,17 +147,17 @@ public class FlatController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        Flat flat = flatService.findById(flatSaveDto.getId());
+        Flat flat = flatServiceImpl.findById(flatSaveDto.getId());
         if(!flat.getNumber().equals(flatSaveDto.getNumber())){
-            if(flatService.checkFlatNumber(flatSaveDto.getNumber(), flatSaveDto.getObjectId())){
+            if(flatServiceImpl.checkFlatNumber(flatSaveDto.getNumber(), flatSaveDto.getObjectId())){
                 bindingResult.addError(new FieldError("flatSaveDto", "number", "In selected object the flat with this number is exists"));
             }
         }
-        if(flatService.checkPrice(flatSaveDto.getPrice(), flatSaveDto.getSalePrice())){
+        if(flatServiceImpl.checkPrice(flatSaveDto.getPrice(), flatSaveDto.getSalePrice())){
             bindingResult.addError(new FieldError("flatSaveDto", "price", "Price must be rather then sale price"));
             bindingResult.addError(new FieldError("flatSaveDto", "salePrice", "Price must be rather then sale price"));
         }
-        if(flatService.checkPercentages(flatSaveDto.getAgency(), flatSaveDto.getManager())){
+        if(flatServiceImpl.checkPercentages(flatSaveDto.getAgency(), flatSaveDto.getManager())){
             bindingResult.addError(new FieldError("flatSaveDto", "agency", "The sum of percentages must be less than 100"));
             bindingResult.addError(new FieldError("flatSaveDto", "manager", "The sum of percentages must be less than 100"));
         }
@@ -166,7 +170,7 @@ public class FlatController {
         }
 
         //action
-        flatService.update(flatSaveDto.build());
+        flatServiceImpl.update(flatSaveDto.build());
         return mapper.writeValueAsString(null);
     }
 
@@ -177,20 +181,20 @@ public class FlatController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        Flat flat = flatService.findById(flatSaveDto.getId());
+        Flat flat = flatServiceImpl.findById(flatSaveDto.getId());
         if(!flat.getNumber().equals(flatSaveDto.getNumber())){
-            if(flatService.checkFlatNumber(flatSaveDto.getNumber(), flatSaveDto.getObjectId())){
+            if(flatServiceImpl.checkFlatNumber(flatSaveDto.getNumber(), flatSaveDto.getObjectId())){
                 bindingResult.addError(new FieldError("flatSaveDto", "number", "In selected object the flat with this number is exists"));
             }
         }
-        if(flatService.checkPrice(flatSaveDto.getPrice(), flatSaveDto.getSalePrice())){
+        if(flatServiceImpl.checkPrice(flatSaveDto.getPrice(), flatSaveDto.getSalePrice())){
             bindingResult.addError(new FieldError("flatSaveDto", "price", "Price must be rather then sale price"));
             bindingResult.addError(new FieldError("flatSaveDto", "salePrice", "Price must be rather then sale price"));
         }
-        if(flatService.checkStatus(flatSaveDto.getStatus())){
+        if(flatServiceImpl.checkStatus(flatSaveDto.getStatus())){
             bindingResult.addError(new FieldError("flatSaveDto", "status", "Flat status must be active"));
         }
-        if(flatService.checkPercentages(flatSaveDto.getAgency(), flatSaveDto.getManager())){
+        if(flatServiceImpl.checkPercentages(flatSaveDto.getAgency(), flatSaveDto.getManager())){
             bindingResult.addError(new FieldError("flatSaveDto", "agency", "The sum of percentages must be less than 100"));
             bindingResult.addError(new FieldError("flatSaveDto", "manager", "The sum of percentages must be less than 100"));
         }
@@ -208,7 +212,7 @@ public class FlatController {
         }
 
         //action
-        flatService.update(flatSaveDto.build());
+        flatServiceImpl.update(flatSaveDto.build());
         return mapper.writeValueAsString(null);
     }
 
@@ -217,7 +221,7 @@ public class FlatController {
     public String getFlatById(
             Long id
     ) throws JsonProcessingException {
-        Flat flat = flatService.findById(id);
+        Flat flat = flatServiceImpl.findById(id);
         return mapper.writeValueAsString(flat);
     }
 
@@ -226,23 +230,23 @@ public class FlatController {
     public String deleteFlatById(
             Long id
     ) throws JsonProcessingException {
-        flatService.deleteById(id);
+        flatServiceImpl.deleteById(id);
         return mapper.writeValueAsString("success");
     }
 
     @GetMapping("/getXlsx")
     public ResponseEntity<byte[]> getXlsx() throws IOException {
-        return flatService.getXlsx();
+        return flatServiceImpl.getXlsx();
     }
 
     @GetMapping("/getXlsxExample")
     public ResponseEntity<byte[]> getXlsxExample() throws IOException {
-        return flatService.getXlsxExample();
+        return flatServiceImpl.getXlsxExample();
     }
 
     @GetMapping("/getXlsxErrors")
     public ResponseEntity<byte[]> getXlsxErrors() throws IOException {
-        return flatService.getXlsxErrors();
+        return flatServiceImpl.getXlsxErrors();
     }
 
     @PostMapping("/setXlsx")
@@ -255,7 +259,7 @@ public class FlatController {
             errors.put("file", "Must not be empty");
             return mapper.writeValueAsString(errors);
         }
-        if(!flatService.setXlsx(file)){
+        if(!flatServiceImpl.setXlsx(file)){
             errors.put("fileErrors", "Check errors in xlsx file");
             return mapper.writeValueAsString(errors);
         } else {
@@ -277,7 +281,7 @@ public class FlatController {
     public String getRealtorsByAgenciesId(
             Long id
     ) throws JsonProcessingException {
-        List<Realtor> realtorList = realtorService.findAllByAgencyId(id);
+        List<Realtor> realtorList = realtorServiceImpl.findAllByAgencyId(id);
         return mapper.writeValueAsString(realtorList);
     }
 
@@ -295,7 +299,7 @@ public class FlatController {
     public String getRealtorById(
             Long id
     ) throws JsonProcessingException {
-        Realtor realtor = realtorService.findById(id);
+        Realtor realtor = realtorServiceImpl.findById(id);
         return mapper.writeValueAsString(realtor);
     }
 
@@ -323,7 +327,7 @@ public class FlatController {
     @GetMapping("/getAllOnSaleObjects")
     @ResponseBody
     public String getAllOnSaleObjects() throws JsonProcessingException {
-        return mapper.writeValueAsString(objectService.findAllOnSale());
+        return mapper.writeValueAsString(objectServiceImpl.findAllOnSale());
     }
 
     // for buyer

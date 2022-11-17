@@ -4,8 +4,8 @@ import com.example.NewBuildingFinance.dto.object.ObjectDto;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.object.Object;
 import com.example.NewBuildingFinance.entities.object.StatusObject;
-import com.example.NewBuildingFinance.service.InternalCurrencyService;
-import com.example.NewBuildingFinance.service.ObjectService;
+import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
+import com.example.NewBuildingFinance.service.object.ObjectServiceImpl;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,8 +30,8 @@ import java.util.Map;
 @AllArgsConstructor
 @RequestMapping("/objects")
 public class ObjectController {
-    private final InternalCurrencyService currencyService;
-    private final ObjectService objectService;
+    private final InternalCurrencyServiceImpl currencyService;
+    private final ObjectServiceImpl objectServiceImpl;
     private final UserServiceImpl userServiceImpl;
     private final ObjectMapper mapper;
 
@@ -54,7 +54,7 @@ public class ObjectController {
             String field,
             String direction
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(objectService.findSortingPage(
+        return mapper.writeValueAsString(objectServiceImpl.findSortingPage(
                 page, size, field, direction));
     }
 
@@ -65,7 +65,7 @@ public class ObjectController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        if (objectService.checkPercentages(objectDto.build())){
+        if (objectServiceImpl.checkPercentages(objectDto.build())){
             bindingResult.addError(new FieldError("objectDto", "agency", "The sum of percentages must be less than 100"));
             bindingResult.addError(new FieldError("objectDto", "manager", "The sum of percentages must be less than 100"));
         }
@@ -78,7 +78,7 @@ public class ObjectController {
         }
 
         //action
-        objectService.save(objectDto.build());
+        objectServiceImpl.save(objectDto.build());
         return mapper.writeValueAsString(null);
     }
 
@@ -89,7 +89,7 @@ public class ObjectController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        if (objectService.checkPercentages(objectDto.build())){
+        if (objectServiceImpl.checkPercentages(objectDto.build())){
             bindingResult.addError(new FieldError("objectDto", "agency", "The sum of percentages must be less than 100"));
             bindingResult.addError(new FieldError("objectDto", "manager", "The sum of percentages must be less than 100"));
         }
@@ -102,7 +102,7 @@ public class ObjectController {
         }
 
         //action
-        objectService.update(objectDto.build());
+        objectServiceImpl.update(objectDto.build());
         return mapper.writeValueAsString(null);
     }
 
@@ -121,7 +121,7 @@ public class ObjectController {
     public String getObjectById(
             Long id
     ) throws JsonProcessingException {
-        Object object = objectService.findById(id);
+        Object object = objectServiceImpl.findById(id);
         return mapper.writeValueAsString(object);
     }
 
@@ -130,7 +130,7 @@ public class ObjectController {
     public String deleteObjectById(
             Long id
     ) throws JsonProcessingException {
-        objectService.deleteById(id);
+        objectServiceImpl.deleteById(id);
         return mapper.writeValueAsString("success");
     }
 }

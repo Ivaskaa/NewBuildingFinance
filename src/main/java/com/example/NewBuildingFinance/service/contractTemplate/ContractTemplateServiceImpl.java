@@ -1,4 +1,4 @@
-package com.example.NewBuildingFinance.service;
+package com.example.NewBuildingFinance.service.contractTemplate;
 
 import com.example.NewBuildingFinance.entities.contract.ContractTemplate;
 import com.example.NewBuildingFinance.repository.ContractTemplateRepository;
@@ -11,9 +11,10 @@ import java.util.List;
 @Service
 @Log4j2
 @AllArgsConstructor
-public class ContractTemplateService {
+public class ContractTemplateServiceImpl implements ContractTemplateService{
     private final ContractTemplateRepository repository;
 
+    @Override
     public List<ContractTemplate> findAll() {
         log.info("get all contract templates");
         List<ContractTemplate> currencyList = repository.findAllByDeletedFalse();
@@ -21,6 +22,7 @@ public class ContractTemplateService {
         return currencyList;
     }
 
+    @Override
     public ContractTemplate save(ContractTemplate object) {
         log.info("save contract template: {}", object);
         object = repository.save(object);
@@ -28,6 +30,7 @@ public class ContractTemplateService {
         return object;
     }
 
+    @Override
     public ContractTemplate update(ContractTemplate objectForm) {
         log.info("update contract template: {}", objectForm);
         ContractTemplate object = repository.findById(objectForm.getId()).orElseThrow();
@@ -38,6 +41,7 @@ public class ContractTemplateService {
         return object;
     }
 
+    @Override
     public ContractTemplate changeMain(Long id) {
         log.info("change main contract template by id: {}", id);
         ContractTemplate object = repository.findById(id).orElseThrow();
@@ -52,6 +56,7 @@ public class ContractTemplateService {
         return object;
     }
 
+    @Override
     public ContractTemplate findById(Long id) {
         log.info("get contract template by id: {}", id);
         ContractTemplate object = repository.findById(id).orElseThrow();
@@ -59,6 +64,7 @@ public class ContractTemplateService {
         return object;
     }
 
+    @Override
     public void deleteById(Long id) {
         log.info("delete contract template by id: {}", id);
         ContractTemplate object = repository.findById(id).orElseThrow();

@@ -2,8 +2,7 @@ package com.example.NewBuildingFinance.controllers;
 
 import com.example.NewBuildingFinance.dto.RealtorDto;
 import com.example.NewBuildingFinance.entities.agency.Realtor;
-import com.example.NewBuildingFinance.service.InternalCurrencyService;
-import com.example.NewBuildingFinance.service.RealtorService;
+import com.example.NewBuildingFinance.service.realtor.RealtorServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -21,7 +20,7 @@ import java.util.Map;
 @AllArgsConstructor
 @RequestMapping("/agencies/realtors")
 public class RealtorController {
-    private final RealtorService realtorService;
+    private final RealtorServiceImpl realtorServiceImpl;
     private final ObjectMapper mapper;
 
     @GetMapping("/getRealtorsByAgencyId")
@@ -34,7 +33,7 @@ public class RealtorController {
 
             Long id
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(realtorService.findPageByAgencyId(
+        return mapper.writeValueAsString(realtorServiceImpl.findPageByAgencyId(
                 page, size, field, direction, id));
     }
 
@@ -45,7 +44,7 @@ public class RealtorController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        if (realtorService.checkPhone(realtorDto.getPhone())) {
+        if (realtorServiceImpl.checkPhone(realtorDto.getPhone())) {
             bindingResult.addError(new FieldError("userDto", "phone", "Phone must be valid"));
         }
         if(bindingResult.hasErrors()){
@@ -57,7 +56,7 @@ public class RealtorController {
         }
 
         //action
-        realtorService.save(realtorDto.build(), realtorDto.getAgencyId());
+        realtorServiceImpl.save(realtorDto.build(), realtorDto.getAgencyId());
         return mapper.writeValueAsString(null);
     }
 
@@ -68,7 +67,7 @@ public class RealtorController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        if (realtorService.checkPhone(realtorDto.getPhone())) {
+        if (realtorServiceImpl.checkPhone(realtorDto.getPhone())) {
             bindingResult.addError(new FieldError("userDto", "phone", "Phone must be valid"));
         }
         if(bindingResult.hasErrors()){
@@ -81,7 +80,7 @@ public class RealtorController {
         }
         System.out.println(realtorDto);
         //action
-        realtorService.update(realtorDto.build(), realtorDto.getAgencyId());
+        realtorServiceImpl.update(realtorDto.build(), realtorDto.getAgencyId());
         return mapper.writeValueAsString(null);
     }
 
@@ -90,7 +89,7 @@ public class RealtorController {
     public String getRealtorById(
             Long id
     ) throws JsonProcessingException {
-        Realtor object = realtorService.findById(id);
+        Realtor object = realtorServiceImpl.findById(id);
         return mapper.writeValueAsString(object);
     }
 
@@ -99,7 +98,7 @@ public class RealtorController {
     public String deleteRealtorById(
             Long id
     ) throws JsonProcessingException {
-        realtorService.deleteById(id);
+        realtorServiceImpl.deleteById(id);
         return mapper.writeValueAsString("success");
     }
 }

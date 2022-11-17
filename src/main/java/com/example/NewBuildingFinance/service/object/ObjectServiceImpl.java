@@ -1,4 +1,4 @@
-package com.example.NewBuildingFinance.service;
+package com.example.NewBuildingFinance.service.object;
 
 import com.example.NewBuildingFinance.dto.object.ObjectTableDto;
 import com.example.NewBuildingFinance.entities.object.Object;
@@ -16,14 +16,15 @@ import java.util.List;
 @Service
 @Log4j2
 @AllArgsConstructor
-public class ObjectService {
+public class ObjectServiceImpl implements ObjectService{
     private final ObjectRepository objectRepository;
 
     public Page<ObjectTableDto> findSortingPage(
             Integer currentPage,
             Integer size,
             String sortingField,
-            String sortingDirection) {
+            String sortingDirection
+    ) {
         log.info("get object page: {}, field: {}, direction: {}", currentPage - 1, sortingField, sortingDirection);
         Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
         Pageable pageable = PageRequest.of(currentPage - 1, size, sort);

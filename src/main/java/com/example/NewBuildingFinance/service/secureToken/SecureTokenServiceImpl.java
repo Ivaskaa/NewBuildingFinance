@@ -1,4 +1,4 @@
-package com.example.NewBuildingFinance.service;
+package com.example.NewBuildingFinance.service.secureToken;
 
 import com.example.NewBuildingFinance.entities.auth.SecureToken;
 import com.example.NewBuildingFinance.repository.auth.SecureTokenRepository;
@@ -11,14 +11,14 @@ import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
 @Service
 @Log4j2
-public class SecureTokenService {
-
+public class SecureTokenServiceImpl implements SecureTokenService {
     private static final BytesKeyGenerator DEFAULT_TOKEN_GENERATOR = KeyGenerators.secureRandom(15);
-    private static final Charset US_ASCII = Charset.forName("US-ASCII");
+    private static final Charset US_ASCII = StandardCharsets.US_ASCII;
 
     @Value("${jdj.secure.token.validity}")
     private int tokenValidityInSeconds;
@@ -26,6 +26,7 @@ public class SecureTokenService {
     @Autowired
     private SecureTokenRepository secureTokenRepository;
 
+    @Override
     public SecureToken createSecureToken(){
         log.info("create secure token");
         String tokenValue = new String(Base64.encodeBase64URLSafe(DEFAULT_TOKEN_GENERATOR.generateKey()), US_ASCII); // this is a sample, you can adapt as per your security need
@@ -37,30 +38,27 @@ public class SecureTokenService {
         return secureToken;
     }
 
+    @Override
     public void saveSecureToken(SecureToken token) {
         secureTokenRepository.save(token);
     }
 
+    @Override
     public SecureToken findByToken(String token) {
         return secureTokenRepository.findByToken(token);
     }
 
-    public void removeToken(SecureToken token) {
-        secureTokenRepository.delete(token);
-    }
-
-    public void removeTokenByToken(String token) {
-        secureTokenRepository.removeByToken(token);
-    }
-
+    @Override
     public int getTokenValidityInSeconds() {
         return tokenValidityInSeconds;
     }
 
+    @Override
     public void save(SecureToken secureToken) {
         secureTokenRepository.save(secureToken);
     }
 
+    @Override
     public void delete(SecureToken secureToken) {
         secureTokenRepository.delete(secureToken);
     }

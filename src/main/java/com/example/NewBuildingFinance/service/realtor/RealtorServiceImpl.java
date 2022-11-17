@@ -1,4 +1,4 @@
-package com.example.NewBuildingFinance.service;
+package com.example.NewBuildingFinance.service.realtor;
 
 import com.example.NewBuildingFinance.entities.agency.Agency;
 import com.example.NewBuildingFinance.entities.agency.Realtor;
@@ -17,10 +17,10 @@ import java.util.List;
 @Service
 @Log4j2
 @AllArgsConstructor
-public class RealtorService {
+public class RealtorServiceImpl implements RealtorService{
     private final RealtorRepository realtorRepository;
-    private final AgencyServiceImpl agencyServiceImpl;
 
+    @Override
     public Page<Realtor> findPageByAgencyId(
             Integer currentPage,
             Integer size,
@@ -37,6 +37,7 @@ public class RealtorService {
         return agencies;
     }
 
+    @Override
     public List<Realtor> findAllByAgencyId(Long id) {
         log.info("get all realtors by agencyId: {}", id);
         List<Realtor> realtorList = realtorRepository.findAllByAgencyId(id);
@@ -44,6 +45,7 @@ public class RealtorService {
         return realtorList;
     }
 
+    @Override
     public Realtor save(Realtor realtor, Long agencyId) {
         log.info("save realtor: {}", realtor);
         Agency agency = new Agency();
@@ -61,6 +63,7 @@ public class RealtorService {
         return realtorAfterSave;
     }
 
+    @Override
     public Realtor update(Realtor realtorForm, Long agencyId) {
         log.info("update realtor: {}", realtorForm);
         Realtor object = realtorRepository.findById(realtorForm.getId()).orElseThrow();
@@ -81,12 +84,14 @@ public class RealtorService {
         return object;
     }
 
+    @Override
     public void deleteById(Long id) {
         log.info("delete realtor by id: {}", id);
         realtorRepository.deleteById(id);
         log.info("success");
     }
 
+    @Override
     public Realtor findById(Long id) {
         log.info("get realtor by id: {}", id);
         Realtor object = realtorRepository.findById(id).orElseThrow();
@@ -94,6 +99,7 @@ public class RealtorService {
         return object;
     }
 
+    @Override
     public boolean checkPhone(String phone) {
         return phone.contains("_");
     }

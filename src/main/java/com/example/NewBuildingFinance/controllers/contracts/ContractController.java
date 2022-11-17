@@ -8,10 +8,13 @@ import com.example.NewBuildingFinance.entities.contract.ContractStatus;
 import com.example.NewBuildingFinance.entities.contract.ContractTemplate;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.object.Object;
-import com.example.NewBuildingFinance.service.*;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.example.NewBuildingFinance.service.buyer.BuyerServiceImpl;
 import com.example.NewBuildingFinance.service.contract.ContractServiceImpl;
+import com.example.NewBuildingFinance.service.contractTemplate.ContractTemplateServiceImpl;
+import com.example.NewBuildingFinance.service.flat.FlatServiceImpl;
+import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
+import com.example.NewBuildingFinance.service.object.ObjectServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -37,11 +40,11 @@ import java.util.*;
 public class ContractController {
     private final UserServiceImpl userServiceImpl;
     private final BuyerServiceImpl buyerServiceImpl;
-    private final InternalCurrencyService internalCurrencyService;
+    private final InternalCurrencyServiceImpl internalCurrencyServiceImpl;
     private final ContractServiceImpl contractServiceImpl;
-    private final ContractTemplateService contractTemplateService;
-    private final FlatService flatService;
-    private final ObjectService objectService;
+    private final ContractTemplateServiceImpl contractTemplateServiceImpl;
+    private final FlatServiceImpl flatServiceImpl;
+    private final ObjectServiceImpl objectServiceImpl;
     private final ObjectMapper mapper;
 
     @GetMapping()
@@ -50,8 +53,8 @@ public class ContractController {
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("objects", objectService.findAll());
-        model.addAttribute("currencies", internalCurrencyService.findAll());
+        model.addAttribute("objects", objectServiceImpl.findAll());
+        model.addAttribute("currencies", internalCurrencyServiceImpl.findAll());
         model.addAttribute("user", user);
         return "contract/contracts";
     }
@@ -64,7 +67,7 @@ public class ContractController {
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", internalCurrencyService.findAll());
+        model.addAttribute("currencies", internalCurrencyServiceImpl.findAll());
         model.addAttribute("contractId", id);
         model.addAttribute("flatId", Objects.requireNonNullElse(flatId, 0));
         model.addAttribute("user", user);
@@ -188,7 +191,7 @@ public class ContractController {
     @GetMapping("/getAllOnSaleObjects")
     @ResponseBody
     public String getObjects() throws JsonProcessingException {
-        List<Object> objects = objectService.findAllOnSale();
+        List<Object> objects = objectServiceImpl.findAllOnSale();
         return mapper.writeValueAsString(objects);
     }
 
@@ -198,7 +201,7 @@ public class ContractController {
             Long id,
             Long flatId
     ) throws JsonProcessingException {
-        List<Flat> flats = flatService.getFlatsWithoutContractByObjectId(id, flatId);
+        List<Flat> flats = flatServiceImpl.getFlatsWithoutContractByObjectId(id, flatId);
         return mapper.writeValueAsString(flats);
     }
 
@@ -224,7 +227,7 @@ public class ContractController {
     @GetMapping("/getContractTemplates")
     @ResponseBody
     public String getContractTemplates() throws JsonProcessingException {
-        List<ContractTemplate> contractTemplates = contractTemplateService.findAll();
+        List<ContractTemplate> contractTemplates = contractTemplateServiceImpl.findAll();
         return mapper.writeValueAsString(contractTemplates);
     }
 
@@ -244,7 +247,7 @@ public class ContractController {
     public String getFlatById(
             Long id
     ) throws JsonProcessingException {
-        Flat flat = flatService.findById(id);
+        Flat flat = flatServiceImpl.findById(id);
         return mapper.writeValueAsString(flat);
     }
 

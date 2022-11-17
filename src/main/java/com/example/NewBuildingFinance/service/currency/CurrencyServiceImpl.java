@@ -1,4 +1,4 @@
-package com.example.NewBuildingFinance.service;
+package com.example.NewBuildingFinance.service.currency;
 
 import com.example.NewBuildingFinance.entities.currency.Currency;
 import com.example.NewBuildingFinance.others.CurrencyJson;
@@ -11,9 +11,10 @@ import java.util.List;
 @Service
 @Log4j2
 @AllArgsConstructor
-public class CurrencyService {
+public class CurrencyServiceImpl implements CurrencyService{
     private final CurrencyRepository currencyRepository;
 
+    @Override
     public void saveCurrency(List<CurrencyJson> currencyJsons){
         log.info("save currency");
         for(CurrencyJson currencyJson : currencyJsons) {
@@ -26,6 +27,7 @@ public class CurrencyService {
         log.info("success save currency");
     }
 
+    @Override
     public List<Currency> getAll(){
         log.info("get all currency");
         List<Currency> currencies = currencyRepository.findAll();

@@ -1,12 +1,8 @@
 package com.example.NewBuildingFinance.controllers.settings;
 
-import com.example.NewBuildingFinance.dto.agency.AgencyDto;
-import com.example.NewBuildingFinance.entities.agency.Agency;
 import com.example.NewBuildingFinance.entities.auth.User;
-import com.example.NewBuildingFinance.entities.notification.Notification;
 import com.example.NewBuildingFinance.entities.setting.Setting;
-import com.example.NewBuildingFinance.service.InternalCurrencyService;
-import com.example.NewBuildingFinance.service.NotificationService;
+import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.example.NewBuildingFinance.service.setting.SettingServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -23,14 +19,13 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Controller
 @AllArgsConstructor
 @RequestMapping("/settings/settings")
 public class SettingsController {
-    private final InternalCurrencyService internalCurrencyService;
+    private final InternalCurrencyServiceImpl internalCurrencyServiceImpl;
     private final UserServiceImpl userServiceImpl;
     private final SettingServiceImpl settingServiceImpl;
 
@@ -42,7 +37,7 @@ public class SettingsController {
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", internalCurrencyService.findAll());
+        model.addAttribute("currencies", internalCurrencyServiceImpl.findAll());
         model.addAttribute("user", user);
         return "settings/settings";
     }

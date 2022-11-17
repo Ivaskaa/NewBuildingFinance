@@ -1,9 +1,10 @@
-package com.example.NewBuildingFinance.service;
+package com.example.NewBuildingFinance.service.flatPayment;
 
 import com.example.NewBuildingFinance.dto.flat.FlatPaymentTableDto;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
 import com.example.NewBuildingFinance.repository.FlatPaymentRepository;
+import com.example.NewBuildingFinance.service.flat.FlatServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -17,10 +18,11 @@ import java.util.List;
 @Service
 @Log4j2
 @AllArgsConstructor
-public class FlatPaymentService {
+public class FlatPaymentServiceImpl implements FlatPaymentService{
     private final FlatPaymentRepository flatPaymentRepository;
-    private final FlatService flatService;
+    private final FlatServiceImpl flatServiceImpl;
 
+    @Override
     public Page<FlatPaymentTableDto> findPage(
             Integer currentPage,
             Integer size,
@@ -38,6 +40,7 @@ public class FlatPaymentService {
         return flats;
     }
 
+    @Override
     public FlatPayment save(FlatPayment flatPayment) {
         log.info("save flatPayment: {}", flatPayment);
         FlatPayment flatPaymentAfterSave = flatPaymentRepository.save(flatPayment);
@@ -45,6 +48,7 @@ public class FlatPaymentService {
         return flatPaymentAfterSave;
     }
 
+    @Override
     public FlatPayment update(FlatPayment flatPaymentForm) {
         log.info("update flatPayment: {}", flatPaymentForm);
         FlatPayment object = flatPaymentRepository.findById(flatPaymentForm.getId()).orElseThrow();
@@ -58,12 +62,14 @@ public class FlatPaymentService {
         return object;
     }
 
+    @Override
     public void deleteById(Long id) {
         log.info("delete flatPayment by id: {}", id);
         flatPaymentRepository.deleteById(id);
         log.info("success");
     }
 
+    @Override
     public FlatPayment findById(Long id) {
         log.info("get flatPayment by id: {}", id);
         FlatPayment flatPayment = flatPaymentRepository.findById(id).orElseThrow();
@@ -71,6 +77,7 @@ public class FlatPaymentService {
         return flatPayment;
     }
 
+    @Override
     public boolean checkNumber(Integer number, Long flatId) {
         if (number != null) {
             FlatPayment flatPayment = flatPaymentRepository.findByNumberAndFlatId(number, flatId);
@@ -80,13 +87,14 @@ public class FlatPaymentService {
         }
     }
 
+    @Override
     public boolean checkPlaned(Double planned, Long flatId) {
         if (planned != null){
             if (planned.equals(0d)){
                 return false;
             }
             List<FlatPayment> flatPaymentList = flatPaymentRepository.findAllByFlatId(flatId);
-            Flat flat = flatService.findById(flatId);
+            Flat flat = flatServiceImpl.findById(flatId);
             Double flatPrice = flat.getSalePrice();
             for (FlatPayment flatPayment : flatPaymentList) {
                 flatPrice -= flatPayment.getPlanned();
@@ -98,9 +106,10 @@ public class FlatPaymentService {
         }
     }
 
+    @Override
     public boolean checkPlanedEdit(Long id, Double planned, Long flatId) {
         List<FlatPayment> flatPaymentList = flatPaymentRepository.findAllByFlatId(flatId);
-        Flat flat = flatService.findById(flatId);
+        Flat flat = flatServiceImpl.findById(flatId);
         Double flatPrice = flat.getSalePrice();
         for(FlatPayment flatPayment : flatPaymentList){
             if(!flatPayment.getId().equals(id)) {
@@ -111,6 +120,7 @@ public class FlatPaymentService {
         return flatPrice < 0;
     }
 
+    @Override
     public List<FlatPayment> getByFlatId(Long id) {
         log.info("get flat payments by flat id: {}", id);
         List<FlatPayment> flatPayments;
@@ -119,6 +129,7 @@ public class FlatPaymentService {
         return flatPayments;
     }
 
+    @Override
     public List<FlatPayment> getByFlatId(Long flatId, Long flatPaymentId) {
         log.info("get flat payments with paid false by flat id : {}", flatId);
         List<FlatPayment> flatPayments;

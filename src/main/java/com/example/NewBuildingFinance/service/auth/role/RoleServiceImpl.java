@@ -20,7 +20,7 @@ public class RoleServiceImpl implements RoleService{
     public List<Role> findAll() {
         log.info("get roles");
         List<Role> roles = roleRepository.findAll();
-//        roles.removeIf(role -> role.getId().equals(1L));
+        roles.removeIf(role -> role.getId().equals(1L));
         log.info("success");
         return roles;
     }

@@ -5,7 +5,7 @@ import com.example.NewBuildingFinance.entities.agency.Agency;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.service.agency.AgencyServiceImpl;
 import com.example.NewBuildingFinance.service.contract.ContractServiceImpl;
-import com.example.NewBuildingFinance.service.InternalCurrencyService;
+import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,7 +26,7 @@ import java.util.*;
 @AllArgsConstructor
 @RequestMapping("/agencies")
 public class AgencyController {
-    private final InternalCurrencyService internalCurrencyService;
+    private final InternalCurrencyServiceImpl internalCurrencyServiceImpl;
     private final UserServiceImpl userServiceImpl;
     private final ContractServiceImpl contractServiceImpl;
     private final AgencyServiceImpl agencyServiceImpl;
@@ -39,7 +39,7 @@ public class AgencyController {
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", internalCurrencyService.findAll());
+        model.addAttribute("currencies", internalCurrencyServiceImpl.findAll());
         model.addAttribute("user", user);
         return "agency/agencies";
     }
@@ -51,7 +51,7 @@ public class AgencyController {
     ) throws JsonProcessingException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", internalCurrencyService.findAll());
+        model.addAttribute("currencies", internalCurrencyServiceImpl.findAll());
         model.addAttribute("agencyId", id);
         model.addAttribute("userId", user.getId());
         model.addAttribute("user", user);

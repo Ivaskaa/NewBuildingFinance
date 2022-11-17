@@ -2,7 +2,7 @@ package com.example.NewBuildingFinance.service.auth.profile;
 
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.repository.auth.UserRepository;
-import com.example.NewBuildingFinance.service.StaticService;
+import com.example.NewBuildingFinance.service.secureToken.staticService.StaticServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -20,7 +20,7 @@ import java.util.UUID;
 public class ProfileServiceImpl implements UserDetailsService, ProfileService{
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
-    private final StaticService service;
+    private final StaticServiceImpl service;
 
     @Override
     public User update(User userForm, MultipartFile file) throws IOException {

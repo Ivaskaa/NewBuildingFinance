@@ -2,7 +2,7 @@ package com.example.NewBuildingFinance.controllers;
 
 import com.example.NewBuildingFinance.dto.auth.ProfileDto;
 import com.example.NewBuildingFinance.entities.auth.User;
-import com.example.NewBuildingFinance.service.InternalCurrencyService;
+import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
 import com.example.NewBuildingFinance.service.auth.profile.ProfileServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,7 +25,7 @@ import java.util.Map;
 @Controller
 @AllArgsConstructor
 public class ProfileController {
-    private final InternalCurrencyService currencyService;
+    private final InternalCurrencyServiceImpl currencyService;
     private final ProfileServiceImpl profileServiceImpl;
     private final ObjectMapper mapper;
 

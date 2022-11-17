@@ -1,4 +1,4 @@
-package com.example.NewBuildingFinance.service;
+package com.example.NewBuildingFinance.service.restTemplate;
 
 import com.example.NewBuildingFinance.others.CurrencyJson;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -18,10 +18,11 @@ import java.util.stream.Collectors;
 @Service
 @Log4j2
 @AllArgsConstructor
-public class RestTemplateService {
+public class RestTemplateServiceImpl implements RestTemplateService{
     private final ObjectMapper mapper;
     private final RestTemplate restTemplate;
 
+    @Override
     public List<CurrencyJson> getCurrency() throws JsonProcessingException {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
