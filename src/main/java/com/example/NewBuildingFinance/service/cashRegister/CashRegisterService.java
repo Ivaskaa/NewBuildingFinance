@@ -14,7 +14,7 @@ import java.text.ParseException;
 public interface CashRegisterService {
 
     /**
-     *
+     * sorting specification request for cash register table
      * @param currentPage current page
      * @param size table size
      * @param sortingField sorting field

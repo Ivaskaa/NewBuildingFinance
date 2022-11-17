@@ -1,18 +1,17 @@
-package com.example.NewBuildingFinance.service;
+package com.example.NewBuildingFinance.service.contract;
 
 import com.example.NewBuildingFinance.dto.contract.*;
-import com.example.NewBuildingFinance.entities.buyer.Buyer;
-import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
 import com.example.NewBuildingFinance.entities.contract.Contract;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
 import com.example.NewBuildingFinance.entities.flat.StatusFlat;
-import com.example.NewBuildingFinance.entities.notification.Notification;
 import com.example.NewBuildingFinance.entities.object.Object;
 import com.example.NewBuildingFinance.others.specifications.ContractSpecification;
 import com.example.NewBuildingFinance.repository.ContractRepository;
 import com.example.NewBuildingFinance.repository.FlatRepository;
 import com.example.NewBuildingFinance.repository.ObjectRepository;
+import com.example.NewBuildingFinance.service.NotificationService;
+import com.example.NewBuildingFinance.service.buyer.BuyerServiceImpl;
 import com.itextpdf.html2pdf.HtmlConverter;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import lombok.AllArgsConstructor;
@@ -32,20 +31,18 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.text.ParseException;
-import java.util.Date;
-import java.util.Optional;
 
 @Service
 @Log4j2
 @AllArgsConstructor
-public class ContractService {
+public class ContractServiceImpl implements ContractService {
     private final ContractRepository contractRepository;
     private final FlatRepository flatRepository;
     private final ObjectRepository objectRepository;
 
     private final NotificationService notificationService;
-    private final BuyerService buyerService;
 
+    @Override
     public Page<ContractTableDto> findSortingAndSpecificationPage(
             Integer currentPage,
             Integer size,
@@ -78,6 +75,7 @@ public class ContractService {
         return contracts;
     }
 
+    @Override
     public Page<ContractTableDtoForBuyers> findSortingPageByBuyerId(
             Integer currentPage,
             Integer size,
@@ -96,6 +94,7 @@ public class ContractService {
         return contracts;
     }
 
+    @Override
     public Page<ContractTableDtoForAgency> findSortingPageByAgencyId(
             Integer currentPage,
             Integer size,
@@ -114,6 +113,7 @@ public class ContractService {
         return contracts;
     }
 
+    @Override
     public ContractUploadDto save(ContractSaveDto contractSaveDto) throws ParseException {
         log.info("save contract: {}", contractSaveDto);
         Contract contract = contractSaveDto.build();
@@ -133,13 +133,14 @@ public class ContractService {
         contractUploadDto.setFlat(flat);
         contractUploadDto.setObject(flat.getObject());
 
-        createNotification(contractAfterSave);
+        notificationService.createNotificationFromContract(contractAfterSave);
 
         log.info("success");
         return contractUploadDto;
     }
 
-    public ContractUploadDto update(ContractSaveDto contractSaveDto) throws ParseException {
+    @Override
+    public ContractUploadDto update(ContractSaveDto contractSaveDto) {
         log.info("update contract: {}", contractSaveDto);
         Contract contract = contractSaveDto.build();
 
@@ -162,32 +163,13 @@ public class ContractService {
         contractUploadDto.setFlat(flat);
         contractUploadDto.setObject(flat.getObject());
 
-        updateNotification(contractAfterSave);
+        notificationService.updateNotificationFromContract(contractAfterSave);
 
-        log.info("success");
+        log.info("success update contract");
         return contractUploadDto;
     }
 
-    public void createNotification(Contract contract) {
-        Notification notification = new Notification();
-        Buyer buyer = buyerService.findById(contract.getBuyer().getId());
-        notification.setName("New contract. buyer: " + buyer.getSurname() + " " + buyer.getName());
-        notification.setContract(contract);
-        notification.setUrl("/contracts/contract/" + contract.getId());
-        notificationService.save(notification);
-    }
-
-    public void updateNotification(Contract contract) {
-        Notification notification = notificationService.findByContractId(contract.getId());
-        Buyer buyer = buyerService.findById(contract.getBuyer().getId());
-        notification.setName("Update contract. buyer: " + buyer.getSurname() + " " + buyer.getName());
-        notification.setContract(contract);
-        notification.setUrl("/contracts/contract/" + contract.getId());
-        notification.setReviewed(false);
-        notification.setInList(true);
-        notificationService.save(notification);
-    }
-
+    @Override
     public Contract deleteById(Long id) {
         log.info("delete contract by id: {}", id);
         Contract contract = contractRepository.findById(id).orElseThrow();
@@ -201,10 +183,11 @@ public class ContractService {
         contract.setBuyer(null);
         contract.setDeleted(true);
         contractRepository.save(contract);
-        log.info("success");
+        log.info("success delete contract by id");
         return contract;
     }
 
+    @Override
     public ContractUploadDto findById(Long id) {
         log.info("get contract by id: {}", id);
         Contract contract = contractRepository.findById(id).orElseThrow();
@@ -218,6 +201,7 @@ public class ContractService {
         return contractUploadDto;
     }
 
+    @Override
     public ResponseEntity<byte[]> getPdf(Long id) throws IOException {
         log.info("get pdf for contract id: {}", id);
         Contract contract = contractRepository.findById(id).orElseThrow();
@@ -258,6 +242,7 @@ public class ContractService {
         return new ResponseEntity<>(content, headers, HttpStatus.OK);
     }
 
+    @Override
     public boolean checkRealtor(Long flatId) {
         if(flatId != null) {
             Flat flat = flatRepository.findById(flatId).orElse(null);
@@ -266,6 +251,7 @@ public class ContractService {
         } else return false;
     }
 
+    @Override
     public boolean checkFlatPayments(Long flatId) {
         if(flatId != null) {
             Flat flat = flatRepository.findById(flatId).orElse(null);
@@ -280,14 +266,7 @@ public class ContractService {
         } else return false;
     }
 
-    public boolean checkStatus(Long flatId) {
-        Flat flat = flatRepository.findById(flatId).orElse(null);
-        if (flat == null){
-            return false;
-        }
-        return !flat.getStatus().equals(StatusFlat.ACTIVE);
-    }
-
+    @Override
     public boolean checkContract(Long id) {
         Contract contract = null;
         if (id != null) {

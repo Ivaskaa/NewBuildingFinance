@@ -11,6 +11,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 @Data
 public class ContractSaveDto {
@@ -57,10 +58,10 @@ public class ContractSaveDto {
     @NotNull(message = "Must not be empty")
     private Integer price;
     @NotEmpty(message = "Must not be empty")
-    private String date;
+    private Date date;
     private String comment;
 
-    public Contract build() throws ParseException {
+    public Contract build() {
         Contract contract = new Contract();
 
         contract.setId(id);
@@ -72,13 +73,7 @@ public class ContractSaveDto {
         Buyer buyer = new Buyer();
         buyer.setId(buyerId);
         contract.setBuyer(buyer);
-
-        if(date!= null && !date.equals("")) {
-            SimpleDateFormat format = new SimpleDateFormat();
-            format.applyPattern("yyyy-MM-dd");
-            contract.setDate(format.parse(date));
-        }
-
+        contract.setDate(date);
         contract.setStatus(status);
 
         contract.setName(name);
