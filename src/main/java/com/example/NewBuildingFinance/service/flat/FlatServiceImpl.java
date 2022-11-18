@@ -485,14 +485,20 @@ public class FlatServiceImpl implements FlatService{
                     String[] words = cell4.getStringCellValue().split("\\(");
                     if (words.length == 2){
                         String house = words[0];
-                        String section = words[1];
-                        System.out.println("house " + house);
-                        System.out.println("section " + section);
-                        if (section.contains(")")){
-                            section = section.replace(")", "");
+                        String sectionWithBracket = words[1];
+                        if (!house.equals("") && !sectionWithBracket.equals("")) {
+                            String[] words2 = sectionWithBracket.split("\\)");
+                            if(words2.length == 1) {
+                                String section = words2[0];
+                                System.out.println("house " + house);
+                                System.out.println("section " + section);
+                                    // search object
+                                cell4.setCellStyle(cellStyleCorrect);
 
-                            // search object
-                            cell4.setCellStyle(cellStyleCorrect);
+                            } else {
+                                ok = true;
+                                cell4.setCellStyle(cellStyleError);
+                            }
                         } else {
                             ok = true;
                             cell4.setCellStyle(cellStyleError);
@@ -562,6 +568,12 @@ public class FlatServiceImpl implements FlatService{
                 cell9.setCellStyle(cellStyleCorrect);
             } else {
                 ok = true;
+                cell9.setCellStyle(cellStyleError);
+            }
+
+            if(flat.getManager() + flat.getAgency() > 100){
+                ok = true;
+                cell8.setCellStyle(cellStyleError);
                 cell9.setCellStyle(cellStyleError);
             }
 
