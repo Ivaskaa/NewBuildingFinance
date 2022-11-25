@@ -25,7 +25,7 @@ public interface ObjectService {
 
     Object findById(Long id);
 
-    boolean checkPercentages(Object object);
+    boolean checkPercentages(Integer agency, Integer manager);
 
     List<Object> findAllOnSale();
 }

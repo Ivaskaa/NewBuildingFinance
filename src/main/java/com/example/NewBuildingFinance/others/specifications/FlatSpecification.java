@@ -5,7 +5,6 @@ import com.example.NewBuildingFinance.entities.agency.Realtor_;
 import com.example.NewBuildingFinance.entities.buyer.Buyer_;
 import com.example.NewBuildingFinance.entities.contract.Contract_;
 import com.example.NewBuildingFinance.entities.flat.*;
-import com.example.NewBuildingFinance.entities.object.Object;
 import com.example.NewBuildingFinance.entities.object.Object_;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -24,12 +23,12 @@ public class FlatSpecification {
             return cb.equal(root.get(Flat_.NUMBER), number);
         };
     }
-    public static Specification<Flat> likeObject(Object object) {
-        if (object == null) {
+    public static Specification<Flat> likeObjectId(Long objectId) {
+        if (objectId == null) {
             return null;
         }
         return (root, query, cb) -> {
-            return cb.equal(root.get(Flat_.OBJECT).get(Object_.ID), object.getId());
+            return cb.equal(root.get(Flat_.OBJECT).get(Object_.ID), objectId);
         };
     }
     public static Specification<Flat> likeStatus(String status) {
@@ -72,6 +71,7 @@ public class FlatSpecification {
             return cb.between(root.get(Flat_.PRICE), finalPriceStart, finalPriceFin);
         };
     }
+
     public static Specification<Flat> likeAdvance(Integer advanceStart, Integer advanceFin) {
         if (advanceStart == null && advanceFin == null) {
             return null;
@@ -100,6 +100,71 @@ public class FlatSpecification {
 //            Predicate p = cb.equal(c.get("date"), sq);
 //            return cb.between(root.get(FlatPayment_.PLANNED), finalAdvanceStart, finalAdvanceFin);
 //            return cb.and(predicates.toArray(new Predicate[0]));
+            return null;
+        };
+    }
+
+    public static Specification<Flat> likeEntered(Integer enteredStart, Integer enteredFin) {
+        if (enteredStart == null && enteredFin == null) {
+            return null;
+        }
+        if (enteredStart == null){
+            enteredStart = Integer.MIN_VALUE;
+        }
+        if (enteredFin == null){
+            enteredFin = Integer.MAX_VALUE;
+        }
+        Integer finalAdvanceStart = enteredStart;
+        Integer finalAdvanceFin = enteredFin;
+
+
+        return (root, query, cb) -> {
+
+//            Join<Flat, FlatPayment> bListJoin = root.join(Flat_.FLAT_PAYMENTS, JoinType.INNER);
+//            List<Predicate> predicates = new ArrayList<>();
+//            predicates.add(cb.like(bListJoin.get(Realtor_.PHONE), "%" + phone.toLowerCase(Locale.ROOT) + "%"));
+//            return cb.and(predicates.toArray(new Predicate[0]));
+//            return cb.equal(cb.sum(root.get(Flat_.PRICE)));
+
+            return null;
+        };
+    }
+
+    public static Specification<Flat> likeRemains(Integer remainsStart, Integer remainsFin) {
+        if (remainsStart == null && remainsFin == null) {
+            return null;
+        }
+        if (remainsStart == null){
+            remainsStart = Integer.MIN_VALUE;
+        }
+        if (remainsFin == null){
+            remainsFin = Integer.MAX_VALUE;
+        }
+        Integer finalAdvanceStart = remainsStart;
+        Integer finalAdvanceFin = remainsFin;
+
+
+        return (root, query, builder) -> {
+//            CriteriaBuilder builder = manager.getCriteriaBuilder();
+//            CriteriaQuery<OfferEntity> query = builder.createQuery(OfferEntity.class);
+//            Root<OfferEntity> root = query.from(OfferEntity.class);
+
+            Join<Flat, FlatPayment> join = root.join(Flat_.FLAT_PAYMENTS, JoinType.INNER);
+            query.groupBy(join.get(FlatPayment_.FLAT));
+
+            Root<FlatPayment> rootFlatPayment = query.from(FlatPayment.class);
+
+//            List<Predicate> predicates = new ArrayList<>();
+//            predicates.add(cb.like(bListJoin.get(Realtor_.PHONE), "%" + phone.toLowerCase(Locale.ROOT) + "%"));
+//            return cb.and(predicates.toArray(new Predicate[0]));
+//            return cb.equal(cb.sum(root.get(Flat_.PRICE)));
+
+//            return builder.between(
+//                    builder.sum(
+//                            query.subquery()
+//                    ),
+//                    finalAdvanceStart, finalAdvanceFin
+//            );
             return null;
         };
     }

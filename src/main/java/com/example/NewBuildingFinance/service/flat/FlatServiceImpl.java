@@ -45,29 +45,31 @@ public class FlatServiceImpl implements FlatService{
             String sortingField,
             String sortingDirection,
 
-            Optional<Integer> number,
-            Optional<Long> objectId,
-            Optional<String> status,
-            Optional<Double> areaStart,
-            Optional<Double> areaFin,
-            Optional<Integer> priceStart,
-            Optional<Integer> priceFin,
-            Optional<Integer> advanceStart,
-            Optional<Integer> advanceFin
+            Integer number,
+            Long objectId,
+            String status,
+            Double areaStart,
+            Double areaFin,
+            Integer priceStart,
+            Integer priceFin,
+            Integer advanceStart,
+            Integer advanceFin,
+            Integer enteredStart,
+            Integer enteredFin,
+            Integer remainsStart,
+            Integer remainsFin
     ) {
-        Object object = null;
-        if (objectId.isPresent()) {
-            object = objectRepository.findById(objectId.get()).orElse(null);
-        }
         log.info("get flat page. page: {}, size: {} field: {}, direction: {}",
                 currentPage - 1, size, sortingField, sortingDirection);
         Specification<Flat> specification = Specification
-                .where(FlatSpecification.likeNumber(number.orElse(null)))
-                .and(FlatSpecification.likeObject(object))
-                .and(FlatSpecification.likeStatus(status.orElse(null)))
-                .and(FlatSpecification.likeArea(areaStart.orElse(null), areaFin.orElse(null)))
-                .and(FlatSpecification.likePrice(priceStart.orElse(null), priceFin.orElse(null)))
-                .and(FlatSpecification.likeAdvance(advanceStart.orElse(null), advanceFin.orElse(null)));
+                .where(FlatSpecification.likeNumber(number))
+                .and(FlatSpecification.likeObjectId(objectId))
+                .and(FlatSpecification.likeStatus(status))
+                .and(FlatSpecification.likeArea(areaStart, areaFin))
+                .and(FlatSpecification.likePrice(priceStart, priceFin))
+                .and(FlatSpecification.likeAdvance(advanceStart, advanceFin))
+                .and(FlatSpecification.likeEntered(enteredStart, enteredFin))
+                .and(FlatSpecification.likeRemains(remainsStart, remainsFin));
         Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
         Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
         Page<FlatTableDto> flats = flatRepository.findAll(specification, pageable).map(Flat::buildTableDto);
@@ -436,12 +438,66 @@ public class FlatServiceImpl implements FlatService{
         for (Row row : sheet) {
             if(sheet.getRow(0).equals(row) || sheet.getRow(1).equals(row)){continue;}
             Flat flat = new Flat();
+            Object object = null;
+
+            // cell4 object
+            Cell cell4 = row.getCell(4);
+            if(cell4.getCellType().equals(CellType.STRING)){
+                if(cell4.getStringCellValue().contains("(")){
+                    System.out.println(cell4.getStringCellValue());
+                    String[] words = cell4.getStringCellValue().split("\\(");
+                    if (words.length == 2){
+                        String house = words[0];
+                        String sectionWithBracket = words[1];
+                        if (!house.equals("") && !sectionWithBracket.equals("")) {
+                            String[] words2 = sectionWithBracket.split("\\)");
+                            if(words2.length == 1) {
+                                String section = words2[0];
+
+                                object = objectRepository.findByHouseAndSection(house, section);
+                                if(object != null){
+                                    flat.setObject(object);
+                                    cell4.setCellStyle(cellStyleCorrect);
+                                } else {
+                                    ok = true;
+                                    cell4.setCellStyle(cellStyleError);
+                                }
+                            } else {
+                                ok = true;
+                                cell4.setCellStyle(cellStyleError);
+                            }
+                        } else {
+                            ok = true;
+                            cell4.setCellStyle(cellStyleError);
+                        }
+                    } else {
+                        ok = true;
+                        cell4.setCellStyle(cellStyleError);
+                    }
+                } else {
+                    ok = true;
+                    cell4.setCellStyle(cellStyleError);
+                }
+            } else {
+                ok = true;
+                cell4.setCellStyle(cellStyleError);
+            }
 
             // cell0 number
             Cell cell0 = row.getCell(0);
             if(cell0.getCellType().equals(CellType.NUMERIC)){
-                flat.setNumber((int) Math.round(cell0.getNumericCellValue()));
-                cell0.setCellStyle(cellStyleCorrect);
+                if(object != null){
+                    if(!checkFlatNumber((int) Math.round(cell0.getNumericCellValue()), object.getId())){
+                        flat.setNumber((int) Math.round(cell0.getNumericCellValue()));
+                        cell0.setCellStyle(cellStyleCorrect);
+                    } else {
+                        ok = true;
+                        cell0.setCellStyle(cellStyleError);
+                    }
+                } else {
+                    ok = true;
+                    cell0.setCellStyle(cellStyleError);
+                }
             } else {
                 ok = true;
                 cell0.setCellStyle(cellStyleError);
@@ -477,45 +533,6 @@ public class FlatServiceImpl implements FlatService{
                 cell3.setCellStyle(cellStyleError);
             }
 
-            // cell4 object
-            Cell cell4 = row.getCell(4);
-            if(cell4.getCellType().equals(CellType.STRING)){
-                if(cell4.getStringCellValue().contains("(")){
-                    System.out.println(cell4.getStringCellValue());
-                    String[] words = cell4.getStringCellValue().split("\\(");
-                    if (words.length == 2){
-                        String house = words[0];
-                        String sectionWithBracket = words[1];
-                        if (!house.equals("") && !sectionWithBracket.equals("")) {
-                            String[] words2 = sectionWithBracket.split("\\)");
-                            if(words2.length == 1) {
-                                String section = words2[0];
-                                System.out.println("house " + house);
-                                System.out.println("section " + section);
-                                    // search object
-                                cell4.setCellStyle(cellStyleCorrect);
-
-                            } else {
-                                ok = true;
-                                cell4.setCellStyle(cellStyleError);
-                            }
-                        } else {
-                            ok = true;
-                            cell4.setCellStyle(cellStyleError);
-                        }
-                    } else {
-                        ok = true;
-                        cell4.setCellStyle(cellStyleError);
-                    }
-                } else {
-                    ok = true;
-                    cell4.setCellStyle(cellStyleError);
-                }
-            } else {
-                ok = true;
-                cell4.setCellStyle(cellStyleError);
-            }
-
             // cell5 style
             Cell cell5 = row.getCell(5);
             if(cell5.getCellType().equals(CellType.STRING)){
@@ -545,7 +562,13 @@ public class FlatServiceImpl implements FlatService{
             Cell cell7 = row.getCell(7);
             if(cell7.getCellType().equals(CellType.NUMERIC)){
                 flat.setSalePrice(cell7.getNumericCellValue());
-                cell7.setCellStyle(cellStyleCorrect);
+                if(flat.getPrice() >= flat.getSalePrice()){
+                    cell7.setCellStyle(cellStyleCorrect);
+                } else {
+                    ok = true;
+                    cell6.setCellStyle(cellStyleError);
+                    cell7.setCellStyle(cellStyleError);
+                }
             } else {
                 ok = true;
                 cell7.setCellStyle(cellStyleError);
@@ -590,9 +613,14 @@ public class FlatServiceImpl implements FlatService{
 
             return false;
         } else {
-            log.info("success save flats.xlsx");
-//            flatRepository.saveAll(flats);
-            return true;
+            if(!flats.isEmpty()){
+                log.info("success save flats.xlsx");
+                flatRepository.saveAll(flats);
+                return true;
+            } else {
+                log.info("success but flats list is empty");
+                return false;
+            }
         }
     }
 
@@ -623,14 +651,6 @@ public class FlatServiceImpl implements FlatService{
         if (id != null) {
             flat = flatRepository.findById(id).orElseThrow();
         }
-        log.info("success");
-        return flat;
-    }
-
-    @Override
-    public Flat findByContractId(Long id) {
-        log.info("get flat by contract id: {}", id);
-        Flat flat = flatRepository.findFlatByContractId(id).orElseThrow();
         log.info("success");
         return flat;
     }

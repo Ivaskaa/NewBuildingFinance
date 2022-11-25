@@ -49,6 +49,15 @@ public class Buyer {
         BuyerTableDto buyer = new BuyerTableDto();
         buyer.setId(id);
         buyer.setName(name);
+
+        Integer count = 0;
+        for(Flat flat : flats){
+            if(flat.getContract() != null){
+                count++;
+            }
+        }
+        buyer.setCount(count);
+
         buyer.setSurname(surname);
         buyer.setLastname(lastname);
         buyer.setPhone(phone);

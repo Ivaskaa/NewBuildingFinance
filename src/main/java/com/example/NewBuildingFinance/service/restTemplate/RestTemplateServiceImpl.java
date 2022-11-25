@@ -24,6 +24,7 @@ public class RestTemplateServiceImpl implements RestTemplateService{
 
     @Override
     public List<CurrencyJson> getCurrency() throws JsonProcessingException {
+        log.info("get currency from national bank api");
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -40,6 +41,7 @@ public class RestTemplateServiceImpl implements RestTemplateService{
         for (CurrencyJson currencyJson : currencyBanks){
             currencyJson.setRate(Double.parseDouble(String.format("%.2f", currencyJson.getRate()).replace(',', '.')));
         }
+        log.info("success get currency from national bank api");
         return currencyBanks;
     }
 }

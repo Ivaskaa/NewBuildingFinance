@@ -57,7 +57,7 @@ public class ContractSaveDto {
     private String flatAddress;
     @NotNull(message = "Must not be empty")
     private Integer price;
-    @NotEmpty(message = "Must not be empty")
+    @NotNull(message = "Must not be empty")
     private Date date;
     private String comment;
 

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Summary plan-fact</title>
+
+    <style th:replace="blocks/linkAdminLTE"></style>
+    <div th:replace="blocks/links"></div>
+    <script th:src="@{/js/app.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+
+<body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
+<div class="wrapper">
+
+    <div th:replace="blocks/navbar"></div>
+    <div th:replace="blocks/sidebarContainer"></div>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <div class="content-header">
+            <div class="container-fluid">
+                <h1 class="m-0">Summary plan-fact</h1>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+
+            <div class="row">
+                <div class="col">
+                </div>
+                <div class="col">
+                </div>
+                <div class="col">
+                </div>
+                <div class="col">
+                </div>
+                <div class="col">
+                </div>
+                <div class="col">
+                    <div class="form-group mt-2">
+                        <label>Period:</label>
+                        <input oninput="updatePage()" id="periodStart" type="month" th:value="${dateStart}" class="form-control">
+                        <input oninput="updatePage()" id="periodEnd" type="month" th:value="${dateFin}" class="form-control">
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group mt-2">
+                        <label>Object:</label>
+                        <select id="object" onchange="updatePage()" class="form-control" style="width: 130px">
+                            <option th:value="null" selected>All objects</option>
+                            <option th:each="el : ${objects}" th:value="${el.id}" th:text="${el.house} + '(' + ${el.section} + ')'"></option>
+                        </select>
+                        <p id='objectMessage' style="color: red"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Small boxes (Stat box) -->
+            <div class="row">
+                <div class="col">
+                    <!-- small box -->
+                    <div class="small-box bg-info">
+                        <div class="inner">
+                            <h3 id="countFlat"></h3>
+
+                            <p>Count flat</p>
+                            <div class="row">
+                                <div class="col">
+                                    <p id="countFlatSales"></p>
+                                </div>
+                                <div class="col">
+                                    <p id="countFlatLost"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-bag"></i>
+                        </div>
+                    </div>
+                </div>
+                <!-- ./col -->
+                <div class="col">
+                    <!-- small box -->
+                    <div class="small-box bg-success">
+                        <div class="inner">
+                            <h3 id="flatsArea"></h3>
+
+                            <p>Flats area</p>
+                            <div class="row">
+                                <div class="col">
+                                    <p id="flatsAreaSales"></p>
+                                </div>
+                                <div class="col">
+                                    <p id="flatsAreaLost"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-stats-bars"></i>
+                        </div>
+                    </div>
+                </div>
+                <!-- ./col -->
+                <div class="col">
+                    <!-- small box -->
+                    <div class="small-box bg-danger">
+                        <div class="inner">
+                            <h3 id="planed"></h3>
+
+                            <p>Planed</p>
+                            <div class="row">
+                                <div class="col">
+                                    <p id="fact"></p>
+                                </div>
+                                <div class="col">
+                                    <p id="arrears"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-pie-graph"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card card-danger">
+                <div class="card-header">
+                    <h3 class="card-title">Bar chart</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button type="button" class="btn btn-tool" data-card-widget="remove">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chartjs-size-monitor">
+                        <div class="chartjs-size-monitor-expand">
+                            <div class=""></div>
+                        </div>
+                        <div class="chartjs-size-monitor-shrink">
+                            <div class=""></div>
+                        </div>
+                    </div>
+                    <div id="cardBody" class="card-body">
+                        <div class="chart"><div class="chartjs-size-monitor"><div class="chartjs-size-monitor-expand"><div class=""></div></div><div class="chartjs-size-monitor-shrink"><div class=""></div></div></div>
+                            <canvas id="barChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;" width="764" height="250" class="chartjs-render-monitor"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.card-body -->
+            </div>
+
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">
+                        <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Date</p>
+                    </th>
+                    <th scope="col">
+                        <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Planed</p>
+                    </th>
+                    <th scope="col">
+                        <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Fact</p>
+                    </th>
+                    <th scope="col">
+                        <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Arrears</p>
+                    </th>
+                </tr>
+                </thead>
+                <tbody id="list">
+                <!-- list -->
+                </tbody>
+            </table>
+        </section>
+    </div>
+</div>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script th:src="@{/js/validation.js}"></script>
+
+<script>
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
+    let url = window.location.protocol+"//"+ window.location.host + context;
+
+    $(document).ready(function() {
+        updatePage();
+    });
+
+    function updatePage(){
+        let data = {
+            objectId: $("#object").val(),
+            dateStart: $("#periodStart").val(),
+            dateFin: $("#periodEnd").val()
+        }
+        $.ajax({
+            type: 'get',
+            url: url + '/getPlanFactStatistics',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                console.log('success /getPlanFactStatistics');
+                updateList(data)
+                updateAreaChart(data);
+                updateSmallBoxes(data);
+            },
+            error: function() {
+                console.log('error /getPlanFactStatistics');
+            }
+        });
+    }
+
+    function updateSmallBoxes(data){
+        document.getElementById('countFlat').innerHTML = data.boxFlats;
+        document.getElementById('countFlatSales').innerHTML = data.boxSalesFlats + " Sales";
+        document.getElementById('countFlatLost').innerHTML = data.boxOnSaleFlats + " On sale";
+        document.getElementById('flatsArea').innerHTML = roundPlus(data.boxArea, 2);
+        document.getElementById('flatsAreaSales').innerHTML = roundPlus(data.boxSalesArea, 2) + " Sales";
+        document.getElementById('flatsAreaLost').innerHTML = roundPlus(data.boxOnSaleArea, 2) + " On sale";
+        document.getElementById('planed').innerHTML = roundPlus(data.boxPlaned, 2);
+        document.getElementById('fact').innerHTML = roundPlus(data.boxFact, 2) + " Fact";
+        document.getElementById('arrears').innerHTML = roundPlus(data.boxDuty, 2) + " Arrear";
+    }
+
+    function updateAreaChart(data){
+        $('#cardBody').empty();
+        $("#cardBody").append($("" +
+            "<div class=\"chart\"><div class=\"chartjs-size-monitor\"><div class=\"chartjs-size-monitor-expand\"><div class=\"\"></div></div><div class=\"chartjs-size-monitor-shrink\"><div class=\"\"></div></div></div>\n" +
+            "   <canvas id=\"barChart\" style=\"min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;\" width=\"764\" height=\"250\" class=\"chartjs-render-monitor\"></canvas>\n" +
+            "</div>"
+        ));
+
+        let months = [];
+        let planed = [];
+        let fact = [];
+        let arrears = [];
+
+        data.tableDto.forEach((object) => {
+            months.push(moment(object.date).format('YYYY-MM'));
+            planed.push(object.planed);
+            fact.push(object.fact);
+            arrears.push(object.duty);
+        })
+
+        let areaChartData = {
+            labels: months,
+            datasets: [
+                {
+                    label               : 'Fact',
+                    backgroundColor     : 'rgba(49,211,31,0.9)',
+                    borderColor         : 'rgba(188,211,185,0.9)',
+                    pointRadius          : false,
+                    pointColor          : 'rgba(49,211,31,0.9)',
+                    pointStrokeColor    : 'rgba(49,211,31,0.9)',
+                    pointHighlightFill  : '#fff',
+                    pointHighlightStroke: 'rgba(49,211,31,0.9)',
+                    data                : fact
+                },
+                {
+                    label               : 'Planed',
+                    backgroundColor     : 'rgba(70,110,250,0.9)',
+                    borderColor         : 'rgba(181,188,220,0.9)',
+                    pointRadius          : false,
+                    pointColor          : 'rgba(70,110,250,0.9)',
+                    pointStrokeColor    : 'rgba(70,110,250,0.9)',
+                    pointHighlightFill  : '#fff',
+                    pointHighlightStroke: 'rgba(70,110,250,0.9)',
+                    data                : planed
+                },
+                {
+                    label               : 'Arrears',
+                    backgroundColor     : 'rgb(204,13,13)',
+                    borderColor         : 'rgb(218,177,177)',
+                    pointRadius         : false,
+                    pointColor          : 'rgb(204,13,13)',
+                    pointStrokeColor    : 'rgb(204,13,13)',
+                    pointHighlightFill  : '#fff',
+                    pointHighlightStroke: 'rgb(204,13,13)',
+                    data                : arrears
+                },
+            ]
+        }
+        console.log(areaChartData);
+
+        let barChartCanvas = $('#barChart').get(0).getContext('2d')
+        let barChartData = $.extend(true, {}, areaChartData)
+        barChartData.datasets[0] = areaChartData.datasets[0]
+
+        let barChartOptions = {
+            responsive              : true,
+            maintainAspectRatio     : false,
+            datasetFill             : false
+        }
+        new Chart(barChartCanvas, {
+            type: 'bar',
+            data: barChartData,
+            options: barChartOptions
+        })
+
+    }
+
+    function updateList(data) {
+        $("#list").empty();
+        console.log(data);
+        data.tableDto.forEach((object) => {
+            $("#list").append($("" +
+                "<tr>" +
+                "<td>" +
+                "<p>" + moment(object.date).format('YYYY-MM') + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.planed + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.fact + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.duty + "</p>" +
+                "</td>" +
+                "</tr>"
+            ));
+        })
+    }
+
+    $("#datepicker").datepicker( {
+        format: "mm-yyyy",
+        viewMode: "months",
+        minViewMode: "months"
+    });
+</script>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+
+</main>
+</body>
+</html>

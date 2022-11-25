@@ -1,6 +1,7 @@
 package com.example.NewBuildingFinance.service.cashRegister;
 
 import com.example.NewBuildingFinance.dto.cashRegister.CashRegisterTableDto;
+import com.example.NewBuildingFinance.dto.cashRegister.CashRegisterTableDtoForFlat;
 import com.example.NewBuildingFinance.dto.cashRegister.IncomeUploadDto;
 import com.example.NewBuildingFinance.dto.cashRegister.SpendingUploadDto;
 import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.List;
 
 public interface CashRegisterService {
 
@@ -26,7 +28,8 @@ public interface CashRegisterService {
      * @param status search cash register  status
      * @param objectId search cash register object
      * @param article search cash register article
-     * @param price search cash register price
+     * @param priceStart search cash register price start
+     * @param priceFin search cash register price final
      * @param currencyId search cash register currencyId
      * @param counterparty search cash register counterparty
      * @return page of cash register table dto
@@ -45,10 +48,18 @@ public interface CashRegisterService {
             String status,
             Long objectId,
             String article,
-            Double price,
+            Double priceStart,
+            Double priceFin,
             Long currencyId,
             String counterparty
     ) throws ParseException;
+
+    /**
+     * get cash registers for table in flat page
+     * @param id id for search
+     * @return list og cash register table dto for flat
+     */
+    List<CashRegisterTableDtoForFlat> getCashRegistersByFlatId(Long id);
 
     /**
      * save new income(cash register)

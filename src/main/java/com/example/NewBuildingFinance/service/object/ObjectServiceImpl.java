@@ -19,6 +19,7 @@ import java.util.List;
 public class ObjectServiceImpl implements ObjectService{
     private final ObjectRepository objectRepository;
 
+    @Override
     public Page<ObjectTableDto> findSortingPage(
             Integer currentPage,
             Integer size,
@@ -33,19 +34,23 @@ public class ObjectServiceImpl implements ObjectService{
         return objectPage;
     }
 
+    @Override
     public List<Object> findAll() {
+        log.info("find all objects");
         List<Object> objectPage = objectRepository.findAll();
-        log.info("success");
+        log.info("success find all objects");
         return objectPage;
     }
 
+    @Override
     public Object save(Object object) {
         log.info("save object: {}", object);
         objectRepository.save(object);
-        log.info("success");
+        log.info("success save object");
         return object;
     }
 
+    @Override
     public Object update(Object objectForm) {
         log.info("update object: {}", objectForm);
         Object object = objectRepository.findById(objectForm.getId()).orElseThrow();
@@ -57,32 +62,34 @@ public class ObjectServiceImpl implements ObjectService{
         object.setManager(objectForm.getManager());
         object.setActive(objectForm.isActive());
         objectRepository.save(object);
-        log.info("success");
+        log.info("success update object");
         return object;
     }
 
+    @Override
     public void deleteById(Long id) {
         log.info("delete object by id: {}", id);
         objectRepository.deleteById(id);
-        log.info("success");
+        log.info("success delete object by id");
     }
 
+    @Override
     public Object findById(Long id) {
         log.info("get object by id: {}", id);
         Object object = objectRepository.findById(id).orElseThrow();
-        log.info("success");
+        log.info("success get object by id");
         return object;
     }
 
-    public boolean checkPercentages(Object object) {
-        if (object.getAgency()!= null && object.getManager() != null){
-            int agency = object.getAgency();
-            int manager = object.getManager();
+    @Override
+    public boolean checkPercentages(Integer agency, Integer manager) {
+        if (agency != null && manager != null){
             return agency + manager > 100;
         }
         return false;
     }
 
+    @Override
     public List<Object> findAllOnSale() {
         return objectRepository.findAllOnSale();
     }

@@ -33,12 +33,12 @@ public class Agency {
         Integer count = 0;
         for(Realtor realtor : realtors){
             if(realtor.isDirector() && realtor.getAgency().equals(this)){
-                agency.setDirectorName(realtor.getName());
+                agency.setDirectorName(realtor.getName() + " " + realtor.getSurname());
                 agency.setDirectorPhone(realtor.getPhone());
                 agency.setDirectorEmail(realtor.getEmail());
             }
             for(Flat flat : realtor.getFlats()){
-                if (flat.getContract()!= null) {
+                if (flat.getContract() != null) {
                     count++;
                 }
             }

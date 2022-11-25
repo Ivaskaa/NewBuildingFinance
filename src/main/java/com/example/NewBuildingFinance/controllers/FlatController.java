@@ -1,21 +1,26 @@
 package com.example.NewBuildingFinance.controllers;
 
 import com.example.NewBuildingFinance.dto.buyer.BuyerDto;
+import com.example.NewBuildingFinance.dto.cashRegister.CashRegisterTableDtoForFlat;
 import com.example.NewBuildingFinance.dto.flat.FlatSaveDto;
+import com.example.NewBuildingFinance.dto.statistic.PlanFactStatisticDto;
 import com.example.NewBuildingFinance.entities.agency.Agency;
 import com.example.NewBuildingFinance.entities.agency.Realtor;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
+import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.flat.StatusFlat;
 import com.example.NewBuildingFinance.service.agency.AgencyServiceImpl;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.example.NewBuildingFinance.service.buyer.BuyerServiceImpl;
+import com.example.NewBuildingFinance.service.cashRegister.CashRegisterServiceImpl;
 import com.example.NewBuildingFinance.service.flat.FlatServiceImpl;
 import com.example.NewBuildingFinance.service.flatPayment.FlatPaymentServiceImpl;
 import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
 import com.example.NewBuildingFinance.service.object.ObjectServiceImpl;
 import com.example.NewBuildingFinance.service.realtor.RealtorServiceImpl;
+import com.example.NewBuildingFinance.service.statistic.StatisticServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -32,6 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.*;
 
 @Controller
@@ -39,19 +45,22 @@ import java.util.*;
 @RequestMapping("/flats")
 public class FlatController {
     private final InternalCurrencyServiceImpl currencyService;
+    private final StatisticServiceImpl statisticService;
     private final UserServiceImpl userServiceImpl;
+
     private final FlatServiceImpl flatServiceImpl;
     private final AgencyServiceImpl agencyServiceImpl;
     private final RealtorServiceImpl realtorServiceImpl;
     private final BuyerServiceImpl buyerServiceImpl;
-    private final FlatPaymentServiceImpl flatPaymentServiceImpl;
     private final ObjectServiceImpl objectServiceImpl;
+    private final CashRegisterServiceImpl cashRegisterService;
+
     private final ObjectMapper mapper;
 
     @GetMapping()
     public String flats(
             Model model
-    ){
+    ) throws ParseException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userServiceImpl.loadUserByUsername(authentication.getName());
         model.addAttribute("objects", objectServiceImpl.findAll());
@@ -60,6 +69,7 @@ public class FlatController {
             list.add(Pair.of(statusObject, statusObject.getValue()));
         }
         model.addAttribute("currencies", currencyService.findAll());
+        model.addAttribute("statistic", statisticService.getMainMonthlyStatistic(null, "", ""));
         model.addAttribute("statuses", list);
         model.addAttribute("user", user);
         return "flat/flats";
@@ -89,15 +99,19 @@ public class FlatController {
             String field,
             String direction,
 
-            Optional<Integer> number,
-            Optional<Long> objectId,
-            Optional<String> status,
-            Optional<Double> areaStart,
-            Optional<Double> areaFin,
-            Optional<Integer> priceStart,
-            Optional<Integer> priceFin,
-            Optional<Integer> advanceStart,
-            Optional<Integer> advanceFin
+            Integer number,
+            Long objectId,
+            String status,
+            Double areaStart,
+            Double areaFin,
+            Integer priceStart,
+            Integer priceFin,
+            Integer advanceStart,
+            Integer advanceFin,
+            Integer enteredStart,
+            Integer enteredFin,
+            Integer remainsStart,
+            Integer remainsFin
     ) throws JsonProcessingException {
         return mapper.writeValueAsString(flatServiceImpl.findSortingAndSpecificationPage(
                 page, size, field, direction,
@@ -106,7 +120,10 @@ public class FlatController {
                 status,
                 areaStart, areaFin,
                 priceStart, priceFin,
-                advanceStart, advanceFin));
+                advanceStart, advanceFin,
+                enteredStart, enteredFin,
+                remainsStart, remainsFin
+        ));
     }
 
     @PostMapping("/addFlat")
@@ -364,5 +381,15 @@ public class FlatController {
     @ResponseBody
     public String getAllManagers() throws JsonProcessingException {
         return mapper.writeValueAsString(userServiceImpl.findManagers());
+    }
+
+
+    @GetMapping ("/getCashRegisterByFlatId")
+    @ResponseBody
+    public String getCashRegisterByFlatId(
+            Long id
+    ) throws JsonProcessingException {
+        List<CashRegisterTableDtoForFlat> cashRegisters = cashRegisterService.getCashRegistersByFlatId(id);
+        return mapper.writeValueAsString(cashRegisters);
     }
 }

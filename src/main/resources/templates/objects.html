@@ -40,9 +40,6 @@
                 <thead>
                 <tr>
                     <th scope="col">
-<!--                        <label>-->
-<!--                            <input class="form-control">-->
-<!--                        </label>-->
                         <div onclick="sort('id')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Id</p>
                         </div>
@@ -208,7 +205,7 @@
             success: function (data){
                 console.log('success /getStatusObject');
                 $("#status").append($("" +
-                    "<option value='" + null + "'>Choose status</option>"
+                    "<option selected disabled value='" + null + "'>Choose status</option>"
                 ));
                 data.forEach((object) =>{
                     $("#status").append($("" +

@@ -70,12 +70,20 @@ public class CashRegisterSpecification {
             return cb.equal(root.get(CashRegister_.ARTICLE), Article.valueOf(article));
         };
     }
-    public static Specification<CashRegister> likePrice(Double price) {
-        if (price == null) {
+    public static Specification<CashRegister> likePrice(Double priceStart, Double priceFin) {
+        if (priceStart == null && priceFin == null) {
             return null;
         }
+        if (priceStart == null){
+            priceStart = Double.MIN_VALUE;
+        }
+        if (priceFin == null){
+            priceFin = Double.MAX_VALUE;
+        }
+        Double finalAdvanceStart = priceStart;
+        Double finalAdvanceFin = priceFin;
         return (root, query, cb) -> {
-            return cb.equal(root.get(CashRegister_.PRICE), price);
+            return cb.between(root.get(CashRegister_.PRICE), finalAdvanceStart, finalAdvanceFin);
         };
     }
     public static Specification<CashRegister> likeCurrencyId(Long currencyId) {

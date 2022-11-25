@@ -105,7 +105,7 @@
                     </div>
                     <div class="form-group mt-2">
                         <label>Admission course:</label>
-                        <input id="admissionCourse" type="number" placeholder='Enter admission course' class="form-control" maxlength="5">
+                        <input oninput="uploadPriceInput()" id="admissionCourse" type="number" placeholder='Enter admission course' class="form-control" maxlength="5">
                         <p id='admissionCourseMessage' style="color: red"></p>
                     </div>
                 </div>
@@ -133,6 +133,10 @@
     let FlatPaymentId = "[[${flatPaymentId}]]";
     let Income = {};
     let FlatPayment = {};
+
+    let Planed;
+    let Currency;
+
     console.log(FlatPaymentId);
 
 
@@ -377,6 +381,32 @@
 
     //upload info
 
+    function uploadPriceInput(){
+        if (Planed !== undefined){
+            document.getElementById('price').value = roundPlus(Planed / document.getElementById('admissionCourse').value, 2);
+        } else {
+            document.getElementById('price').value = 0;
+        }
+    }
+
+    function uploadPriceCurrency(){
+        if(Currency !== undefined){
+            if(Planed !== undefined){
+                // all not undefined
+                document.getElementById('price').value = roundPlus(Planed / Currency, 2);
+            } else {
+                // planned undefined
+                document.getElementById('price').value = 0;
+            }
+        } else if(Planed !== undefined){
+            // currency undefined
+            document.getElementById('price').value = Planed;
+        } else {
+            //all undefined
+            document.getElementById('price').value = 0;
+        }
+    }
+
     function uploadFlatPayment(){
         let data = {id: $("#flatPayment").val()}
         $.ajax({
@@ -386,7 +416,8 @@
             data: data,
             success: function (data) {
                 console.log('success /getFlatPaymentById');
-                document.getElementById('price').value = data.planned;
+                Planed = data.planned;
+                uploadPriceCurrency();
             },
             error: function () {
                 console.log('error /getFlatPaymentById');
@@ -403,6 +434,8 @@
             data: data,
             success: function (data) {
                 console.log('success /getCurrencyById');
+                Currency = data.price;
+                uploadPriceCurrency();
                 document.getElementById('admissionCourse').value = data.price;
                 document.getElementById('admissionCourse').disabled = data.name === 'UAH';
             },
@@ -578,6 +611,7 @@
                         $("#flatPayment").append($("" +
                             "<option selected value='" + element.id + "'> " + element.number + " (" + moment(element.date).format('YYYY-MM-DD') + ")</option>"
                         ));
+                        Planed = roundPlus(element.salePrice / 100 * element.agency, 2);
                     } else if (element.id === FlatPayment?.id ?? null) {
                         $("#flatPayment").append($("" +
                             "<option selected value='" + element.id + "'> " + element.number + " (" + moment(element.date).format('YYYY-MM-DD') + ")</option>"

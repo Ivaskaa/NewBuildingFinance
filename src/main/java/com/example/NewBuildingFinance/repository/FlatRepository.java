@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,4 +33,6 @@ public interface FlatRepository extends JpaRepository<Flat, Long>, JpaSpecificat
     List<Flat> findAllByDeletedFalseAndObjectIdAndContractNotNullOrId(Long object_id, Long id);
 
     List<Flat> findAllByDeletedFalse();
+
+    List<Flat> findAllByObjectId(Long objectId);
 }

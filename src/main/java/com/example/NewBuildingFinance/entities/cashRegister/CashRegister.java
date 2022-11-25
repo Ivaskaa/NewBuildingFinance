@@ -1,5 +1,6 @@
 package com.example.NewBuildingFinance.entities.cashRegister;
 
+import com.example.NewBuildingFinance.dto.cashRegister.CashRegisterTableDtoForFlat;
 import com.example.NewBuildingFinance.dto.cashRegister.IncomeUploadDto;
 import com.example.NewBuildingFinance.dto.cashRegister.CashRegisterTableDto;
 import com.example.NewBuildingFinance.dto.cashRegister.SpendingUploadDto;
@@ -90,6 +91,26 @@ public class CashRegister {
                     object.getSection() + ")");
         }
         cashRegister.setCounterparty(counterparty);
+        return cashRegister;
+    }
+
+    public CashRegisterTableDtoForFlat buildForFlat(){
+        CashRegisterTableDtoForFlat cashRegister = new CashRegisterTableDtoForFlat();
+        cashRegister.setId(id);
+        if(realtor != null){
+            cashRegister.setCounterparty(realtor.getAgency().getName());
+            cashRegister.setType("Agency");
+            cashRegister.setManager(realtor.getSurname() + " " + realtor.getName());
+            cashRegister.setPercent(flat.getAgency());
+        } else {
+            cashRegister.setCounterparty("Sales department");
+            cashRegister.setType("Sales department");
+            cashRegister.setManager(manager.getSurname() + " " + manager.getName());
+            cashRegister.setPercent(flat.getManager());
+        }
+        cashRegister.setStatus(status.getValue());
+        cashRegister.setPrice(price);
+        cashRegister.setDate(date);
         return cashRegister;
     }
 

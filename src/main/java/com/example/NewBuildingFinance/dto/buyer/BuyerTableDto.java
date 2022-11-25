@@ -6,7 +6,7 @@ import lombok.Data;
 public class BuyerTableDto {
     private Long id;
     private String name;
-    private String count;
+    private Integer count;
     private String surname;
     private String lastname;
     private String phone;

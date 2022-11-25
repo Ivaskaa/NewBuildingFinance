@@ -19,6 +19,7 @@ import com.example.NewBuildingFinance.service.flatPayment.FlatPaymentServiceImpl
 import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
 import com.example.NewBuildingFinance.service.object.ObjectServiceImpl;
 import com.example.NewBuildingFinance.service.realtor.RealtorServiceImpl;
+import com.example.NewBuildingFinance.service.statistic.StatisticServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.text.DocumentException;
@@ -46,6 +47,8 @@ import java.util.*;
 public class CashRegisterController {
     private final InternalCurrencyServiceImpl internalCurrencyServiceImpl;
     private final UserServiceImpl userServiceImpl;
+    private final StatisticServiceImpl statisticService;
+
     private final ObjectServiceImpl objectServiceImpl;
     private final FlatServiceImpl flatServiceImpl;
     private final FlatPaymentServiceImpl flatPaymentServiceImpl;
@@ -81,6 +84,7 @@ public class CashRegisterController {
             articles.add(Pair.of(article, article.getValue()));
         }
         model.addAttribute("articles", articles);
+        model.addAttribute("statistic", statisticService.getCashRegisterBoxes());
         model.addAttribute("user", user);
         return "cashRegister/cashRegisters";
     }
@@ -100,7 +104,8 @@ public class CashRegisterController {
             String status,
             Long objectId,
             String article,
-            Double price,
+            Double priceStart,
+            Double priceFin,
             Long currencyId,
             String counterparty
     ) throws IOException, ParseException {
@@ -113,7 +118,7 @@ public class CashRegisterController {
                 status,
                 objectId,
                 article,
-                price,
+                priceStart, priceFin,
                 currencyId,
                 counterparty
         ));

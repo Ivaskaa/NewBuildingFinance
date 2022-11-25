@@ -5,9 +5,11 @@ import com.example.NewBuildingFinance.entities.buyer.Buyer_;
 import com.example.NewBuildingFinance.entities.contract.Contract;
 import com.example.NewBuildingFinance.entities.contract.Contract_;
 import com.example.NewBuildingFinance.entities.flat.Flat_;
+import com.example.NewBuildingFinance.entities.object.Object;
 import com.example.NewBuildingFinance.entities.object.Object_;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -65,23 +67,64 @@ public class ContractSpecification {
         if (name == null || name.equals("")) {
             return null;
         }
-        return (root, query, cb) -> {
+        String[] words = name.split(" ");
+        return (root, query, builder) -> {
+
             List<Predicate> predicates = new ArrayList<>();
-            if(name.contains(" ")) {
-                String[] words = name.split(" ");
-                for (String word : words) {
-                    predicates.add(cb.like(root.get(Contract_.FLAT).get(Flat_.BUYER).get(Buyer_.NAME), "%" + word.toLowerCase(Locale.ROOT) + "%"));
-                    predicates.add(cb.like(root.get(Contract_.FLAT).get(Flat_.BUYER).get(Buyer_.SURNAME), "%" + word.toLowerCase(Locale.ROOT) + "%"));
-                    predicates.add(cb.like(root.get(Contract_.FLAT).get(Flat_.BUYER).get(Buyer_.LASTNAME), "%" + word.toLowerCase(Locale.ROOT) + "%"));
+
+            Path<Object> path = root.get(Contract_.FLAT).get(Flat_.BUYER);
+
+            if(words.length == 1){
+                predicates.add(builder.like(path.get(Buyer_.NAME), "%" +  words[0].toLowerCase(Locale.ROOT) + "%"));
+                predicates.add(builder.like(path.get(Buyer_.SURNAME), "%" +  words[0].toLowerCase(Locale.ROOT) + "%"));
+                predicates.add(builder.like(path.get(Buyer_.LASTNAME),"%" +  words[0].toLowerCase(Locale.ROOT) + "%"));
+                return builder.or(predicates.toArray(new Predicate[0]));
+            } else if(words.length == 2){
+                predicates.add(builder.and(
+                        builder.like(path.get(Buyer_.NAME), "%" +  words[0].toLowerCase(Locale.ROOT) + "%"),
+                        builder.like(path.get(Buyer_.SURNAME), "%" +  words[1].toLowerCase(Locale.ROOT) + "%")));
+
+                predicates.add(builder.and(
+                        builder.like(path.get(Buyer_.SURNAME), "%" +  words[0].toLowerCase(Locale.ROOT) + "%"),
+                        builder.like(path.get(Buyer_.NAME), "%" +  words[1].toLowerCase(Locale.ROOT) + "%")));
+
+                predicates.add(builder.and(
+                        builder.like(path.get(Buyer_.SURNAME), "%" +  words[0].toLowerCase(Locale.ROOT) + "%"),
+                        builder.like(path.get(Buyer_.LASTNAME), "%" +  words[1].toLowerCase(Locale.ROOT) + "%")));
+
+                predicates.add(builder.and(
+                        builder.like(path.get(Buyer_.LASTNAME), "%" +  words[0].toLowerCase(Locale.ROOT) + "%"),
+                        builder.like(path.get(Buyer_.SURNAME), "%" +  words[1].toLowerCase(Locale.ROOT) + "%")));
+
+                predicates.add(builder.and(
+                        builder.like(path.get(Buyer_.NAME), "%" +  words[0].toLowerCase(Locale.ROOT) + "%"),
+                        builder.like(path.get(Buyer_.LASTNAME), "%" +  words[1].toLowerCase(Locale.ROOT) + "%")));
+
+                predicates.add(builder.and(
+                        builder.like(path.get(Buyer_.LASTNAME), "%" +  words[0].toLowerCase(Locale.ROOT) + "%"),
+                        builder.like(path.get(Buyer_.NAME), "%" +  words[1].toLowerCase(Locale.ROOT) + "%")));
+
+                return builder.or(predicates.toArray(new Predicate[0]));
+            } else if(words.length == 3){
+                for(int i = 0; i < 3; i++){
+                    for(int j = 0; j < 3; j++){
+                        for(int k = 0; k < 3; k++){
+                            if(i != j && i != k && j != k){
+                                predicates.add(builder.and(
+                                        builder.like(path.get(Buyer_.NAME), "%" + words[i].toLowerCase(Locale.ROOT) + "%"),
+                                        builder.like(path.get(Buyer_.SURNAME), "%" + words[j].toLowerCase(Locale.ROOT) + "%"),
+                                        builder.like(path.get(Buyer_.LASTNAME), "%" + words[k].toLowerCase(Locale.ROOT) + "%")));
+                            }
+                        }
+                    }
                 }
+                return builder.or(predicates.toArray(new Predicate[0]));
             } else {
-                predicates.add(cb.like(root.get(Contract_.FLAT).get(Flat_.BUYER).get(Buyer_.NAME), "%" + name.toLowerCase(Locale.ROOT) + "%"));
-                predicates.add(cb.like(root.get(Contract_.FLAT).get(Flat_.BUYER).get(Buyer_.SURNAME), "%" + name.toLowerCase(Locale.ROOT) + "%"));
-                predicates.add(cb.like(root.get(Contract_.FLAT).get(Flat_.BUYER).get(Buyer_.LASTNAME), "%" + name.toLowerCase(Locale.ROOT) + "%"));
+                return builder.equal(root.get(Contract_.ID), 0);
             }
-            return cb.or(predicates.toArray(new Predicate[0]));
         };
     }
+
     public static Specification<Contract> likeComment(String comment) {
         if (comment == null || comment.equals("")) {
             return null;

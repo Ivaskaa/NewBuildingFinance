@@ -1,10 +1,10 @@
 package com.example.NewBuildingFinance.service.auth.user;
 
 import com.example.NewBuildingFinance.entities.auth.Permission;
-import com.example.NewBuildingFinance.others.EmailContext;
+import com.example.NewBuildingFinance.others.mail.MailThread;
+import com.example.NewBuildingFinance.others.mail.context.AbstractEmailContextUserRegistration;
 import com.example.NewBuildingFinance.entities.auth.SecureToken;
 import com.example.NewBuildingFinance.entities.auth.User;
-import com.example.NewBuildingFinance.others.MailThread;
 import com.example.NewBuildingFinance.repository.auth.UserRepository;
 import com.example.NewBuildingFinance.service.mail.MailServiceImpl;
 import com.example.NewBuildingFinance.service.secureToken.SecureTokenServiceImpl;
@@ -160,10 +160,14 @@ public class UserServiceImpl implements UserDetailsService, UserService {
         SecureToken secureToken = secureTokenServiceImpl.createSecureToken();
         secureToken.setUser(user);
         secureTokenServiceImpl.save(secureToken);
-        EmailContext emailContext = new EmailContext();
-        emailContext.init(user);
+        AbstractEmailContextUserRegistration emailContext = new AbstractEmailContextUserRegistration();
         emailContext.setToken(secureToken.getToken());
         emailContext.buildVerificationUrl(baseURL, secureToken.getToken());
+        emailContext.setTemplateLocation("email/email-registration");
+        emailContext.setSubject("Complete your registration");
+        emailContext.setFrom("no-reply@javadevjournal.com");
+        emailContext.setTo(user.getUsername());
+        emailContext.setUser(user.getSurname() + " " + user.getName());
         new MailThread(mailServiceImpl, emailContext).start();
     }
 

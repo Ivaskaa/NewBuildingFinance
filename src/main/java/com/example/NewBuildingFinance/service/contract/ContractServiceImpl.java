@@ -11,6 +11,7 @@ import com.example.NewBuildingFinance.repository.ContractRepository;
 import com.example.NewBuildingFinance.repository.FlatRepository;
 import com.example.NewBuildingFinance.repository.ObjectRepository;
 import com.example.NewBuildingFinance.service.notification.NotificationServiceImpl;
+import com.example.NewBuildingFinance.service.setting.SettingServiceImpl;
 import com.itextpdf.html2pdf.HtmlConverter;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import lombok.AllArgsConstructor;
@@ -40,6 +41,7 @@ public class ContractServiceImpl implements ContractService {
     private final ObjectRepository objectRepository;
 
     private final NotificationServiceImpl notificationServiceImpl;
+    private final SettingServiceImpl settingService;
 
     @Override
     public Page<ContractTableDto> findSortingAndSpecificationPage(
@@ -56,6 +58,7 @@ public class ContractServiceImpl implements ContractService {
             String buyerName,
             String comment
     ) throws ParseException {
+        String[] words = buyerName.split(" ");
         log.info("get contract page. page: {}, size: {} field: {}, direction: {}",
                 currentPage - 1, size, sortingField, sortingDirection);
         Specification<Contract> specification = Specification
@@ -64,6 +67,8 @@ public class ContractServiceImpl implements ContractService {
                 .and(ContractSpecification.likeObject(objectId))
                 .and(ContractSpecification.likeFlatNumber(flatNumber))
                 .and(ContractSpecification.likeBuyerName(buyerName))
+//                .and(ContractSpecification.likeBuyerSurname(words[1]))
+//                .and(ContractSpecification.likeBuyerLastname(words[2]))
                 .and(ContractSpecification.likeComment(comment))
                 .and(ContractSpecification.likeDeletedFalse());
 //                .and(ContractSpecification.likeAdvance(advanceStart, advanceFin));
@@ -206,7 +211,6 @@ public class ContractServiceImpl implements ContractService {
         Contract contract = contractRepository.findById(id).orElseThrow();
 
         String html = contract.getContractTemplate().getText();
-        System.out.println(html);
         html = html.replace("%BUYERNAME%", contract.getName());
         html = html.replace("%BUYERSURNAME%", contract.getSurname());
         html = html.replace("%BUYERLASTNAME%", contract.getLastname());
@@ -225,6 +229,8 @@ public class ContractServiceImpl implements ContractService {
                 contract.getFlat().getRealtor().getSurname() +
                         " " + contract.getFlat().getRealtor().getName());
         html = html.replace("%AGENCY%", contract.getFlat().getRealtor().getAgency().getName());
+
+        html += settingService.getSettings().getPdfFooter();
 
         File file = new File("src/main/resources/contract.pdf");
         PdfWriter pdfWriter = new PdfWriter(file);

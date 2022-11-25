@@ -28,6 +28,76 @@
 
         <!-- Main content -->
         <section class="content">
+
+            <!-- Small boxes (Stat box) -->
+            <div class="row">
+                <div class="col">
+                    <!-- small box -->
+                    <div class="small-box bg-info">
+                        <div class="inner">
+                            <h3 th:text="'UAH: ' + ${statistic.factUah}"></h3>
+
+                            <p>Fact</p>
+                            <div class="row">
+                                <div class="col">
+                                    <p th:text="'USD: ' + ${statistic.factUsd}"> </p>
+                                </div>
+                                <div class="col">
+                                    <p th:text="'EUR: ' + ${statistic.factEur}"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-bag"></i>
+                        </div>
+                    </div>
+                </div>
+                <!-- ./col -->
+                <div class="col">
+                    <!-- small box -->
+                    <div class="small-box bg-success">
+                        <div class="inner">
+                            <h3 th:text="'UAH: ' + ${statistic.incomeUah}"></h3>
+
+                            <p>Income</p>
+                            <div class="row">
+                                <div class="col">
+                                    <p th:text="'USD: ' + ${statistic.incomeUsd}"></p>
+                                </div>
+                                <div class="col">
+                                    <p th:text="'EUR: ' + ${statistic.incomeEur}"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-stats-bars"></i>
+                        </div>
+                    </div>
+                </div>
+                <!-- ./col -->
+                <div class="col">
+                    <!-- small box -->
+                    <div class="small-box bg-danger">
+                        <div class="inner">
+                            <h3 th:text="'UAH: ' + ${statistic.spendingUah}"></h3>
+
+                            <p>Spending</p>
+                            <div class="row">
+                                <div class="col">
+                                    <p th:text="'USD: ' + ${statistic.spendingUsd}"></p>
+                                </div>
+                                <div class="col">
+                                    <p th:text="'EUR: ' + ${statistic.spendingEur}"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-pie-graph"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <label>
                 <select id="sizeSelect" style="width: 50px; " onchange="changeSize()" name='status' class='form-control'>
                     <option value=10 selected>10</option>
@@ -105,7 +175,10 @@
                     </th>
                     <th scope="col">
                         <label>
-                            <input id="price" oninput="search()" type="number" min="1" max="100000000" class="form-control" style="width: 130px">
+                            <input id="priceStart" oninput="search()" type="number" min="1" max="100000000" class="form-control" style="width: 70px">
+                        </label>
+                        <label>
+                            <input id="priceFin" oninput="search()" type="number" min="1" max="100000000" class="form-control" style="width: 70px">
                         </label>
                         <div onclick="sort('price')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Money</p>
@@ -174,7 +247,8 @@
     let searchStatus;
     let searchObjectId;
     let searchArticle;
-    let searchPrice;
+    let searchPriceStart;
+    let searchPriceFin;
     let searchCurrencyId;
     let searchCounterparty;
 
@@ -203,7 +277,8 @@
         searchStatus = $('#status').val();
         searchObjectId = $('#object').val();
         searchArticle = $('#article').val();
-        searchPrice = document.getElementById('price').value;
+        searchPriceStart = document.getElementById('priceStart').value;
+        searchPriceFin = document.getElementById('priceFin').value;
         searchCurrencyId = $('#currency').val();
         searchCounterparty = document.getElementById('counterparty').value;
         updatePage()
@@ -223,7 +298,8 @@
             status: searchStatus,
             objectId: searchObjectId,
             article: searchArticle,
-            price: searchPrice,
+            priceStart: searchPriceStart,
+            priceFin: searchPriceFin,
             currencyId: searchCurrencyId,
             counterparty: searchCounterparty
         }

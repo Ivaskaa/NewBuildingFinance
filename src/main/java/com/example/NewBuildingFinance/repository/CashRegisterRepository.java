@@ -8,7 +8,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Repository
 public interface CashRegisterRepository extends JpaRepository<CashRegister, Long>, JpaSpecificationExecutor<CashRegister>  {
@@ -19,4 +22,8 @@ public interface CashRegisterRepository extends JpaRepository<CashRegister, Long
     Optional<CashRegister> findByFlatPaymentId(Long flatPaymentId);
 
     Optional<CashRegister> findByFlatId(Long flatId);
+
+    List<CashRegister> findAllByFlatId(Long id);
+
+//    List<CashRegister> findAllByFlatId(Long flat_id);
 }

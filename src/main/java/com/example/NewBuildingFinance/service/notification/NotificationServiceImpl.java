@@ -29,6 +29,7 @@ public class NotificationServiceImpl implements NotificationService{
     @Override
     public void createNotificationFromContract(Contract contract) {
         if(settingService.getSettings().isNotificationContract()) {
+            log.info("create notification from contract");
             Notification notification = new Notification();
             Buyer buyer = buyerServiceImpl.findById(contract.getBuyer().getId());
             notification.setName("New contract. buyer: " + buyer.getSurname() + " " + buyer.getName());
@@ -36,12 +37,14 @@ public class NotificationServiceImpl implements NotificationService{
             notification.setUrl("/contracts/contract/" + contract.getId());
             save(notification);
             template.convertAndSend("/topic/notifications", "Hello");
+            log.info("success create notification from contract");
         }
     }
 
     @Override
     public void updateNotificationFromContract(Contract contract) {
         if(settingService.getSettings().isNotificationContract()) {
+            log.info("update notification from contract");
             Notification notification = findByContractId(contract.getId());
             Buyer buyer = buyerServiceImpl.findById(contract.getBuyer().getId());
             notification.setName("Update contract. buyer: " + buyer.getSurname() + " " + buyer.getName());
@@ -51,17 +54,20 @@ public class NotificationServiceImpl implements NotificationService{
             notification.setInList(true);
             save(notification);
             template.convertAndSend("/topic/notifications", "Hello");
+            log.info("success update notification from contract");
         }
     }
 
     @Override
     public void createNotificationFromAgency(Long agencyId) {
         if(settingService.getSettings().isNotificationAgency()) {
+            log.info("create notification from agency");
             Notification notification = new Notification();
             notification.setName("New agency");
             notification.setUrl("/agencies/agency/" + agencyId);
             save(notification);
             template.convertAndSend("/topic/notifications", "Hello");
+            log.info("success create notification from agency");
         }
     }
 

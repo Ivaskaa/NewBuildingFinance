@@ -1,24 +1,34 @@
 package com.example.NewBuildingFinance.service.cashRegister;
 
 import com.example.NewBuildingFinance.dto.cashRegister.CashRegisterTableDto;
+import com.example.NewBuildingFinance.dto.cashRegister.CashRegisterTableDtoForFlat;
 import com.example.NewBuildingFinance.dto.cashRegister.IncomeUploadDto;
 import com.example.NewBuildingFinance.dto.cashRegister.SpendingUploadDto;
 import com.example.NewBuildingFinance.entities.agency.Realtor;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.cashRegister.Article;
 import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
+import com.example.NewBuildingFinance.entities.cashRegister.StatusCashRegister;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
+import com.example.NewBuildingFinance.others.mail.context.AbstractEmailContextBuyerFlatPayment;
+import com.example.NewBuildingFinance.others.mail.MailThread;
 import com.example.NewBuildingFinance.others.specifications.CashRegisterSpecification;
 import com.example.NewBuildingFinance.repository.CashRegisterRepository;
 import com.example.NewBuildingFinance.repository.FlatPaymentRepository;
 import com.example.NewBuildingFinance.repository.RealtorRepository;
 import com.example.NewBuildingFinance.repository.auth.UserRepository;
+import com.example.NewBuildingFinance.service.mail.MailServiceImpl;
+import com.example.NewBuildingFinance.service.setting.SettingServiceImpl;
+import com.itextpdf.html2pdf.HtmlConverter;
 import com.itextpdf.text.*;
+import com.itextpdf.text.html.simpleparser.HTMLWorker;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.pdfbox.multipdf.PDFMergerUtility;
+import org.apache.pdfbox.pdfparser.XrefTrailerResolver;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,13 +40,16 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.file.Files;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -47,6 +60,9 @@ public class CashRegisterServiceImpl implements CashRegisterService{
     private final FlatPaymentRepository flatPaymentRepository;
     private final RealtorRepository realtorRepository;
     private final UserRepository userRepository;
+
+    private final MailServiceImpl mailServiceImpl;
+    private final SettingServiceImpl settingService;
 
     @Override
     public Page<CashRegisterTableDto> findSortingAndSpecificationPage(
@@ -62,7 +78,8 @@ public class CashRegisterServiceImpl implements CashRegisterService{
             String status,
             Long objectId,
             String article,
-            Double price,
+            Double priceStart,
+            Double priceFin,
             Long currencyId,
             String counterparty
     ) throws ParseException {
@@ -75,7 +92,7 @@ public class CashRegisterServiceImpl implements CashRegisterService{
                 .and(CashRegisterSpecification.likeStatus(status))
                 .and(CashRegisterSpecification.likeObjectId(objectId))
                 .and(CashRegisterSpecification.likeArticle(article))
-                .and(CashRegisterSpecification.likePrice(price))
+                .and(CashRegisterSpecification.likePrice(priceStart, priceFin))
                 .and(CashRegisterSpecification.likeCurrencyId(currencyId))
                 .and(CashRegisterSpecification.likeCounterparty(counterparty));
         Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
@@ -86,19 +103,37 @@ public class CashRegisterServiceImpl implements CashRegisterService{
     }
 
     @Override
+    public List<CashRegisterTableDtoForFlat> getCashRegistersByFlatId(Long id) {
+        List<CashRegister> cashRegisters = cashRegisterRepository.findAllByFlatId(id);
+        return cashRegisters.stream().map(CashRegister::buildForFlat).collect(Collectors.toList());
+    }
+
+    @Override
     public CashRegister saveIncome(CashRegister income) {
         log.info("save income: {}", income);
         CashRegister cashRegister = cashRegisterRepository.save(income);
         if (income.getArticle().equals(Article.FLAT_PAYMENT)) {
             FlatPayment flatPayment = flatPaymentRepository.findById(cashRegister.getFlatPayment().getId()).orElse(null);
             if (flatPayment != null) {
-                System.out.println(flatPayment.getFlat().getBuyer().getSurname());
                 cashRegister.setCounterparty(
                         flatPayment.getFlat().getBuyer().getSurname() + " " +
                         flatPayment.getFlat().getBuyer().getName());
-                flatPayment.setActually(cashRegister.getPrice());
+                flatPayment.setActually(cashRegister.getPrice() * cashRegister.getAdmissionCourse());
                 flatPayment.setPaid(true);
                 flatPaymentRepository.save(flatPayment);
+
+                if(income.getStatus().equals(StatusCashRegister.COMPLETED)) {
+                    AbstractEmailContextBuyerFlatPayment emailContext = new AbstractEmailContextBuyerFlatPayment();
+                    emailContext.setTemplateLocation("email/email-buyer-notification"); // вказуєм з якої папки взяти html
+                    emailContext.setSubject("Complete your registration");
+                    emailContext.setFrom("no-reply@javadevjournal.com");
+                    emailContext.setTo(flatPayment.getFlat().getBuyer().getEmail());
+                    emailContext.setDate(flatPayment.getDate());
+                    emailContext.setTodayDate(new Date());
+                    emailContext.setPlanned(flatPayment.getPlanned());
+                    emailContext.setActually(flatPayment.getActually());
+                    new MailThread(mailServiceImpl, emailContext).start();
+                }
             }
         }
         log.info("success save income");
@@ -128,6 +163,21 @@ public class CashRegisterServiceImpl implements CashRegisterService{
                 newFlatPayment.setActually(cashRegisterAfterSave.getPrice());
                 newFlatPayment.setPaid(true);
                 flatPaymentRepository.save(newFlatPayment);
+
+                if(income.getStatus().equals(StatusCashRegister.COMPLETED)) {
+                    if(settingService.getSettings().isSendEmailToBuyers()) {
+                        AbstractEmailContextBuyerFlatPayment emailContext = new AbstractEmailContextBuyerFlatPayment();
+                        emailContext.setTemplateLocation("email/email-buyer-notification"); // вказуєм з якої папки взяти html
+                        emailContext.setSubject("Complete your registration");
+                        emailContext.setFrom("no-reply@javadevjournal.com");
+                        emailContext.setTo(newFlatPayment.getFlat().getBuyer().getEmail());
+                        emailContext.setDate(newFlatPayment.getDate());
+                        emailContext.setTodayDate(new Date());
+                        emailContext.setPlanned(newFlatPayment.getPlanned());
+                        emailContext.setActually(newFlatPayment.getActually());
+                        new MailThread(mailServiceImpl, emailContext).start();
+                    }
+                }
             }
         }
         if (!article.equals(cashRegisterAfterSave.getArticle()) && cashRegisterAfterSave.getArticle().equals(Article.OTHER_PAYMENT)){
@@ -321,6 +371,10 @@ public class CashRegisterServiceImpl implements CashRegisterService{
             document.add(paragraphComment);
         }
 
+        document.add(new Chunk());
+
+        HTMLWorker htmlWorker = new HTMLWorker(document);
+        htmlWorker.parse(new StringReader(settingService.getSettings().getPdfFooter()));
         document.close();
 
         byte[] content = Files.readAllBytes(pdf.toPath());
@@ -387,6 +441,10 @@ public class CashRegisterServiceImpl implements CashRegisterService{
             document.add(paragraphComment);
         }
 
+        document.add(new Chunk());
+
+        HTMLWorker htmlWorker = new HTMLWorker(document);
+        htmlWorker.parse(new StringReader(settingService.getSettings().getPdfFooter()));
         document.close();
 
         byte[] content = Files.readAllBytes(pdf.toPath());

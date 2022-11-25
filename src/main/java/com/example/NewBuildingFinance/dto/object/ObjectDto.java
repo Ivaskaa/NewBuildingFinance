@@ -1,5 +1,6 @@
 package com.example.NewBuildingFinance.dto.object;
 
+import com.example.NewBuildingFinance.entities.flat.StatusFlat;
 import com.example.NewBuildingFinance.entities.object.Object;
 import com.example.NewBuildingFinance.entities.object.StatusObject;
 import lombok.Data;
@@ -18,10 +19,12 @@ public class ObjectDto {
     private String address;
     @NotNull(message = "Choose something")
     private StatusObject status;
-    @NotEmpty(message = "Must not be empty")
-    private String agency = "0";
-    @NotEmpty(message = "Must not be empty")
-    private String manager = "0";
+//    @NotEmpty(message = )
+//    private String status;
+    @NotNull(message = "Must not be empty")
+    private Integer agency;
+    @NotNull(message = "Must not be empty")
+    private Integer manager;
     private boolean active;
 
     public Object build(){
@@ -30,15 +33,12 @@ public class ObjectDto {
         object.setHouse(house);
         object.setSection(section);
         object.setAddress(address);
-        if(status != null) {
-            object.setStatus(status);
-        }
-        if(!agency.equals("")) {
-            object.setAgency(Integer.parseInt(agency));
-        }
-        if(!manager.equals("")) {
-            object.setManager(Integer.parseInt(manager));
-        }
+//        if(status != null && !status.equals("")) {
+//            object.setStatus(StatusObject.valueOf(status));
+//        }
+        object.setStatus(status);
+        object.setAgency(agency);
+        object.setManager(manager);
         object.setActive(active);
         return object;
     }

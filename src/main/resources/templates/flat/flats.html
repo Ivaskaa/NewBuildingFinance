@@ -28,6 +28,77 @@
 
         <!-- Main content -->
         <section class="content">
+
+            <!-- Small boxes (Stat box) -->
+            <div class="row">
+                <div class="col">
+                    <!-- small box -->
+                    <div class="small-box bg-info">
+                        <div class="inner">
+                            <h3 th:text="${statistic.boxFlats}"></h3>
+
+                            <p>Count flat</p>
+                            <div class="row">
+                                <div class="col">
+                                    <p th:text="${statistic.boxSalesFlats} + ' Sales'"> </p>
+                                </div>
+                                <div class="col">
+                                    <p th:text="${statistic.boxOnSaleFlats} + ' On sale'"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-bag"></i>
+                        </div>
+                    </div>
+                </div>
+                <!-- ./col -->
+                <div class="col">
+                    <!-- small box -->
+                    <div class="small-box bg-success">
+                        <div class="inner">
+                            <h3 th:text="${statistic.boxArea}"></h3>
+
+                            <p>Flats area</p>
+                            <div class="row">
+                                <div class="col">
+                                    <p th:text="${statistic.boxSalesArea} + ' Sales'"></p>
+                                </div>
+                                <div class="col">
+                                    <p th:text="${statistic.boxOnSaleArea} + ' On sale'"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-stats-bars"></i>
+                        </div>
+                    </div>
+                </div>
+                <!-- ./col -->
+                <div class="col">
+                    <!-- small box -->
+                    <div class="small-box bg-danger">
+                        <div class="inner">
+                            <h3 th:text="${statistic.boxPlaned}"></h3>
+
+                            <p>Planed</p>
+                            <div class="row">
+                                <div class="col">
+                                    <p th:text="${statistic.boxFact} + ' Fact'"></p>
+                                </div>
+                                <div class="col">
+                                    <p th:text="${statistic.boxDuty} + ' Arrear'"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-pie-graph"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
             <label>
                 <select id="sizeSelect" style="width: 50px; " onchange="changeSize()" name='status' class='form-control'>
                     <option value=10 selected>10</option>
@@ -105,11 +176,23 @@
                         </div>
                     </th>
                     <th scope="col">
+                        <label>
+                            <input id="enteredStart" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 80px">
+                        </label>
+                        <label>
+                            <input id="enteredFin" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 80px">
+                        </label>
                         <div>
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Entered</p>
                         </div>
                     </th>
                     <th scope="col">
+                        <label>
+                            <input id="remainsStart" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 80px">
+                        </label>
+                        <label>
+                            <input id="remainsFin" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 80px">
+                        </label>
                         <div>
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Remains</p>
                         </div>
@@ -165,6 +248,10 @@
     let searchPriceFin;
     let searchAdvanceStart;
     let searchAdvanceFin;
+    let searchEnteredStart;
+    let searchEnteredFin;
+    let searchRemainsStart;
+    let searchRemainsFin;
 
     let totalPage;
 
@@ -187,18 +274,16 @@
         searchNumber = number.value;
         searchObjectId = $('#object').val();
         searchStatus = $('#status').val();
-        let areaStart = document.getElementById('areaStart');
-        searchAreaStart = areaStart.value;
-        let areaFin = document.getElementById('areaFin');
-        searchAreaFin = areaFin.value;
-        let priceStart = document.getElementById('priceStart');
-        searchPriceStart = priceStart.value;
-        let priceFin = document.getElementById('priceFin');
-        searchPriceFin = priceFin.value;
-        let advanceStart = document.getElementById('advanceStart');
-        searchAdvanceStart = advanceStart.value;
-        let advanceFin = document.getElementById('advanceFin');
-        searchAdvanceFin = advanceFin.value;
+        searchAreaStart = document.getElementById('areaStart').value;
+        searchAreaFin = document.getElementById('areaFin').value;
+        searchPriceStart = document.getElementById('priceStart').value;
+        searchPriceFin = document.getElementById('priceFin').value;
+        searchAdvanceStart = document.getElementById('advanceStart').value;
+        searchAdvanceFin = document.getElementById('advanceFin').value;
+        searchEnteredStart = document.getElementById('enteredStart').value;
+        searchEnteredFin = document.getElementById('enteredFin').value;
+        searchRemainsStart = document.getElementById('remainsStart').value;
+        searchRemainsFin = document.getElementById('remainsFin').value;
         updatePage(currentPage, size, sortingField, sortingDirection)
     }
 
@@ -217,6 +302,10 @@
             priceFin: searchPriceFin,
             advanceStart: searchAdvanceStart,
             advanceFin: searchAdvanceFin,
+            enteredStart: searchEnteredStart,
+            enteredFin: searchEnteredFin,
+            remainsStart: searchRemainsStart,
+            remainsFin: searchRemainsFin
         }
         $.ajax({
             type: 'get',
@@ -341,15 +430,6 @@
                     getXlsxErrors();
                     validationMessage(validation);
                 }
-
-                // let blob = new Blob([data], { type: 'application/pdf' });
-                // let downloadUrl = URL.createObjectURL(blob);
-                // let a = document.createElement("a");
-                // a.href = downloadUrl;
-                // a.download = "downloadFile.xlsx";
-                // document.body.appendChild(a);
-                // a.click();
-
             },
             error: function () {
                 console.log('error /updateProfile');

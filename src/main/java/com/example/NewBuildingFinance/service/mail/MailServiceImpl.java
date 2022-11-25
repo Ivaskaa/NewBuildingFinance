@@ -1,17 +1,16 @@
 package com.example.NewBuildingFinance.service.mail;
 
-import com.example.NewBuildingFinance.others.AbstractEmailContext;
+import com.example.NewBuildingFinance.others.mail.context.AbstractEmailContext;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.context.Context;
+import org.thymeleaf.spring5.SpringTemplateEngine;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-
 import java.nio.charset.StandardCharsets;
 
 @Service
@@ -31,12 +30,12 @@ public class MailServiceImpl implements MailService{
                 StandardCharsets.UTF_8.name());
         Context context = new Context();
         context.setVariables(email.getContext());  // так само як model передає насторінку
-        String emailContent = templateEngine.process(email.getTemplateLocation(), context);
+        String content = templateEngine.process(email.getTemplateLocation(), context);
 
         mimeMessageHelper.setTo(email.getTo());
         mimeMessageHelper.setSubject(email.getSubject());
         mimeMessageHelper.setFrom(email.getFrom());
-        mimeMessageHelper.setText(emailContent, true);
+        mimeMessageHelper.setText(content, true);
         log.info("success send email to: {}", email.getTo());
         emailSender.send(message);
     }
