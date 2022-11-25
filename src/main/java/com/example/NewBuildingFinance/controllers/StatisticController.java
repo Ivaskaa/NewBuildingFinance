@@ -48,7 +48,7 @@ public class StatisticController {
         model.addAttribute("dateStart", dateStart);
         model.addAttribute("dateFin", dateFin);
         model.addAttribute("user", user);
-        return "statistics/summaryPlan-fact";
+        return "statistics/statisticPlan-fact";
     }
 
     @GetMapping("/getPlanFactStatistics")
@@ -63,6 +63,36 @@ public class StatisticController {
                 dateStart,
                 dateFin
         ));
+    }
+
+    @GetMapping("/flatPayments")
+    public String flatPayments(
+            Model model
+    ){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = userServiceImpl.loadUserByUsername(authentication.getName());
+        model.addAttribute("user", user);
+        model.addAttribute("objects", objectService.findAll());
+        model.addAttribute("currencies", currencyService.findAll());
+
+        // page model
+        model.addAttribute("statistic", statisticService.getFlatBoxes());
+        return "statistics/statisticFlatPayments";
+    }
+
+    @GetMapping("/getFlatPaymentsStatistic")
+    public String getFlatPaymentsStatistic(
+            Model model
+    ){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = userServiceImpl.loadUserByUsername(authentication.getName());
+        model.addAttribute("user", user);
+        model.addAttribute("objects", objectService.findAll());
+        model.addAttribute("currencies", currencyService.findAll());
+
+        // page model
+        model.addAttribute("statistic", statisticService.getFlatBoxes());
+        return "statistics/statisticFlatPayments";
     }
 
 }

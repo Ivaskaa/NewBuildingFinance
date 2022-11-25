@@ -3,7 +3,7 @@ package com.example.NewBuildingFinance.dto.statistic;
 import lombok.Data;
 
 @Data
-public class CashRegisterDto {
+public class StatisticCashRegisterDto {
     private Long factUah;
     private Long factUsd;
     private Long factEur;

@@ -1,11 +1,11 @@
-package com.example.NewBuildingFinance.dto.statistic;
+package com.example.NewBuildingFinance.dto.statistic.planFact;
 
 import lombok.Data;
 
 import java.util.Date;
 
 @Data
-public class PlanFactStatisticTableDto {
+public class StatisticPlanFactTableDto {
     private Date date;
     private Double planed;
     private Double fact;

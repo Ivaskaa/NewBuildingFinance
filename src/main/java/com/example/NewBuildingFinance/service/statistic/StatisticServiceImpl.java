@@ -1,8 +1,9 @@
 package com.example.NewBuildingFinance.service.statistic;
 
-import com.example.NewBuildingFinance.dto.statistic.CashRegisterDto;
-import com.example.NewBuildingFinance.dto.statistic.PlanFactStatisticDto;
-import com.example.NewBuildingFinance.dto.statistic.PlanFactStatisticTableDto;
+import com.example.NewBuildingFinance.dto.statistic.StatisticCashRegisterDto;
+import com.example.NewBuildingFinance.dto.statistic.flatPayments.StatisticFlatsDto;
+import com.example.NewBuildingFinance.dto.statistic.planFact.StatisticPlanFactDto;
+import com.example.NewBuildingFinance.dto.statistic.planFact.StatisticPlanFactTableDto;
 import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
 import com.example.NewBuildingFinance.entities.cashRegister.Economic;
 import com.example.NewBuildingFinance.entities.cashRegister.StatusCashRegister;
@@ -37,10 +38,10 @@ public class StatisticServiceImpl {
     private final FlatRepository flatRepository;
     private final FlatPaymentRepository flatPaymentRepository;
     private final CashRegisterRepository cashRegisterRepository;
-    private final InternalCurrencyRepository internalCurrencyRepository;
+
     private final InternalCurrencyServiceImpl internalCurrencyService;
 
-    public PlanFactStatisticDto getMainMonthlyStatistic(Long objectId, String dateStartString, String dateFinString) throws ParseException {
+    public StatisticPlanFactDto getMainMonthlyStatistic(Long objectId, String dateStartString, String dateFinString) throws ParseException {
         List<Flat> flats;
         if (objectId != null){
             flats = flatRepository.findAllByObjectId(objectId);
@@ -54,6 +55,7 @@ public class StatisticServiceImpl {
         Double boxArea = 0d;
         Double boxSalesArea = 0d;
         Double boxOnSaleArea = 0d;
+        double boxAllFlatSalePrice = 0d;
         double boxPlaned = 0d;
         double boxFact = 0d;
         double boxDuty = 0d;
@@ -79,7 +81,7 @@ public class StatisticServiceImpl {
         LocalDate localDateStart = dateStart.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         LocalDate localDateFin = dateFin.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         localDateFin = localDateFin.plusMonths(1);
-        List<PlanFactStatisticTableDto> list = new ArrayList<>();
+        List<StatisticPlanFactTableDto> list = new ArrayList<>();
 
         for(; localDateStart.isBefore(localDateFin); localDateStart = localDateStart.plusMonths(1)){
             boxSalesFlats = 0;
@@ -88,7 +90,7 @@ public class StatisticServiceImpl {
             boxSalesArea = 0d;
             boxOnSaleArea = 0d;
 
-            PlanFactStatisticTableDto dto = new PlanFactStatisticTableDto();
+            StatisticPlanFactTableDto dto = new StatisticPlanFactTableDto();
             dto.setDate(Date.from(localDateStart.atStartOfDay(ZoneId.systemDefault()).toInstant()));
 
             Double planed = 0d;
@@ -96,6 +98,7 @@ public class StatisticServiceImpl {
 
 
             for(Flat flat : flats){
+                boxAllFlatSalePrice += flat.getSalePrice();
                 boxArea += flat.getArea();
                 if(flat.getStatus().equals(StatusFlat.SOLD)){
                     boxSalesFlats += 1;
@@ -130,27 +133,29 @@ public class StatisticServiceImpl {
             list.add(dto);
         }
 
-        PlanFactStatisticDto planFactStatisticDto = new PlanFactStatisticDto();
-        planFactStatisticDto.setTableDto(list);
+        StatisticPlanFactDto statisticPlanFactDto = new StatisticPlanFactDto();
+        statisticPlanFactDto.setTableDto(list);
 
-        planFactStatisticDto.setBoxArea(
+        statisticPlanFactDto.setBoxArea(
                 Double.valueOf(new DecimalFormat("#0.00").format(boxArea)
                         .replace(",", ".")));
-        planFactStatisticDto.setBoxSalesArea(
+        statisticPlanFactDto.setBoxSalesArea(
                 Double.valueOf(new DecimalFormat("#0.00").format(boxSalesArea)
                         .replace(",", ".")));
-        planFactStatisticDto.setBoxOnSaleArea(
+        statisticPlanFactDto.setBoxOnSaleArea(
                 Double.valueOf(new DecimalFormat("#0.00").format(boxOnSaleArea)
                         .replace(",", ".")));
 
-        planFactStatisticDto.setBoxPlaned(Double.valueOf(boxPlaned).longValue());
-        planFactStatisticDto.setBoxFact(Double.valueOf(boxFact).longValue());
-        planFactStatisticDto.setBoxDuty(Double.valueOf(boxDuty).longValue());
 
-        planFactStatisticDto.setBoxFlats(boxFlats);
-        planFactStatisticDto.setBoxSalesFlats(boxSalesFlats);
-        planFactStatisticDto.setBoxOnSaleFlats(boxOnSaleFlats);
-        return planFactStatisticDto;
+        statisticPlanFactDto.setBoxAllFlatSalePrice(Math.round(boxAllFlatSalePrice));
+        statisticPlanFactDto.setBoxPlaned(Math.round(boxPlaned));
+        statisticPlanFactDto.setBoxFact(Math.round(boxFact));
+        statisticPlanFactDto.setBoxDuty(Math.round(boxDuty));
+
+        statisticPlanFactDto.setBoxFlats(boxFlats);
+        statisticPlanFactDto.setBoxSalesFlats(boxSalesFlats);
+        statisticPlanFactDto.setBoxOnSaleFlats(boxOnSaleFlats);
+        return statisticPlanFactDto;
     }
 
     public Pair<Date, Date> getMinDateAndMaxDate() {
@@ -177,8 +182,8 @@ public class StatisticServiceImpl {
     }
 
 
-    public CashRegisterDto getCashRegisterBoxes() {
-        CashRegisterDto cashRegisterDto = new CashRegisterDto();
+    public StatisticCashRegisterDto getCashRegisterBoxes() {
+        StatisticCashRegisterDto statisticCashRegisterDto = new StatisticCashRegisterDto();
 
         long factUah;
         long factUsd = 0L;
@@ -224,16 +229,61 @@ public class StatisticServiceImpl {
             }
         }
 
-        cashRegisterDto.setFactUah(factUah);
-        cashRegisterDto.setFactUsd(factUsd);
-        cashRegisterDto.setFactEur(factEur);
-        cashRegisterDto.setIncomeUah(incomeUah);
-        cashRegisterDto.setIncomeUsd(incomeUsd);
-        cashRegisterDto.setIncomeEur(incomeEur);
-        cashRegisterDto.setSpendingUah(spendingUah);
-        cashRegisterDto.setSpendingUsd(spendingUsd);
-        cashRegisterDto.setSpendingEur(spendingEur);
+        statisticCashRegisterDto.setFactUah(factUah);
+        statisticCashRegisterDto.setFactUsd(factUsd);
+        statisticCashRegisterDto.setFactEur(factEur);
+        statisticCashRegisterDto.setIncomeUah(incomeUah);
+        statisticCashRegisterDto.setIncomeUsd(incomeUsd);
+        statisticCashRegisterDto.setIncomeEur(incomeEur);
+        statisticCashRegisterDto.setSpendingUah(spendingUah);
+        statisticCashRegisterDto.setSpendingUsd(spendingUsd);
+        statisticCashRegisterDto.setSpendingEur(spendingEur);
 
-        return cashRegisterDto;
+        return statisticCashRegisterDto;
+    }
+
+    public StatisticFlatsDto getFlatBoxes() {
+        StatisticFlatsDto statistics = new StatisticFlatsDto();
+        List<Flat> flats = flatRepository.findAll();
+
+        long boxCountFlats;
+        long boxCountFlatsSales = 0L;
+        long boxCountFlatsOnSale = 0L;
+
+        long boxAllFlatSalePrice = 0L;
+        long boxPlaned = 0L;
+        long boxFact = 0L;
+        long boxDuty = 0L;
+
+        long boxArrears = 0L;
+
+        boxCountFlats = flats.size();
+
+        for(Flat flat : flats){
+            if(flat.getStatus().equals(StatusFlat.ACTIVE)){
+                boxCountFlatsSales++;
+            } else {
+                boxCountFlatsOnSale++;
+            }
+            boxAllFlatSalePrice += flat.getSalePrice();
+            for(FlatPayment flatPayment : flat.getFlatPayments()){
+                if(flatPayment.isPaid()){
+                    boxArrears += Math.round(flatPayment.getPlanned() - flatPayment.getActually());
+                    boxFact += flatPayment.getActually();
+                }
+                boxPlaned += flatPayment.getPlanned();
+            }
+        }
+        boxDuty = boxAllFlatSalePrice - boxPlaned;
+
+        statistics.setBoxCountFlats(boxCountFlats);
+        statistics.setBoxCountFlatsSales(boxCountFlatsSales);
+        statistics.setBoxCountFlatsOnSale(boxCountFlatsOnSale);
+        statistics.setBoxAllFlatSalePrice(boxAllFlatSalePrice);
+        statistics.setBoxPlaned(boxPlaned);
+        statistics.setBoxFact(boxFact);
+        statistics.setBoxDuty(boxDuty);
+        statistics.setBoxArrears(boxArrears);
+        return statistics;
     }
 }

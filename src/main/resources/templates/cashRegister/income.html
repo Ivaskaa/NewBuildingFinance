@@ -134,8 +134,9 @@
     let Income = {};
     let FlatPayment = {};
 
-    let Planed;
-    let Currency;
+    let Planned;
+    let Currencies = [];
+    let Currency = {};
 
     console.log(FlatPaymentId);
 
@@ -382,25 +383,36 @@
     //upload info
 
     function uploadPriceInput(){
-        if (Planed !== undefined){
-            document.getElementById('price').value = roundPlus(Planed / document.getElementById('admissionCourse').value, 2);
+        if (Planned !== undefined){
+            Currencies.forEach((element) => {
+                if(element.name === 'USD'){
+                    document.getElementById('price').value = roundPlus(Planned * element.price / document.getElementById('admissionCourse').value, 2);
+                }
+            })
         } else {
             document.getElementById('price').value = 0;
         }
     }
 
     function uploadPriceCurrency(){
-        if(Currency !== undefined){
-            if(Planed !== undefined){
+        if(Currency.name !== undefined){
+            if(Planned !== undefined){
                 // all not undefined
-                document.getElementById('price').value = roundPlus(Planed / Currency, 2);
+                Currencies.forEach((element) => {
+                    if(element.name === 'USD'){
+                        console.log(Planned);
+                        console.log(element.price);
+                        console.log(Currency.price);
+                        document.getElementById('price').value = roundPlus(Planned * element.price / Currency.price, 2);
+                    }
+                })
             } else {
                 // planned undefined
                 document.getElementById('price').value = 0;
             }
-        } else if(Planed !== undefined){
+        } else if(Planned !== undefined){
             // currency undefined
-            document.getElementById('price').value = Planed;
+            document.getElementById('price').value = Planned;
         } else {
             //all undefined
             document.getElementById('price').value = 0;
@@ -416,7 +428,7 @@
             data: data,
             success: function (data) {
                 console.log('success /getFlatPaymentById');
-                Planed = data.planned;
+                planned = data.planned;
                 uploadPriceCurrency();
             },
             error: function () {
@@ -426,21 +438,26 @@
     }
 
     function uploadAdmissionCourse(){
-        let data = {id: $("#currency").val()}
+        let id = $("#currency").val();
         $.ajax({
             type: 'get',
-            url: url + '/getCurrencyById',
+            url: url + '/getCurrencies',
             dataType: "json",
-            data: data,
             success: function (data) {
-                console.log('success /getCurrencyById');
-                Currency = data.price;
-                uploadPriceCurrency();
-                document.getElementById('admissionCourse').value = data.price;
-                document.getElementById('admissionCourse').disabled = data.name === 'UAH';
+                console.log('success /getCurrencies');
+                Currencies = data
+                data.forEach((element) =>{
+                    if(id == element.id){
+                        Currency.name = element.name;
+                        Currency.price = element.price;
+                        document.getElementById('admissionCourse').value = element.price;
+                        document.getElementById('admissionCourse').disabled = element.name === 'UAH';
+                        uploadPriceCurrency();
+                    }
+                })
             },
             error: function () {
-                console.log('error /getCurrencyById');
+                console.log('error /getCurrencies');
             }
         });
     }
@@ -611,11 +628,12 @@
                         $("#flatPayment").append($("" +
                             "<option selected value='" + element.id + "'> " + element.number + " (" + moment(element.date).format('YYYY-MM-DD') + ")</option>"
                         ));
-                        Planed = roundPlus(element.salePrice / 100 * element.agency, 2);
+                        Planned = roundPlus(element.planned, 2);
                     } else if (element.id === FlatPayment?.id ?? null) {
                         $("#flatPayment").append($("" +
                             "<option selected value='" + element.id + "'> " + element.number + " (" + moment(element.date).format('YYYY-MM-DD') + ")</option>"
                         ));
+                        Planned = roundPlus(element.planned, 2);
                     }else {
                         $("#flatPayment").append($("" +
                             "<option value='" + element.id + "'> " + element.number + " (" + moment(element.date).format('YYYY-MM-DD') + ")</option>"

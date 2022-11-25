@@ -491,14 +491,6 @@ public class CashRegisterController {
         return mapper.writeValueAsString(flatPaymentServiceImpl.findById(id));
     }
 
-    @GetMapping("/getCurrencyById")
-    @ResponseBody
-    public String getCurrencyById(
-            Long id
-    ) throws JsonProcessingException {
-        return mapper.writeValueAsString(internalCurrencyServiceImpl.findById(id));
-    }
-
     @GetMapping("/getFlatById")
     @ResponseBody
     public String getFlatById(
