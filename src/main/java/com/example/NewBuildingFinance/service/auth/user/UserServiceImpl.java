@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
         log.info("get users page: {}, field: {}, direction: {}", currentPage - 1, sortingField, sortingDirection);
         Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
         Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
-        Page<User> userPage = userRepository.findAll(pageable);
+        Page<User> userPage = userRepository.findAllByDeletedFalse(pageable);
         log.info("success");
         return userPage;
     }
@@ -63,9 +63,10 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     }
 
     @Override
-    public List<User> findManagers() {
+    public List<User> findManagers(Long userId) {
         log.info("get users where role permission buyers");
-        List<User> userPage = userRepository.findManagers();
+        List<User> userPage = userRepository.findManagers(userId);
+        System.out.println(userPage);
         log.info("success");
         return userPage;
     }
@@ -74,8 +75,8 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     public User save(User user) {
         log.info("save user: {}", user);
         userRepository.save(user);
-        log.info("success");
         sendRegistrationEmail(user); // create securityToken send email to User
+        log.info("success");
         return user;
     }
 
@@ -88,7 +89,6 @@ public class UserServiceImpl implements UserDetailsService, UserService {
         user.setRole(userForm.getRole());
         user.setPhone(userForm.getPhone());
         user.setUsername(userForm.getUsername());
-        user.setActive(userForm.isActive());
         userRepository.save(user);
         log.info("success");
         return user;
@@ -97,7 +97,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     @Override
     public void deleteById(Long id) {
         log.info("delete user by id: {}", id);
-        userRepository.deleteById(id);
+        userRepository.setDeleted(id);
         log.info("success");
     }
 

@@ -2,7 +2,7 @@ package com.example.NewBuildingFinance.service.auth.profile;
 
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.repository.auth.UserRepository;
-import com.example.NewBuildingFinance.service.secureToken.staticService.StaticServiceImpl;
+import com.example.NewBuildingFinance.service.staticService.StaticServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.core.userdetails.UserDetailsService;

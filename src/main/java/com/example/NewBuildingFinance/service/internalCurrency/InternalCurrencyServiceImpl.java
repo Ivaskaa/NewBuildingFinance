@@ -22,6 +22,13 @@ public class InternalCurrencyServiceImpl implements InternalCurrencyService{
         return currencyList;
     }
 
+    public InternalCurrency getUSD() {
+        log.info("get USD currency");
+        InternalCurrency internalCurrency = internalCurrencyRepository.findByName("USD");
+        log.info("success get USD currency");
+        return internalCurrency;
+    }
+
     @Override
     public InternalCurrency update(InternalCurrency objectForm) {
         log.info("update currency: {}", objectForm);

@@ -99,4 +99,10 @@ public class AgencySpecification {
                         ), count);
         };
     }
+
+    public static Specification<Agency> deletedFalse() {
+        return (root, query, cb) -> {
+            return cb.isFalse(root.get(Agency_.DELETED));
+        };
+    }
 }

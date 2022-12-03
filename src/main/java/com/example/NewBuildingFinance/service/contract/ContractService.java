@@ -66,7 +66,7 @@ public interface ContractService {
      * @param agencyId agency id
      * @return page of contract table dto for agency
      */
-    Page<ContractTableDtoForAgency> findSortingPageByAgencyId(
+    Page<ContractTableDtoForAgency> findSortingContractsPageByAgencyId(
             Integer currentPage,
             Integer size,
             String sortingField,
@@ -92,9 +92,9 @@ public interface ContractService {
      * delete contract by id
      * flat contract = null
      * flat status = ACTIVE
-     * @param id contract id for delete
+     * @param contractId contract id for delete
      */
-    Contract deleteById(Long id);
+    void deleteById(Long contractId);
 
     /**
      * find contract upload dto by id

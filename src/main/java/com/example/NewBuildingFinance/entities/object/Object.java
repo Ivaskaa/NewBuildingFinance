@@ -33,6 +33,7 @@ public class Object {
     private Integer agency;
     private Integer manager;
     private boolean active;
+    private boolean deleted;
 
     public ObjectTableDto build(){
         ObjectTableDto object = new ObjectTableDto();

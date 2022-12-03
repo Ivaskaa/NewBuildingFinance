@@ -15,11 +15,17 @@ public class ContractTemplateServiceImpl implements ContractTemplateService{
     private final ContractTemplateRepository contractTemplateRepository;
 
     @Override
-    public List<ContractTemplate> findAll() {
-        log.info("get all contract templates");
-        List<ContractTemplate> currencyList = contractTemplateRepository.findAllByDeletedFalse();
-        log.info("success");
-        return currencyList;
+    public List<ContractTemplate> findAllDeletedFalseOrById(Long contractTemplateId) {
+        List<ContractTemplate> contractTemplates;
+        if(contractTemplateId != null){
+            log.info("get all deleted false contract templates or by contract template id: {}", contractTemplateId);
+            contractTemplates = contractTemplateRepository.findAllByDeletedFalseOrId(contractTemplateId);
+        } else {
+            log.info("get all deleted false contract templates");
+            contractTemplates = contractTemplateRepository.findAllByDeletedFalse();
+        }
+        log.info("success get all deleted false contract templates");
+        return contractTemplates;
     }
 
     @Override
@@ -66,11 +72,9 @@ public class ContractTemplateServiceImpl implements ContractTemplateService{
 
     @Override
     public void deleteById(Long id) {
-        log.info("delete contract template by id: {}", id);
-        ContractTemplate object = contractTemplateRepository.findById(id).orElseThrow();
-        object.setDeleted(true);
-        contractTemplateRepository.save(object);
-        log.info("success");
+        log.info("set contract_template.deleted true by id: {}", id);
+        contractTemplateRepository.setDeleted(id);
+        log.info("success set contract_template.deleted true");
     }
 
 }

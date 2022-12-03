@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Statistic flats</title>
+
+    <style th:replace="blocks/linkAdminLTE"></style>
+    <div th:replace="blocks/links"></div>
+    <script th:src="@{/js/app.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+
+<body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
+<div class="wrapper">
+
+    <div th:replace="blocks/navbar"></div>
+    <div th:replace="blocks/sidebarContainer"></div>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <div class="content-header">
+            <div class="container-fluid">
+                <h1 class="m-0">Statistic flats</h1>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <section class="content">
+
+            <!-- Small boxes (Stat box) -->
+            <div class="row">
+                <div class="col">
+                    <!-- small box -->
+                    <div class="small-box bg-info">
+                        <div class="inner">
+                            <h3 th:text="${statistic.boxCountFlats}"></h3>
+
+                            <p>Count flat</p>
+                            <div class="row">
+                                <div class="col">
+                                    <p th:text="${statistic.boxCountFlatsSales} + ' Sales'"> </p>
+                                </div>
+                                <div class="col">
+                                    <p th:text="${statistic.boxCountFlatsOnSale} + ' On sale'"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-bag"></i>
+                        </div>
+                    </div>
+                </div>
+                <!-- ./col -->
+                <div class="col">
+                    <!-- small box -->
+                    <div class="small-box bg-success">
+                        <div class="inner">
+                            <h3 th:text="'USD: ' + ${statistic.boxAllFlatSalePrice}"></h3>
+
+                            <p>All flats price</p>
+                            <div class="row">
+                                <div class="col">
+                                    <p th:text="${statistic.boxPlaned} + ' Planed'"></p>
+                                </div>
+                                <div class="col">
+                                    <p th:text="${statistic.boxFact} + ' Fact'"></p>
+                                </div>
+                                <div class="col">
+                                    <p th:text="${statistic.boxDuty} + ' Remain'"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-stats-bars"></i>
+                        </div>
+                    </div>
+                </div>
+                <!-- ./col -->
+                <div class="col">
+                    <!-- small box -->
+                    <div class="small-box bg-danger">
+                        <div class="inner">
+                            <h3 th:text="'USD: ' + ${statistic.boxArrears}"></h3>
+
+                            <p>Debt</p>
+                        </div>
+                        <div class="icon">
+                            <i class="ion ion-pie-graph"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <label>
+                <select id="sizeSelect" style="width: 50px; " onchange="changeSize()" name='status' class='form-control'>
+                    <option value=10 selected>10</option>
+                    <option value=20>20</option>
+                </select>
+            </label>
+
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">
+                        <label>
+                            <input id="flatNumber" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 100px">
+                        </label>
+                        <div onclick="sort('number')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Flat</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <select id="object" onchange="search()" class="form-control" style="width: 100px">
+                                <option th:value="null" selected>Empty</option>
+                                <option th:each="el : ${objects}" th:value="${el.id}" th:text="${el.house} + '(' + ${el.section} + ')'"></option>
+                            </select>
+                        </label>
+                        <div onclick="sort('object.house and object.section')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Object</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <input id="flatPriceStart" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 60px">
+                        </label>
+                        <label>
+                            <input id="flatPriceFin" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 60px">
+                        </label>
+                        <div onclick="sort('price')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Price</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <input id="flatSalePriceStart" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 60px">
+                        </label>
+                        <label>
+                            <input id="flatSalePriceFin" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 60px">
+                        </label>
+                        <div onclick="sort('salePrice')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Sale price</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <input id="factStart" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 60px">
+                        </label>
+                        <label>
+                            <input id="factFin" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 60px">
+                        </label>
+                        <div onclick="sort('fact')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Fact</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <input id="remainsStart" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 60px">
+                        </label>
+                        <label>
+                            <input id="remainsFin" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 60px">
+                        </label>
+                        <div onclick="sort('remains')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Remains</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <input id="debtStart" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 60px">
+                        </label>
+                        <label>
+                            <input id="debtFin" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 60px">
+                        </label>
+                        <div onclick="sort('debt')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Debt</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <select id="status" onchange="search()" class="form-control" style="width: 100px">
+                                <option th:value="null" selected>Empty</option>
+                                <option th:each="el : ${status}" th:value="${el.first}" th:text="${el.second}"></option>
+                            </select>
+                        </label>
+                        <div onclick="sort('status')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Status</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <input id="contractId" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 60px">
+                        </label>
+                        <div onclick="sort('contract.id')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Contract</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <input id="buyer" oninput="search()" type="text" class="form-control" style="width: 100px">
+                        </label>
+                        <div onclick="sort('buyer.surname and buyer.name')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Buyer</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <input id="realtor" oninput="search()" type="text" class="form-control" style="width: 100px">
+                        </label>
+                        <div onclick="sort('realtor.surname and realtor.name')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Realtor</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <label>
+                            <input id="sale" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 60px">
+                        </label>
+                        <div onclick="sort('price - salePrice')">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Sale</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Info</p>
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+                <tbody id="list">
+                <!-- list -->
+                </tbody>
+            </table>
+            <nav>
+                <ul id="choose-page" class="pagination">
+                    <!-- pagination buttons -->
+                </ul>
+            </nav>
+        </section>
+    </div>
+    <div id="popup" class="modal">
+        <!-- popup -->
+    </div>
+</div>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script th:src="@{/js/validation.js}"></script>
+
+<script>
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
+    let url = window.location.protocol+"//"+ window.location.host + context;
+
+    let UserId = "[[${userId}]]";
+    let modal = document.getElementById("popup");
+
+    let currentPage = 1;
+    let size = $('#sizeSelect').val();
+    let sortingField = 'id';
+    let sortingDirection = 'DESC';  // DESC
+    
+    let searchFlatNumber
+    let searchObjectId
+    let searchPriceStart
+    let searchPriceFin
+    let searchSalePriceStart
+    let searchSalePriceFin
+    let searchFactStart
+    let searchFactFin
+    let searchRemainsStart
+    let searchRemainsFin
+    let searchDebtStart
+    let searchDebtFin
+    let searchStatus
+    let searchContractId
+    let searchBuyer
+    let searchRealtor
+    let searchSale
+
+    $(document).ready(function() {
+        updatePage();
+        getUserPermissions();
+    });
+    
+    function search(){
+        searchFlatNumber = document.getElementById('flatNumber').value;
+        searchObjectId = $("#object").val();
+        searchPriceStart = document.getElementById('flatPriceStart').value;
+        searchPriceFin = document.getElementById('flatPriceFin').value;
+        searchSalePriceStart = document.getElementById('flatSalePriceStart').value;
+        searchSalePriceFin = document.getElementById('flatSalePriceFin').value;
+        searchFactStart = document.getElementById('factStart').value;
+        searchFactFin = document.getElementById('factFin').value;
+        searchRemainsStart = document.getElementById('remainsStart').value;
+        searchRemainsFin = document.getElementById('remainsFin').value;
+        searchDebtStart = document.getElementById('debtStart').value;
+        searchDebtFin = document.getElementById('debtFin').value;
+        searchStatus = $("#status").val();
+        searchContractId = document.getElementById('contractId').value;
+        searchBuyer = document.getElementById('buyer').value;
+        searchRealtor = document.getElementById('realtor').value;
+        searchSale = document.getElementById('sale').value;
+        updatePage();
+    }
+
+    function updatePage(){
+        let data = {
+            page: currentPage,
+            size: size,
+            sortingField: sortingField,
+            sortingDirection: sortingDirection,
+
+            flatNumber: searchFlatNumber,
+            objectId: searchObjectId,
+            priceStart: searchPriceStart,
+            priceFin: searchPriceFin,
+            salePriceStart: searchSalePriceStart,
+            salePriceFin: searchSalePriceFin,
+            factStart: searchFactStart,
+            factFin: searchFactFin,
+            remainsStart: searchRemainsStart,
+            remainsFin: searchRemainsFin,
+            debtStart: searchDebtStart,
+            debtFin: searchDebtFin,
+            status: searchStatus,
+            contractId: searchContractId,
+            buyer: searchBuyer,
+            realtor: searchRealtor,
+            sale: searchSale
+        }
+        $.ajax({
+            type: 'get',
+            url: url + '/getFlatsStatistic',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                console.log('success /getFlatsStatistic');
+                totalPage = data.totalPages;
+                if(currentPage > totalPage){
+                    if (currentPage !== 1) {
+                        currentPage--;
+                        updatePage();;
+                    }
+                }
+                updateList(data)
+                paginationButton();
+            },
+            error: function() {
+                console.log('error /getFlatsStatistic');
+            }
+        });
+    }
+
+    function updateList(data) {
+        $("#list").empty();
+        data.content.forEach((object) => {
+            if(object.contractId == null){
+                object.contractId = "None";
+            }
+            $("#list").append($("" +
+                "<tr>" +
+                "<td>" +
+                "<p onclick='goToFlat(" + object.flatId + ")'>" + object.flatNumber + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.object + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.price + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.salePrice + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.fact + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.remains + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.debt + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.status + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p onclick='goToContract(" + object.contractId + ")'>" + object.contractId + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.buyer + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.realtor + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.sale + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<button onclick='flatPayments(" + object.flatId + ")' class='btn btn-info'>Info</button>" +
+                "</td>" +
+                "</tr>"
+            ));
+        })
+    }
+
+    function flatPayments(flatId){
+        $("#popup").append($(
+            "<div class=\"modal-content\">\n" +
+            "   <span onclick=\"closePopup()\" class=\"close\">&times;</span>\n" +
+            "   <div class=\"card card-danger\">\n" +
+            "       <div class=\"card-header\">\n" +
+            "           <h3 class=\"card-title\">Bar chart</h3>\n" +
+            "           <div class=\"card-tools\">\n" +
+            "               <button type=\"button\" class=\"btn btn-tool\" data-card-widget=\"collapse\">\n" +
+            "                   <i class=\"fas fa-minus\"></i>\n" +
+            "               </button>\n" +
+            "               <button type=\"button\" class=\"btn btn-tool\" data-card-widget=\"remove\">\n" +
+            "                   <i class=\"fas fa-times\"></i>\n" +
+            "               </button>\n" +
+            "           </div>\n" +
+            "       </div>\n" +
+            "       <div class=\"card-body\">\n" +
+            "           <div class=\"chartjs-size-monitor\">\n" +
+            "               <div class=\"chartjs-size-monitor-expand\">\n" +
+            "                   <div class=\"\"></div>\n" +
+            "               </div>\n" +
+            "               <div class=\"chartjs-size-monitor-shrink\">\n" +
+            "                   <div class=\"\"></div>\n" +
+            "               </div>\n" +
+            "           </div>\n" +
+            "           <div id=\"cardBody\" class=\"card-body\">\n" +
+            "               <div class=\"chart\"><div class=\"chartjs-size-monitor\"><div class=\"chartjs-size-monitor-expand\"><div class=\"\"></div></div><div class=\"chartjs-size-monitor-shrink\"><div class=\"\"></div></div></div>\n" +
+            "                   <canvas id=\"barChart\" style=\"min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 764px;\" width=\"764\" height=\"250\" class=\"chartjs-render-monitor\"></canvas>\n" +
+            "               </div>\n" +
+            "           </div>\n" +
+            "       </div>\n" +
+            "   </div>\n" +
+            "</div>\n"
+        ));
+        modal.style.display = "block";
+        let data = {flatId: flatId};
+        $.ajax({
+            type: 'get',
+            url: url + '/getFlatPaymentsForBarChart',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                console.log('success /getFlatPaymentsForBarChart');
+
+                let months = [];
+                let planed = [];
+                let fact = [];
+                let remains = [];
+
+                data.forEach((object) => {
+                    months.push(moment(object.date).format('YYYY-MM-dd'));
+                    planed.push(object.planed);
+                    fact.push(object.fact);
+                    remains.push(object.remains);
+                })
+
+                let areaChartData = {
+                    labels: months,
+                    datasets: [
+                        {
+                            label               : 'Fact',
+                            backgroundColor     : 'rgba(49,211,31,0.9)',
+                            borderColor         : 'rgba(188,211,185,0.9)',
+                            pointRadius          : false,
+                            pointColor          : 'rgba(49,211,31,0.9)',
+                            pointStrokeColor    : 'rgba(49,211,31,0.9)',
+                            pointHighlightFill  : '#fff',
+                            pointHighlightStroke: 'rgba(49,211,31,0.9)',
+                            data                : fact
+                        },
+                        {
+                            label               : 'Planed',
+                            backgroundColor     : 'rgba(70,110,250,0.9)',
+                            borderColor         : 'rgba(181,188,220,0.9)',
+                            pointRadius          : false,
+                            pointColor          : 'rgba(70,110,250,0.9)',
+                            pointStrokeColor    : 'rgba(70,110,250,0.9)',
+                            pointHighlightFill  : '#fff',
+                            pointHighlightStroke: 'rgba(70,110,250,0.9)',
+                            data                : planed
+                        },
+                        {
+                            label               : 'Remains',
+                            backgroundColor     : 'rgb(204,13,13)',
+                            borderColor         : 'rgb(218,177,177)',
+                            pointRadius         : false,
+                            pointColor          : 'rgb(204,13,13)',
+                            pointStrokeColor    : 'rgb(204,13,13)',
+                            pointHighlightFill  : '#fff',
+                            pointHighlightStroke: 'rgb(204,13,13)',
+                            data                : remains
+                        },
+                    ]
+                }
+                console.log(areaChartData);
+
+                let barChartCanvas = $('#barChart').get(0).getContext('2d')
+                let barChartData = $.extend(true, {}, areaChartData)
+                barChartData.datasets[0] = areaChartData.datasets[0]
+
+                let barChartOptions = {
+                    responsive              : true,
+                    maintainAspectRatio     : false,
+                    datasetFill             : false
+                }
+                new Chart(barChartCanvas, {
+                    type: 'bar',
+                    data: barChartData,
+                    options: barChartOptions
+                })
+
+            },
+            error: function() {
+                console.log('error /getFlatPaymentsForBarChart');
+            }
+        });
+    }
+
+    function closePopup(){
+        modal.style.display = "none";
+        $("#popup").empty();
+    }
+
+    function goToFlat(id){
+        Permissions.forEach((permission)=>{
+            if(permission === "FLATS"){
+                window.location = "/flats/flat/" + id;
+            }
+        })
+    }
+
+    function goToContract(id){
+        Permissions.forEach((permission)=>{
+            if(permission === "FLATS"){
+                window.location = "/contracts/contract/" + id;
+            }
+        })
+    }
+
+    function getUserPermissions(){
+        let data = {id: UserId};
+        $.ajax({
+            type: 'get',
+            url: url + '/getUserPermissionsById',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                console.log('success /getUserPermissionsById');
+                Permissions = data;
+            },
+            error: function() {
+                console.log('error /getUserPermissionsById');
+            }
+        });
+    }
+
+    function sort(field){
+        if(sortingDirection === 'ASC'){
+            sortingDirection = 'DESC';
+        } else {
+            sortingDirection = 'ASC';
+        }
+        sortingField = field;
+        updatePage();
+    }
+    
+    function changeSize(){
+        size = $('#sizeSelect').val();
+        currentPage = 1;
+        updatePage()
+    }
+
+    function paginationButton(){
+        $("#choose-page").empty();
+        if(totalPage > 1){
+            if(currentPage !== 1){
+                $("#choose-page").append($("" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goFirstPage()' style='height: 40px'>First</button>" +
+                    "</div>" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goPreviousPage()' style='height: 40px'>\<\<</a>" +
+                    "</div>"
+                ));
+            } else {
+                $("#choose-page").append($("" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goFirstPage()' style='height: 40px'>First</button>" +
+                    "</div>" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goPreviousPage()' style='height: 40px'>\<\<</a>" +
+                    "</div>"
+                ));
+            }
+            let start = currentPage - 2;
+            let finish = currentPage + 2;
+            for(let i = start; i <= finish; i++) {
+                if(i > 0 && i <= totalPage) {
+                    if (currentPage === i) {
+                        $("#choose-page").append($("" +
+                            "<div class='page-item active'>" +
+                            "<button onclick='goToPage(" + i + ")' class='page-link' tabIndex=\"-1\" style='height: 40px; width: 40px'>" + i + "</button>" +
+                            "</div>"
+                        ));
+                    } else {
+                        $("#choose-page").append($("" +
+                            "<div class='page-item'>" +
+                            "<button onclick='goToPage(" + i + ")' class='page-link' tabIndex=\"-1\" style='height: 40px; width: 40px'>" + i + "</button>" +
+                            "</div>"
+                        ));
+                    }
+                }
+            }
+            if(currentPage !== totalPage) {
+                $("#choose-page").append($("" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goNextPage()' style='height: 40px'>\>\></button>" +
+                    "</div>" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goLastPage()' style='height: 40px'>Last</a>" +
+                    "</div>"
+                ));
+            } else {
+                $("#choose-page").append($("" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goNextPage()' style='height: 40px'>\>\></button>" +
+                    "</div>" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goLastPage()' style='height: 40px'>Last</a>" +
+                    "</div>"
+                ));
+            }
+        }
+    }
+
+    function goFirstPage(){
+        currentPage = 1;
+        updatePage();
+    }
+
+    function goPreviousPage(){
+        currentPage--;
+        updatePage();
+    }
+
+    function goToPage(i){
+        currentPage = i;
+        updatePage();
+    }
+    function goNextPage(){
+        currentPage++;
+        updatePage();
+    }
+    function goLastPage(){
+        currentPage = totalPage;
+        updatePage();
+    }
+</script>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+
+</main>
+</body>
+</html>

@@ -43,8 +43,10 @@ public class ContractTemplateController {
 
     @GetMapping("/getContractTemplates")
     @ResponseBody
-    public String getContractTemplates() throws JsonProcessingException {
-        return mapper.writeValueAsString(contractTemplateServiceImpl.findAll());
+    public String getContractTemplates(
+            Long contractTemplateId
+    ) throws JsonProcessingException {
+        return mapper.writeValueAsString(contractTemplateServiceImpl.findAllDeletedFalseOrById(contractTemplateId));
     }
 
     @PostMapping("/addContractTemplate")

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -24,7 +25,7 @@ public class CashRegisterSpecification {
             return null;
         }
         Date dateStart = new Date(1L);
-        Date dateFin = new Date(99999999999999L);
+        Date dateFin = new Date(Long.MAX_VALUE);
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         if (!dateStartString.equals("")){
             dateStart = format.parse(dateStartString);
@@ -32,8 +33,13 @@ public class CashRegisterSpecification {
         if (!dateFinString.equals("")){
             dateFin = format.parse(dateFinString);
         }
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(dateFin);
+        calendar.add(Calendar.DATE, 1);
+
         Date finalDateStart = dateStart;
-        Date finalDateFin = dateFin;
+        Date finalDateFin = calendar.getTime();
         return (root, query, cb) -> {
             return cb.between(root.get(CashRegister_.DATE), finalDateStart, finalDateFin);
         };

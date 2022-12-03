@@ -415,8 +415,10 @@ public class CashRegisterController {
 
     @GetMapping("/getManagers")
     @ResponseBody
-    public String getManagers() throws JsonProcessingException {
-        return mapper.writeValueAsString(userServiceImpl.findManagers());
+    public String getManagers(
+            Long managerId
+    ) throws JsonProcessingException {
+        return mapper.writeValueAsString(userServiceImpl.findManagers(managerId));
     }
 
     @GetMapping("/getDirector")
@@ -427,16 +429,18 @@ public class CashRegisterController {
 
     @GetMapping("/getAgencies")
     @ResponseBody
-    public String getAgencies() throws JsonProcessingException {
-        return mapper.writeValueAsString(agencyServiceImpl.findAll());
+    public String getAgencies(Long agencyId) throws JsonProcessingException {
+        return mapper.writeValueAsString(agencyServiceImpl.findAllByDeletedFalseOrId(agencyId));
     }
 
     @GetMapping("/getRealtorsByAgencyId")
     @ResponseBody
     public String getRealtorsByAgencyId(
-            Long id
+            Long agencyId,
+            Long realtorId
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(realtorServiceImpl.findAllByAgencyId(id));
+        return mapper.writeValueAsString(
+                realtorServiceImpl.findAllByAgencyIdOrRealtorId(agencyId, realtorId));
     }
 
     @GetMapping("/getArticlesForIncome")
@@ -461,8 +465,10 @@ public class CashRegisterController {
 
     @GetMapping("/getObjects")
     @ResponseBody
-    public String getObjects() throws JsonProcessingException {
-        return mapper.writeValueAsString(objectServiceImpl.findAllOnSale());
+    public String getObjects(
+            Long objectId
+    ) throws JsonProcessingException {
+        return mapper.writeValueAsString(objectServiceImpl.findAllDeletedFalseOrObjectId(objectId));
     }
 
     @GetMapping("/getFlatsWithContractWithFlatPaymentsByObjectId")
@@ -471,7 +477,7 @@ public class CashRegisterController {
             Long id,
             Long flatId
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(flatServiceImpl.getWithContractWithFlatPaymentByObjectId(id, flatId));
+        return mapper.writeValueAsString(flatServiceImpl.getFlatsWithContractWithFlatPaymentByObjectId(id, flatId));
     }
 
     @GetMapping("/getFlatPaymentsByFlatId")
@@ -480,7 +486,7 @@ public class CashRegisterController {
             Long id,
             Long flatPaymentId
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(flatPaymentServiceImpl.getByFlatId(id, flatPaymentId));
+        return mapper.writeValueAsString(flatPaymentServiceImpl.getAllByFlatIdPaidFalseAndDeletedFalse(id, flatPaymentId));
     }
 
     @GetMapping("/getFlatPaymentById")

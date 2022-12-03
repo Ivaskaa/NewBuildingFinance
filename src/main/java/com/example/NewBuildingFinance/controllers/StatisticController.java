@@ -1,6 +1,8 @@
 package com.example.NewBuildingFinance.controllers;
 
+import com.example.NewBuildingFinance.dto.statistic.flats.StatisticFlatsSearchDto;
 import com.example.NewBuildingFinance.entities.auth.User;
+import com.example.NewBuildingFinance.entities.flat.StatusFlat;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
 import com.example.NewBuildingFinance.service.object.ObjectServiceImpl;
@@ -19,7 +21,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Controller
 @AllArgsConstructor
@@ -65,34 +69,55 @@ public class StatisticController {
         ));
     }
 
-    @GetMapping("/flatPayments")
-    public String flatPayments(
+    @GetMapping("/flats")
+    public String flats(
             Model model
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userServiceImpl.loadUserByUsername(authentication.getName());
         model.addAttribute("user", user);
+        model.addAttribute("userId", user.getId());
         model.addAttribute("objects", objectService.findAll());
+        List<Pair<StatusFlat, String>> list = new ArrayList<>();
+        for(StatusFlat statusObject : StatusFlat.values()){
+            list.add(Pair.of(statusObject, statusObject.getValue()));
+        }
+        model.addAttribute("status", list);
         model.addAttribute("currencies", currencyService.findAll());
 
         // page model
         model.addAttribute("statistic", statisticService.getFlatBoxes());
-        return "statistics/statisticFlatPayments";
+        return "statistics/statisticFlats";
     }
 
-    @GetMapping("/getFlatPaymentsStatistic")
-    public String getFlatPaymentsStatistic(
-            Model model
-    ){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("user", user);
-        model.addAttribute("objects", objectService.findAll());
-        model.addAttribute("currencies", currencyService.findAll());
-
-        // page model
-        model.addAttribute("statistic", statisticService.getFlatBoxes());
-        return "statistics/statisticFlatPayments";
+    @GetMapping("/getFlatsStatistic")
+    @ResponseBody
+    public String getFlatsStatistic(
+            StatisticFlatsSearchDto searchDto
+    ) throws JsonProcessingException {
+        return mapper.writeValueAsString(
+                statisticService.getFlatPaymentStatistic(searchDto));
     }
+
+    @GetMapping("/getFlatPaymentsForBarChart")
+    @ResponseBody
+    public String getFlatPaymentsForBarChart(
+            Long flatId
+    ) throws JsonProcessingException {
+        return mapper.writeValueAsString(
+                statisticService.getFlatPaymentsByFlatId(flatId));
+    }
+    // others
+
+    @GetMapping ("/getUserPermissionsById")
+    @ResponseBody
+    public String getUserPermissionsById(
+            Long id
+    ) throws JsonProcessingException {
+        List<String> permissions = userServiceImpl.getUserPermissionsById(id);
+        return mapper.writeValueAsString(permissions);
+    }
+
+
 
 }

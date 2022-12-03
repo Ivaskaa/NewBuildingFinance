@@ -168,4 +168,10 @@ public class FlatSpecification {
             return null;
         };
     }
+
+    public static Specification<Flat> deletedFalse() {
+        return (root, query, cb) -> {
+            return cb.isFalse(root.get(Flat_.DELETED));
+        };
+    }
 }

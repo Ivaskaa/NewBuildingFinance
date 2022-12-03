@@ -2,13 +2,16 @@ package com.example.NewBuildingFinance.entities.buyer;
 
 
 import com.example.NewBuildingFinance.dto.buyer.BuyerTableDto;
+import com.example.NewBuildingFinance.dto.buyer.BuyerUploadDto;
 import com.example.NewBuildingFinance.entities.agency.Realtor;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.flat.Flat;
+import com.example.NewBuildingFinance.entities.flat.StatusFlat;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Formula;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -26,9 +29,17 @@ public class Buyer {
     private String lastname;
     private String address;
     private Long idNumber;
+
+    @Enumerated(EnumType.STRING)
+    private DocumentStyle documentStyle;
+
     private String passportSeries;
     private Integer passportNumber;
-    private Integer passportWhoIssued;
+    private String passportWhoIssued;
+
+    private Long idCardNumber;
+    private Integer idCardWhoIssued;
+
     private String phone;
     private String email;
     private String note;
@@ -44,6 +55,10 @@ public class Buyer {
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JsonManagedReference
     private User user;
+    private boolean deleted = false;
+
+    @Formula("(select count(*) from flats where flats.buyer_id = id and flats.contract_id IS NOT NULL)")
+    private long contractSize;
 
     public BuyerTableDto build(){
         BuyerTableDto buyer = new BuyerTableDto();
@@ -68,6 +83,35 @@ public class Buyer {
         return buyer;
     }
 
+    public BuyerUploadDto buildUploadDto(){
+        BuyerUploadDto buyer = new BuyerUploadDto();
+        buyer.setId(id);
+        buyer.setName(name);
+        buyer.setSurname(surname);
+        buyer.setLastname(lastname);
+        buyer.setAddress(address);
+        buyer.setIdNumber(idNumber);
+
+        buyer.setDocumentStyle(documentStyle.toString());
+        if(documentStyle.equals(DocumentStyle.ID_CARD)){
+            buyer.setIdCardNumber(idCardNumber);
+            buyer.setIdCardWhoIssued(idCardWhoIssued);
+        } else {
+            buyer.setPassportSeries(passportSeries);
+            buyer.setPassportNumber(passportNumber);
+            buyer.setPassportWhoIssued(passportWhoIssued);
+        }
+
+        buyer.setPhone(phone);
+        buyer.setEmail(email);
+        buyer.setNote(note);
+
+        buyer.setRealtorId(realtor.getId());
+        buyer.setAgencyId(realtor.getAgency().getId());
+        buyer.setManagerId(user.getId());
+        return buyer;
+    }
+
     @Override
     public String toString() {
         return "Buyer{" +
@@ -77,13 +121,16 @@ public class Buyer {
                 ", lastname='" + lastname + '\'' +
                 ", address='" + address + '\'' +
                 ", idNumber=" + idNumber +
-                ", passportSeries=" + passportSeries +
+                ", documentStyle=" + documentStyle +
+                ", passportSeries='" + passportSeries + '\'' +
                 ", passportNumber=" + passportNumber +
-                ", passportWhoIssued=" + passportWhoIssued +
+                ", passportWhoIssued='" + passportWhoIssued + '\'' +
+                ", idCardNumber=" + idCardNumber +
+                ", idCardWhoIssued=" + idCardWhoIssued +
                 ", phone='" + phone + '\'' +
                 ", email='" + email + '\'' +
                 ", note='" + note + '\'' +
-                ", realtor=" + realtor +
+                ", deleted=" + deleted +
                 '}';
     }
 }

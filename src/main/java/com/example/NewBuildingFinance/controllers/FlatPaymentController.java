@@ -50,7 +50,7 @@ public class FlatPaymentController {
         if(flatPaymentServiceImpl.checkPlaned(flatPaymentDto.getPlanned(), flatPaymentDto.getFlatId())){
             bindingResult.addError(new FieldError("flatPaymentDto", "planned", "The sum of planned payment can`t exceed sale price"));
         }
-        if(flatPaymentDto.getPlanned() != null && flatPaymentDto.getPlanned().equals(0)){
+        if(flatPaymentDto.getPlanned() != null && flatPaymentDto.getPlanned() == 0){
             bindingResult.addError(new FieldError("flatPaymentDto", "planned", "Must be greater than zero"));
         }
         if(bindingResult.hasErrors()){
@@ -74,6 +74,7 @@ public class FlatPaymentController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
+        System.out.println(flatPaymentDto);
         FlatPayment flatPayment = flatPaymentServiceImpl.findById(flatPaymentDto.getId());
         if(!flatPayment.getNumber().equals(flatPaymentDto.getNumber())) {
             if (flatPaymentServiceImpl.checkNumber(flatPaymentDto.getNumber(), flatPaymentDto.getFlatId())) {
@@ -83,7 +84,7 @@ public class FlatPaymentController {
         if(flatPaymentServiceImpl.checkPlanedEdit(flatPaymentDto.getId(), flatPaymentDto.getPlanned(), flatPaymentDto.getFlatId())){
             bindingResult.addError(new FieldError("flatPaymentDto", "planned", "The planned payment of the apartment is incomplete"));
         }
-        if(flatPaymentDto.getPlanned() != null && flatPaymentDto.getPlanned().equals(0)){
+        if(flatPaymentDto.getPlanned() != null && flatPaymentDto.getPlanned() == 0){
             bindingResult.addError(new FieldError("flatPaymentDto", "planned", "Must be greater than zero"));
         }
         if(bindingResult.hasErrors()){

@@ -13,5 +13,6 @@ public class CashRegisterTableDtoForFlat {
     private String status;
     private Integer percent;
     private Double price;
+    private String currency;
     private Date date;
 }

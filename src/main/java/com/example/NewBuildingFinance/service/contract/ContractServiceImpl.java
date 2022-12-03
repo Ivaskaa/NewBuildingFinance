@@ -1,12 +1,16 @@
 package com.example.NewBuildingFinance.service.contract;
 
+import com.example.NewBuildingFinance.dto.cashRegister.CommissionTableDtoForAgency;
 import com.example.NewBuildingFinance.dto.contract.*;
+import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
 import com.example.NewBuildingFinance.entities.contract.Contract;
+import com.example.NewBuildingFinance.entities.contract.ContractStatus;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
 import com.example.NewBuildingFinance.entities.flat.StatusFlat;
 import com.example.NewBuildingFinance.entities.object.Object;
 import com.example.NewBuildingFinance.others.specifications.ContractSpecification;
+import com.example.NewBuildingFinance.repository.CashRegisterRepository;
 import com.example.NewBuildingFinance.repository.ContractRepository;
 import com.example.NewBuildingFinance.repository.FlatRepository;
 import com.example.NewBuildingFinance.repository.ObjectRepository;
@@ -39,6 +43,7 @@ public class ContractServiceImpl implements ContractService {
     private final ContractRepository contractRepository;
     private final FlatRepository flatRepository;
     private final ObjectRepository objectRepository;
+    private final CashRegisterRepository cashRegisterRepository;
 
     private final NotificationServiceImpl notificationServiceImpl;
     private final SettingServiceImpl settingService;
@@ -58,7 +63,6 @@ public class ContractServiceImpl implements ContractService {
             String buyerName,
             String comment
     ) throws ParseException {
-        String[] words = buyerName.split(" ");
         log.info("get contract page. page: {}, size: {} field: {}, direction: {}",
                 currentPage - 1, size, sortingField, sortingDirection);
         Specification<Contract> specification = Specification
@@ -67,8 +71,6 @@ public class ContractServiceImpl implements ContractService {
                 .and(ContractSpecification.likeObject(objectId))
                 .and(ContractSpecification.likeFlatNumber(flatNumber))
                 .and(ContractSpecification.likeBuyerName(buyerName))
-//                .and(ContractSpecification.likeBuyerSurname(words[1]))
-//                .and(ContractSpecification.likeBuyerLastname(words[2]))
                 .and(ContractSpecification.likeComment(comment))
                 .and(ContractSpecification.likeDeletedFalse());
 //                .and(ContractSpecification.likeAdvance(advanceStart, advanceFin));
@@ -92,18 +94,15 @@ public class ContractServiceImpl implements ContractService {
         Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
         Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
         Page<ContractTableDtoForBuyers> contracts
-                = contractRepository.findAllByBuyerId(pageable, buyerId)
+                = contractRepository.findAllByBuyerIdAndDeletedFalse(pageable, buyerId)
                 .map(Contract::buildTableDtoForBuyers);
         log.info("success");
         return contracts;
     }
 
     @Override
-    public Page<ContractTableDtoForAgency> findSortingPageByAgencyId(
-            Integer currentPage,
-            Integer size,
-            String sortingField,
-            String sortingDirection,
+    public Page<ContractTableDtoForAgency> findSortingContractsPageByAgencyId(
+            Integer currentPage, Integer size, String sortingField, String sortingDirection,
             Long agencyId
     ) {
         log.info("get contract page for agency id: {} page: {}, size: {} field: {}, direction: {}",
@@ -111,10 +110,23 @@ public class ContractServiceImpl implements ContractService {
         Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
         Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
         Page<ContractTableDtoForAgency> contracts
-                = contractRepository.findAllByFlatRealtorAgencyId(pageable, agencyId)
+                = contractRepository.findAllByFlatRealtorAgencyIdAndDeletedFalse(pageable, agencyId)
                 .map(Contract::buildTableDtoForAgency);
         log.info("success");
         return contracts;
+    }
+    public Page<CommissionTableDtoForAgency> findSortingCommissionsPageByAgencyId(
+            Integer page, Integer size, String field, String direction,
+            Long agencyId) {
+        log.info("get contract page for agency id: {} page: {}, size: {} field: {}, direction: {}",
+                agencyId, page - 1, size, field, direction);
+        Sort sort = Sort.by(Sort.Direction.valueOf(direction), field);
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+        Page<CommissionTableDtoForAgency> commissions
+                = cashRegisterRepository.findAllByFlatRealtorAgencyIdAndDeletedFalse(pageable, agencyId)
+                .map(CashRegister::buildCommissionTableDtoForAgency);
+        log.info("success");
+        return commissions;
     }
 
     @Override
@@ -174,21 +186,17 @@ public class ContractServiceImpl implements ContractService {
     }
 
     @Override
-    public Contract deleteById(Long id) {
-        log.info("delete contract by id: {}", id);
-        Contract contract = contractRepository.findById(id).orElseThrow();
-
-        Flat flat = flatRepository.findFlatByContractId(contract.getId()).orElse(null);
+    public void deleteById(Long contractId) {
+        log.info("delete contract by id: {}", contractId);
+        Flat flat = flatRepository.findFlatByContractId(contractId).orElse(null);
         if (flat != null) {
             flat.setContract(null);
             flat.setStatus(StatusFlat.ACTIVE);
             flatRepository.save(flat);
         }
-        contract.setBuyer(null);
-        contract.setDeleted(true);
-        contractRepository.save(contract);
+        contractRepository.setDeleted(contractId);
+        notificationServiceImpl.deleteNotificationByContractId(contractId);
         log.info("success delete contract by id");
-        return contract;
     }
 
     @Override

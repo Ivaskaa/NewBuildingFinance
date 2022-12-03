@@ -4,6 +4,7 @@ import com.example.NewBuildingFinance.dto.contract.ContractTableDto;
 import com.example.NewBuildingFinance.dto.contract.ContractTableDtoForAgency;
 import com.example.NewBuildingFinance.dto.contract.ContractTableDtoForBuyers;
 import com.example.NewBuildingFinance.dto.contract.ContractUploadDto;
+import com.example.NewBuildingFinance.entities.agency.Agency;
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.fasterxml.jackson.annotation.JsonIgnore;

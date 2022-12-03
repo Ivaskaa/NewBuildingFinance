@@ -29,7 +29,7 @@ public class MailServiceImpl implements MailService{
                 MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
                 StandardCharsets.UTF_8.name());
         Context context = new Context();
-        context.setVariables(email.getContext());  // так само як model передає насторінку
+        context.setVariables(email.getContext());  // так само як model передає на сторінку
         String content = templateEngine.process(email.getTemplateLocation(), context);
 
         mimeMessageHelper.setTo(email.getTo());

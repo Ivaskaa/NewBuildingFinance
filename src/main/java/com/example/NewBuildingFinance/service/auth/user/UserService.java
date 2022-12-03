@@ -32,7 +32,7 @@ public interface UserService {
      * get users with permission buyers from database
      * @return list of managers
      */
-    List<User> findManagers();
+    List<User> findManagers(Long userId);
 
     /**
      * save user to database

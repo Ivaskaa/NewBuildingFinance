@@ -9,7 +9,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 public interface FlatService {
 
@@ -117,7 +116,7 @@ public interface FlatService {
      * @param flatId flat id (can be null)
      * @return flat list
      */
-    List<Flat> getWithContractWithFlatPaymentByObjectId(Long id, Long flatId);
+    List<Flat> getFlatsWithContractWithFlatPaymentByObjectId(Long id, Long flatId);
 
     /**
      * get flat list without contracts, with status ACTIVE by object id or flat id
@@ -128,34 +127,9 @@ public interface FlatService {
     List<Flat> getFlatsWithoutContractByObjectId(Long id, Long flatId);
 
     /**
-     * check price and sale prise (without database)
-     * @param price flat price
-     * @param salePrice flat sale price
-     * @return if price less than sale price return true
-     * if sale price less than or equals to price return false
-     */
-    boolean checkPrice(Double price, Double salePrice);
-
-    /**
-     * check percentages (without database)
-     * @param agency agency %
-     * @param manager manager %
-     * @return if sum of agency % and manager % rather than 100 return true
-     */
-    boolean checkPercentages(Integer agency, Integer manager);
-
-    /**
-     * check flat number
-     * @param number flat number
-     * @param objectId object id
-     * @return if flat number is exist return true
-     */
-    boolean checkFlatNumber(Integer number, Long objectId);
-
-    /**
      * check status (without database)
      * @param status flat status
      * @return if status equals active return false
      */
-    boolean checkStatus(StatusFlat status);
+    boolean validationCheckStatus(StatusFlat status);
 }

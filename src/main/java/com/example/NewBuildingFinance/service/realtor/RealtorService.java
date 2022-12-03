@@ -14,7 +14,7 @@ public interface RealtorService {
             Long id
     );
 
-    List<Realtor> findAllByAgencyId(Long id);
+    List<Realtor> findAllByAgencyIdOrRealtorId(Long agencyId, Long realtorId);
 
     Realtor save(Realtor realtor, Long agencyId);
 

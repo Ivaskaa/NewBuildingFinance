@@ -58,6 +58,16 @@ public class NotificationServiceImpl implements NotificationService{
         }
     }
 
+    public void deleteNotificationByContractId(Long contractId) {
+        log.info("delete notification by contract id: {}", contractId);
+        Notification notification = findByContractId(contractId);
+        if(notification != null){
+            notificationRepository.deleteById(notification.getId());
+        }
+        template.convertAndSend("/topic/notifications", "Hello");
+        log.info("success delete notification from contract");
+    }
+
     @Override
     public void createNotificationFromAgency(Long agencyId) {
         if(settingService.getSettings().isNotificationAgency()) {
@@ -98,7 +108,7 @@ public class NotificationServiceImpl implements NotificationService{
     @Override
     public Notification findByContractId(Long id) {
         log.info("get notification by id: {}", id);
-        Notification notification = notificationRepository.findByContractId(id).orElseThrow();
+        Notification notification = notificationRepository.findByContractId(id).orElse(null);
         log.info("success get notification by id");
         return notification;
     }
@@ -144,6 +154,4 @@ public class NotificationServiceImpl implements NotificationService{
         template.convertAndSend("/topic/notifications", "Hello");
         log.info("success update notification");
     }
-
-
 }

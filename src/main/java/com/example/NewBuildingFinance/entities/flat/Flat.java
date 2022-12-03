@@ -1,6 +1,7 @@
 package com.example.NewBuildingFinance.entities.flat;
 
 import com.example.NewBuildingFinance.dto.flat.FlatTableDto;
+import com.example.NewBuildingFinance.dto.statistic.flats.StatisticFlatsTableDto;
 import com.example.NewBuildingFinance.entities.agency.Realtor;
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
 import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
@@ -75,13 +76,15 @@ public class Flat {
 
         Double advance = 0d;
         Double entered = 0d;
-        Date date = new Date(99999999999999L);
+        Date date = new Date(Long.MAX_VALUE);
         for(FlatPayment flatPayment : flatPayments){
-            if(date.after(flatPayment.getDate())){
-                date = flatPayment.getDate();
-                advance = flatPayment.getPlanned();
-                if(flatPayment.getActually() != null) {
-                    entered += flatPayment.getActually();
+            if(!flatPayment.isDeleted()) {
+                if(date.after(flatPayment.getDate())){
+                    date = flatPayment.getDate();
+                    advance = flatPayment.getPlanned();
+                    if (flatPayment.getActually() != null) {
+                        entered += flatPayment.getActually();
+                    }
                 }
             }
         }
@@ -90,6 +93,49 @@ public class Flat {
         flat.setEntered(entered);
         flat.setRemains(salePrice - entered);
         return flat;
+    }
+
+    public StatisticFlatsTableDto buildStatisticTableDto(){
+        StatisticFlatsTableDto statisticFlat = new StatisticFlatsTableDto();
+        statisticFlat.setFlatId(id);
+        statisticFlat.setFlatNumber(number);
+        statisticFlat.setObject(object.getHouse() + "(" + object.getSection() + ")");
+
+        statisticFlat.setPrice(price);
+        statisticFlat.setSalePrice(salePrice);
+
+        Double fact = 0d;
+        Double remains = 0d;
+        Double debt = 0d;
+        for(FlatPayment flatPayment : flatPayments){
+            if(flatPayment.isPaid()){
+                fact += flatPayment.getActually();
+                debt += flatPayment.getPlanned() - flatPayment.getActually();
+            } else {
+                remains += flatPayment.getPlanned();
+            }
+        }
+        statisticFlat.setFact(fact);
+        statisticFlat.setRemains(remains);
+        statisticFlat.setDebt(debt);
+
+        statisticFlat.setStatus(status.getValue());
+        if(contract != null) {
+            statisticFlat.setContractId(contract.getId());
+        }
+        if(buyer != null){
+            statisticFlat.setBuyer(buyer.getSurname() + " " + buyer.getName());
+        } else {
+            statisticFlat.setBuyer("None");
+        }
+        if(realtor != null){
+            statisticFlat.setRealtor(realtor.getSurname() + " " + realtor.getName());
+        } else {
+            statisticFlat.setRealtor("None");
+        }
+        statisticFlat.setSale(price - salePrice);
+
+        return statisticFlat;
     }
 
     @Override

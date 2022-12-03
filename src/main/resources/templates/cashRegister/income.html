@@ -78,7 +78,7 @@
                         </div>
                         <div class="form-group mt-2">
                             <label>Flat payment number:</label>
-                            <select id="flatPayment" onchange="uploadFlatPayment()" class="form-control" >
+                            <select id="flatPayment" onchange="uploadFlatPayment(), uploadPriceCurrency()" class="form-control" >
                                 <option th:value="null" disabled selected>Choose flat payment</option>
                             </select>
                             <p id='flatPaymentMessage' style="color: red"></p>
@@ -159,8 +159,10 @@
 
     function articles(){
         if ($("#article").val() === 'FLAT_PAYMENT'){
+            getFlatPaymentsByFlatId()
             $("#forFlatPayment").show();
         } else {
+            Planned = undefined;
             $("#forFlatPayment").hide();
         }
     }
@@ -390,32 +392,27 @@
                 }
             })
         } else {
-            document.getElementById('price').value = 0;
+            Currencies.forEach((element) => {
+                if(element.name === 'USD'){
+                    document.getElementById('price').value = roundPlus(document.getElementById('price').value * element.price / document.getElementById('admissionCourse').value, 2);
+                }
+            })
         }
     }
 
     function uploadPriceCurrency(){
         if(Currency.name !== undefined){
-            if(Planned !== undefined){
+            if(Planned !== undefined) {
                 // all not undefined
                 Currencies.forEach((element) => {
-                    if(element.name === 'USD'){
-                        console.log(Planned);
-                        console.log(element.price);
-                        console.log(Currency.price);
+                    if (element.name === 'USD') {
                         document.getElementById('price').value = roundPlus(Planned * element.price / Currency.price, 2);
                     }
                 })
-            } else {
-                // planned undefined
-                document.getElementById('price').value = 0;
             }
-        } else if(Planned !== undefined){
+        } else if(Planned !== undefined) {
             // currency undefined
             document.getElementById('price').value = Planned;
-        } else {
-            //all undefined
-            document.getElementById('price').value = 0;
         }
     }
 
@@ -428,8 +425,14 @@
             data: data,
             success: function (data) {
                 console.log('success /getFlatPaymentById');
-                planned = data.planned;
-                uploadPriceCurrency();
+                Planned = data.planned;
+                console.log(document.getElementById('admissionCourse').value);
+                if(document.getElementById('admissionCourse').value !== ''){
+                    uploadPriceInput();
+                } else {
+                    uploadPriceCurrency();
+                }
+
             },
             error: function () {
                 console.log('error /getFlatPaymentById');
@@ -445,7 +448,6 @@
             dataType: "json",
             success: function (data) {
                 console.log('success /getCurrencies');
-                Currencies = data
                 data.forEach((element) =>{
                     if(id == element.id){
                         Currency.name = element.name;
@@ -514,16 +516,19 @@
                 $("#currency").append($("" +
                     "<option selected disabled value='" + null + "'>Choose currency</option>"
                 ));
+                Currencies = data;
                 data.forEach((element) => {
                     if(element.id === Income?.currencyId ?? null){
                         $("#currency").append($("" +
                             "<option selected value='" + element.id + "'> " + element.name + " (" + element.price + ")</option>"
                         ));
+                        document.getElementById('admissionCourse').disabled = element.name === 'UAH';
                     } else {
                         $("#currency").append($("" +
                             "<option value='" + element.id + "'> " + element.name + " (" + element.price + ")</option>"
                         ));
                     }
+
                 })
             },
             error: function () {
@@ -533,10 +538,20 @@
     }
 
     function getObjects(){
+        let objectId;
+        if(null != Income?.objectId ?? null){
+            objectId = Income.objectId;
+        } else if (null != FlatPayment?.flat?.object?.id ?? null) {
+            objectId = FlatPayment.flat.object.id;
+        } else {
+            objectId = null
+        }
+        let data = {objectId: objectId}
         $.ajax({
             type: 'get',
             url: url + '/getObjects',
             dataType: "json",
+            data: data,
             success: function (data) {
                 console.log('success /getObjects');
                 $("#object").empty();
@@ -600,6 +615,10 @@
                         ));
                     }
                 })
+                $("#flatPayment").empty();
+                $("#flatPayment").append($("" +
+                    "<option selected disabled value='" + null + "'>Choose flat payment</option>"
+                ));
             },
             error: function () {
                 console.log('error /getFlatsWithContractWithFlatPaymentsByObjectId');
@@ -608,6 +627,7 @@
     }
 
     function getFlatPaymentsByFlatId(){
+        Planned = null;
         let data = {
             id: $("#flat").val(),
             flatPaymentId: Income.flatPaymentId

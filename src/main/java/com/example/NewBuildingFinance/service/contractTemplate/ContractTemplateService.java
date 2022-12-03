@@ -10,7 +10,7 @@ public interface ContractTemplateService {
      * find all contract templates
      * @return list of contract templates
      */
-    List<ContractTemplate> findAll();
+    List<ContractTemplate> findAllDeletedFalseOrById(Long contractTemplateId);
 
     /**
      * save new contract template

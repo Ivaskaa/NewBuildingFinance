@@ -30,7 +30,5 @@ public interface FlatPaymentService {
 
     boolean checkPlanedEdit(Long id, Double planned, Long flatId);
 
-    List<FlatPayment> getByFlatId(Long id);
-
-    List<FlatPayment> getByFlatId(Long flatId, Long flatPaymentId);
+    List<FlatPayment> getAllByFlatIdPaidFalseAndDeletedFalse(Long flatId, Long flatPaymentId);
 }

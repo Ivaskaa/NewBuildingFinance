@@ -1,7 +1,8 @@
-package com.example.NewBuildingFinance.service.secureToken.staticService;
+package com.example.NewBuildingFinance.service.staticService;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,5 +43,16 @@ public class StaticServiceImpl implements StaticService{
             log.warn("Exception delete photo in " + directory + " directory, file doesn't exist");
         }
         log.info("delete photo in " + directory + " directory");
+    }
+
+
+    public Sort sort(String sortingField, String sortingDirection) {
+        Sort sort;
+        if(sortingField.contains(" and ")){
+            sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField.split(" and "));
+        } else {
+            sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
+        }
+        return sort;
     }
 }

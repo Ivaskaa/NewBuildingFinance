@@ -157,6 +157,9 @@
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Price</p>
                         </th>
                         <th scope="col">
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Currency</p>
+                        </th>
+                        <th scope="col">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Payment date</p>
                         </th>
                         <th scope="col">
@@ -261,7 +264,7 @@
                         </th>
                         <th scope="col">
                             <div>
-                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Difference</p>
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Remains</p>
                             </div>
                         </th>
                         <th scope="col">
@@ -324,7 +327,6 @@
 
     let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",0));
     let url = window.location.protocol+"//"+ window.location.host + context;
-    console.log(url)
     // window.location.href = 'redirect-url';
 
     let currentPage = 1;
@@ -413,6 +415,7 @@
                     $("#agencyDiv").show();
                     $("#realtorDiv").show();
                 }
+                RealtorId = Flat?.realtor?.id;
                 if(undefined !== Flat?.contract?.id ?? null){
                     document.getElementById('number').disabled = true;
                     document.getElementById('quantityRooms').disabled = true;
@@ -731,6 +734,9 @@
                         "<p>" + object.price + "</p>" +
                         "</td>" +
                         "<td>" +
+                        "<p>" + object.currency + "</p>" +
+                        "</td>" +
+                        "<td>" +
                         "<p>" + moment(object.date).format('YYYY-MM-DD') + "</p>" +
                         "</td>" +
                         "<td>" +
@@ -760,10 +766,12 @@
     }
 
     function getObjects(){
+        let data = {objectId: Flat?.object?.id ?? null}
         $.ajax({
             type: 'get',
             url: url +'/flats/getAllOnSaleObjects',
             dataType: "json",
+            data: data,
             success: function (data){
                 console.log('success /getAllOnSaleObjects');
                 Objects = data
@@ -789,10 +797,12 @@
     }
 
     function getStatuses(){
+        let data = {flatId: Flat?.id ?? null}
         $.ajax({
             type: 'get',
             url: url +'/flats/getStatuses',
             dataType: "json",
+            data: data,
             success: function (data){
                 console.log('success /getStatuses');
                 Statuses = data;
@@ -956,7 +966,9 @@
                 Buyer = data;
                 $('#buyer').append($("" +
                     "<option value='" + data.id + "' selected>" + data.name + " " + data.surname + "</option>"))
-                RealtorId = data?.realtor?.id;
+                if(true !==  data?.realtor?.deleted ?? false) {
+                    RealtorId = data?.realtor?.id;
+                }
                 AgencyId = data?.realtor?.agency?.id;
                 $("#agencyDiv").show();
                 $("#realtorDiv").show();
@@ -967,12 +979,14 @@
     }
 
     function updateAgency(){
+        let data = {agencyId: Flat?.realtor?.agency?.id ?? null}
         $.ajax({
             type: 'get',
-            url: url +'/flats/getAllAgencies',
+            url: url +'/flats/getAllAgenciesByDeletedFalse',
             dataType: "json",
+            data: data,
             success: function (data){
-                console.log('success /getAllAgencies');
+                console.log('success /getAllAgenciesByDeletedFalse');
                 $("#agencyy").empty();
                 $("#agencyy").append($("" +
                     "<option selected disabled value='" + null + "'>Choose agency</option>"
@@ -1000,12 +1014,15 @@
                 })
                 AgencyId = 0;
             },
-            error: function() { console.log('error /getAllAgencies'); }
+            error: function() { console.log('error /getAllAgenciesByDeletedFalse'); }
         });
     }
 
     function updateRealtor(){
-        let data = {id:$("#agencyy").val()};
+        let data = {
+            agencyId: $("#agencyy").val(),
+            realtorId: RealtorId
+        };
         $.ajax({
             type: 'get',
             url: url +'/flats/getRealtorsByAgenciesId',
@@ -1186,13 +1203,15 @@
     }
 
     function getAgencies(){
+        let data = {agencyId: null};
         $.ajax({
             type: 'get',
-            url: url + '/flats/getAllAgencies',
+            url: url + '/flats/getAllAgenciesByDeletedFalse',
             dataType: "json",
             async: false,
+            data: data,
             success: function (data){
-                console.log('success /getAllAgencies');
+                console.log('success /getAllAgenciesByDeletedFalse');
                 $("#buyerAgency").append($("" +
                     "<option value='" + null + "' selected disabled>Choose agency</option>"
                 ));
@@ -1203,7 +1222,7 @@
                 })
             },
             error: function() {
-                console.log('error /getAllAgencies');
+                console.log('error /getAllAgenciesByDeletedFalse');
             }
         });
     }
@@ -1387,7 +1406,7 @@
 
     let currentPagePayment = 1;
     let sizePayment = 10;
-    let sortingFieldPayment = 'number';
+    let sortingFieldPayment = 'date';
     let sortingDirectionPayment = 'ASC';  // DESC
 
     let alreadyPay;
@@ -1555,7 +1574,6 @@
         $("#listPayment").empty();
         alreadyPay = 0;
         data.content.forEach((object) => {
-            console.log(object);
             let actually = object?.actually ?? 'None';
             let remains = object?.remains ?? 'None';
             let date = moment(object.date).format('YYYY-MM-DD');

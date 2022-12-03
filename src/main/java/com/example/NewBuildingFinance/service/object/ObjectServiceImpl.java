@@ -29,13 +29,41 @@ public class ObjectServiceImpl implements ObjectService{
         log.info("get object page: {}, field: {}, direction: {}", currentPage - 1, sortingField, sortingDirection);
         Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
         Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
-        Page<ObjectTableDto> objectPage = objectRepository.findAll(pageable).map(Object::build);
+        Page<ObjectTableDto> objectPage = objectRepository.findAllByDeletedFalse(pageable).map(Object::build);
         log.info("success");
         return objectPage;
     }
 
     @Override
     public List<Object> findAll() {
+        log.info("find all objects");
+        List<Object> objectPage = objectRepository.findAll();
+        log.info("success find all objects");
+        return objectPage;
+    }
+
+    public List<Object> findAllOnSaleOrObjectId(Long objectId) {
+        List<Object> objects;
+        if(objectId != null){
+            objects = objectRepository.findAllOnSaleByDeletedFalseOrId(objectId);
+        } else {
+            objects = objectRepository.findAllOnSaleByDeletedFalse();
+        }
+        return objects;
+    }
+
+    public List<Object> findAllDeletedFalseOrObjectId(Long objectId) {
+        List<Object> objects;
+        if(objectId != null){
+            objects = objectRepository.findAllByDeletedFalseOrId(objectId);
+        } else {
+            objects = objectRepository.findAllByDeletedFalse();
+        }
+        return objects;
+    }
+
+    @Override
+    public List<Object> findAllByDeletedFalse() {
         log.info("find all objects");
         List<Object> objectPage = objectRepository.findAll();
         log.info("success find all objects");
@@ -68,9 +96,9 @@ public class ObjectServiceImpl implements ObjectService{
 
     @Override
     public void deleteById(Long id) {
-        log.info("delete object by id: {}", id);
-        objectRepository.deleteById(id);
-        log.info("success delete object by id");
+        log.info("set object.deleted true by id: {}", id);
+        objectRepository.setDeleted(id);
+        log.info("success set object.deleted true");
     }
 
     @Override
@@ -87,10 +115,5 @@ public class ObjectServiceImpl implements ObjectService{
             return agency + manager > 100;
         }
         return false;
-    }
-
-    @Override
-    public List<Object> findAllOnSale() {
-        return objectRepository.findAllOnSale();
     }
 }

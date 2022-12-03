@@ -1,5 +1,6 @@
 package com.example.NewBuildingFinance.entities.agency;
 
+import com.example.NewBuildingFinance.entities.contract.Contract;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -22,14 +23,15 @@ public class Realtor {
     private String phone;
     private String email;
     @JoinColumn(name = "agency_id")
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JsonManagedReference
     private Agency agency;
     @JoinColumn(name = "realtor_id")
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JsonBackReference
     private Set<Flat> flats;
     private boolean director;
+    private boolean deleted = false;
 
     @Override
     public String toString() {

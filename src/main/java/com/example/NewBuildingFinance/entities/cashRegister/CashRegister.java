@@ -1,19 +1,18 @@
 package com.example.NewBuildingFinance.entities.cashRegister;
 
-import com.example.NewBuildingFinance.dto.cashRegister.CashRegisterTableDtoForFlat;
-import com.example.NewBuildingFinance.dto.cashRegister.IncomeUploadDto;
-import com.example.NewBuildingFinance.dto.cashRegister.CashRegisterTableDto;
-import com.example.NewBuildingFinance.dto.cashRegister.SpendingUploadDto;
+import com.example.NewBuildingFinance.dto.cashRegister.*;
 import com.example.NewBuildingFinance.entities.agency.Realtor;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.currency.InternalCurrency;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
 import com.example.NewBuildingFinance.entities.object.Object;
+import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -110,9 +109,25 @@ public class CashRegister {
         }
         cashRegister.setStatus(status.getValue());
         cashRegister.setPrice(price);
+        cashRegister.setCurrency(currency.getName());
         cashRegister.setDate(date);
         return cashRegister;
     }
+
+    public CommissionTableDtoForAgency buildCommissionTableDtoForAgency(){
+        CommissionTableDtoForAgency commissionTableDtoForAgency = new CommissionTableDtoForAgency();
+        commissionTableDtoForAgency.setFlatArea(flat.getArea());
+        commissionTableDtoForAgency.setFlatId(flat.getId());
+        commissionTableDtoForAgency.setMoney(price);
+        commissionTableDtoForAgency.setDate(date);
+        commissionTableDtoForAgency.setFlatNumber(flat.getNumber());
+        commissionTableDtoForAgency.setObject(flat.getObject().getHouse() + "(" + flat.getObject().getSection() + ")");
+        commissionTableDtoForAgency.setStatus(status.getValue());
+        commissionTableDtoForAgency.setPercent(flat.getAgency());
+        commissionTableDtoForAgency.setPrice(flat.getSalePrice());
+        return commissionTableDtoForAgency;
+    }
+
 
     public IncomeUploadDto buildIncomeUploadDto(){
         IncomeUploadDto cashRegister = new IncomeUploadDto();

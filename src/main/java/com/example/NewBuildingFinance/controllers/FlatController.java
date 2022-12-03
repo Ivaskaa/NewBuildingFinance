@@ -1,6 +1,6 @@
 package com.example.NewBuildingFinance.controllers;
 
-import com.example.NewBuildingFinance.dto.buyer.BuyerDto;
+import com.example.NewBuildingFinance.dto.buyer.BuyerSaveDto;
 import com.example.NewBuildingFinance.dto.cashRegister.CashRegisterTableDtoForFlat;
 import com.example.NewBuildingFinance.dto.flat.FlatSaveDto;
 import com.example.NewBuildingFinance.entities.agency.Agency;
@@ -36,6 +36,7 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @AllArgsConstructor
@@ -65,9 +66,9 @@ public class FlatController {
         for(StatusFlat statusObject : StatusFlat.values()){
             list.add(Pair.of(statusObject, statusObject.getValue()));
         }
+        model.addAttribute("statuses", list);
         model.addAttribute("currencies", currencyService.findAll());
         model.addAttribute("statistic", statisticService.getMainMonthlyStatistic(null, "", ""));
-        model.addAttribute("statuses", list);
         model.addAttribute("user", user);
         return "flat/flats";
     }
@@ -130,25 +131,17 @@ public class FlatController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        System.out.println(flatSaveDto);
-        if(flatServiceImpl.checkFlatNumber(flatSaveDto.getNumber(), flatSaveDto.getObjectId())){
-            bindingResult.addError(new FieldError("flatSaveDto", "number", "In selected object the flat with this number is exists"));
+        if(flatServiceImpl.validationWithoutDatabase(bindingResult, flatSaveDto) && !bindingResult.hasErrors()){
+            flatServiceImpl.validationCreateWithDatabase(bindingResult, flatSaveDto);
         }
-        if(flatServiceImpl.checkPrice(flatSaveDto.getPrice(), flatSaveDto.getSalePrice())){
-            bindingResult.addError(new FieldError("flatSaveDto", "price", "Price must be rather then sale price"));
-            bindingResult.addError(new FieldError("flatSaveDto", "salePrice", "Price must be rather then sale price"));
-        }
-        if(flatServiceImpl.checkPercentages(flatSaveDto.getAgency(), flatSaveDto.getManager())){
-            bindingResult.addError(new FieldError("flatSaveDto", "agency", "The sum of percentages must be less than 100"));
-            bindingResult.addError(new FieldError("flatSaveDto", "manager", "The sum of percentages must be less than 100"));
-        }
+
         if(bindingResult.hasErrors()){
-            Map<String, String> errors = new HashMap<>();
-            for (FieldError error : bindingResult.getFieldErrors()) {
-                errors.put(error.getField(), error.getDefaultMessage());
-            }
+            Map<String, String> errors = bindingResult.getFieldErrors()
+                    .stream()
+                    .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage));
             return mapper.writeValueAsString(errors);
         }
+
         //action
         Flat flat = flatServiceImpl.save(flatSaveDto.build());
         return mapper.writeValueAsString(flat.getId());
@@ -161,25 +154,15 @@ public class FlatController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        Flat flat = flatServiceImpl.findById(flatSaveDto.getId());
-        if(!flat.getNumber().equals(flatSaveDto.getNumber())){
-            if(flatServiceImpl.checkFlatNumber(flatSaveDto.getNumber(), flatSaveDto.getObjectId())){
-                bindingResult.addError(new FieldError("flatSaveDto", "number", "In selected object the flat with this number is exists"));
-            }
+
+        if(flatServiceImpl.validationWithoutDatabase(bindingResult, flatSaveDto) && !bindingResult.hasErrors()){
+            flatServiceImpl.validationUpdateWithDatabase(bindingResult, flatSaveDto);
         }
-        if(flatServiceImpl.checkPrice(flatSaveDto.getPrice(), flatSaveDto.getSalePrice())){
-            bindingResult.addError(new FieldError("flatSaveDto", "price", "Price must be rather then sale price"));
-            bindingResult.addError(new FieldError("flatSaveDto", "salePrice", "Price must be rather then sale price"));
-        }
-        if(flatServiceImpl.checkPercentages(flatSaveDto.getAgency(), flatSaveDto.getManager())){
-            bindingResult.addError(new FieldError("flatSaveDto", "agency", "The sum of percentages must be less than 100"));
-            bindingResult.addError(new FieldError("flatSaveDto", "manager", "The sum of percentages must be less than 100"));
-        }
+
         if(bindingResult.hasErrors()){
-            Map<String, String> errors = new HashMap<>();
-            for (FieldError error : bindingResult.getFieldErrors()) {
-                errors.put(error.getField(), error.getDefaultMessage());
-            }
+            Map<String, String> errors = bindingResult.getFieldErrors()
+                    .stream()
+                    .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage));
             return mapper.writeValueAsString(errors);
         }
 
@@ -195,33 +178,23 @@ public class FlatController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        Flat flat = flatServiceImpl.findById(flatSaveDto.getId());
-        if(!flat.getNumber().equals(flatSaveDto.getNumber())){
-            if(flatServiceImpl.checkFlatNumber(flatSaveDto.getNumber(), flatSaveDto.getObjectId())){
-                bindingResult.addError(new FieldError("flatSaveDto", "number", "In selected object the flat with this number is exists"));
-            }
-        }
-        if(flatServiceImpl.checkPrice(flatSaveDto.getPrice(), flatSaveDto.getSalePrice())){
-            bindingResult.addError(new FieldError("flatSaveDto", "price", "Price must be rather then sale price"));
-            bindingResult.addError(new FieldError("flatSaveDto", "salePrice", "Price must be rather then sale price"));
-        }
-        if(flatServiceImpl.checkStatus(flatSaveDto.getStatus())){
+        if(flatServiceImpl.validationCheckStatus(flatSaveDto.getStatus())){
             bindingResult.addError(new FieldError("flatSaveDto", "status", "Flat status must be active"));
-        }
-        if(flatServiceImpl.checkPercentages(flatSaveDto.getAgency(), flatSaveDto.getManager())){
-            bindingResult.addError(new FieldError("flatSaveDto", "agency", "The sum of percentages must be less than 100"));
-            bindingResult.addError(new FieldError("flatSaveDto", "manager", "The sum of percentages must be less than 100"));
         }
         if(flatSaveDto.getBuyerId() == null){
             bindingResult.addError(new FieldError("flatSaveDto", "buyer", "Must not be empty"));
         } else if(flatSaveDto.getRealtorId() == null){
             bindingResult.addError(new FieldError("flatSaveDto", "realtor", "Must not be empty"));
         }
+
+        if(flatServiceImpl.validationWithoutDatabase(bindingResult, flatSaveDto) && !bindingResult.hasErrors()){
+            flatServiceImpl.validationUpdateWithDatabase(bindingResult, flatSaveDto);
+        }
+
         if(bindingResult.hasErrors()){
-            Map<String, String> errors = new HashMap<>();
-            for (FieldError error : bindingResult.getFieldErrors()) {
-                errors.put(error.getField(), error.getDefaultMessage());
-            }
+            Map<String, String> errors = bindingResult.getFieldErrors()
+                    .stream()
+                    .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage));
             return mapper.writeValueAsString(errors);
         }
 
@@ -283,19 +256,23 @@ public class FlatController {
 
     // another
 
-    @GetMapping("/getAllAgencies")
+    @GetMapping("/getAllAgenciesByDeletedFalse")
     @ResponseBody
-    public String getAllAgencies() throws JsonProcessingException {
-        List<Agency> agencyList = agencyServiceImpl.findAll();
+    public String getAllAgenciesByDeletedFalse(
+            Long agencyId
+    ) throws JsonProcessingException {
+        System.out.println(agencyId);
+        List<Agency> agencyList = agencyServiceImpl.findAllByDeletedFalse(agencyId);
         return mapper.writeValueAsString(agencyList);
     }
 
     @GetMapping("/getRealtorsByAgenciesId")
     @ResponseBody
     public String getRealtorsByAgenciesId(
-            Long id
+            Long agencyId,
+            Long realtorId
     ) throws JsonProcessingException {
-        List<Realtor> realtorList = realtorServiceImpl.findAllByAgencyId(id);
+        List<Realtor> realtorList = realtorServiceImpl.findAllByAgencyIdOrRealtorId(agencyId, realtorId);
         return mapper.writeValueAsString(realtorList);
     }
 
@@ -328,20 +305,17 @@ public class FlatController {
 
     @GetMapping("/getStatuses")
     @ResponseBody
-    public String getStatuses() throws JsonProcessingException {
-        List<Pair<StatusFlat, String>> list = new ArrayList<>();
-        for(StatusFlat statusObject : StatusFlat.values()){
-            if(!statusObject.equals(StatusFlat.SOLD)) {
-                list.add(Pair.of(statusObject, statusObject.getValue()));
-            }
-        }
+    public String getStatuses(Long flatId) throws JsonProcessingException {
+        List<Pair<StatusFlat, String>> list = flatServiceImpl.getStatusesByFlatId(flatId);
         return mapper.writeValueAsString(list);
     }
 
     @GetMapping("/getAllOnSaleObjects")
     @ResponseBody
-    public String getAllOnSaleObjects() throws JsonProcessingException {
-        return mapper.writeValueAsString(objectServiceImpl.findAllOnSale());
+    public String getAllOnSaleObjects(
+            Long objectId
+    ) throws JsonProcessingException {
+        return mapper.writeValueAsString(objectServiceImpl.findAllOnSaleOrObjectId(objectId));
     }
 
     // for buyer
@@ -349,7 +323,7 @@ public class FlatController {
     @PostMapping("/addBuyer")
     @ResponseBody
     public String addBuyer(
-            @Valid @RequestBody BuyerDto buyerDto,
+            @Valid @RequestBody BuyerSaveDto buyerSaveDto,
             BindingResult bindingResult
     ) throws IOException {
         //validation
@@ -361,7 +335,7 @@ public class FlatController {
             return mapper.writeValueAsString(errors);
         }
         //action
-        Buyer buyer = buyerServiceImpl.save(buyerDto.build());
+        Buyer buyer = buyerServiceImpl.save(buyerSaveDto.build());
         return mapper.writeValueAsString(buyer.getId());
     }
 
@@ -376,8 +350,10 @@ public class FlatController {
 
     @GetMapping("/getAllManagers")
     @ResponseBody
-    public String getAllManagers() throws JsonProcessingException {
-        return mapper.writeValueAsString(userServiceImpl.findManagers());
+    public String getAllManagers(
+            Long managerId
+    ) throws JsonProcessingException {
+        return mapper.writeValueAsString(userServiceImpl.findManagers(managerId));
     }
 
 

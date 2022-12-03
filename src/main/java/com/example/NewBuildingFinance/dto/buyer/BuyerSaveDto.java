@@ -3,14 +3,16 @@ package com.example.NewBuildingFinance.dto.buyer;
 import com.example.NewBuildingFinance.entities.agency.Realtor;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
+import com.example.NewBuildingFinance.entities.buyer.DocumentStyle;
 import lombok.Data;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 @Data
-public class BuyerDto {
+public class BuyerSaveDto {
     private Long id;
     @NotEmpty(message = "Must not be empty")
     private String name;
@@ -22,12 +24,17 @@ public class BuyerDto {
     private String address;
     @NotNull(message = "Must not be empty")
     private Long idNumber;
-    @NotNull(message = "Must not be empty")
+
+    @NotEmpty(message = "You must choose something")
+    private String documentStyle;
+
     private String passportSeries;
-    @NotNull(message = "Must not be empty")
     private Integer passportNumber;
-    @NotNull(message = "Must not be empty")
-    private Integer passportWhoIssued;
+    private String passportWhoIssued;
+
+    private Long idCardNumber;
+    private Integer idCardWhoIssued;
+
     @NotEmpty(message = "Must not be empty")
     private String phone;
     @NotEmpty(message = "Must not be empty")
@@ -47,9 +54,15 @@ public class BuyerDto {
         buyer.setLastname(lastname);
         buyer.setAddress(address);
         buyer.setIdNumber(idNumber);
-        buyer.setPassportSeries(passportSeries);
-        buyer.setPassportNumber(passportNumber);
-        buyer.setPassportWhoIssued(passportWhoIssued);
+        buyer.setDocumentStyle(DocumentStyle.valueOf(documentStyle));
+        if(buyer.getDocumentStyle().equals(DocumentStyle.ID_CARD)){
+            buyer.setIdCardNumber(idCardNumber);
+            buyer.setIdCardWhoIssued(idCardWhoIssued);
+        } else if (buyer.getDocumentStyle().equals(DocumentStyle.PASSPORT)){
+            buyer.setPassportSeries(passportSeries);
+            buyer.setPassportNumber(passportNumber);
+            buyer.setPassportWhoIssued(passportWhoIssued);
+        }
         buyer.setPhone(phone);
         buyer.setEmail(email);
         buyer.setNote(note);

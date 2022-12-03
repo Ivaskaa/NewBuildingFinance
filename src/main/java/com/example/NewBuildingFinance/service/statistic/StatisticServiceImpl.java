@@ -1,7 +1,10 @@
 package com.example.NewBuildingFinance.service.statistic;
 
 import com.example.NewBuildingFinance.dto.statistic.StatisticCashRegisterDto;
-import com.example.NewBuildingFinance.dto.statistic.flatPayments.StatisticFlatsDto;
+import com.example.NewBuildingFinance.dto.statistic.flats.StatisticFlatPaymentBarChartDto;
+import com.example.NewBuildingFinance.dto.statistic.flats.StatisticFlatsSearchDto;
+import com.example.NewBuildingFinance.dto.statistic.flats.StatisticFlatsTableDto;
+import com.example.NewBuildingFinance.dto.statistic.flats.StatisticFlatsDto;
 import com.example.NewBuildingFinance.dto.statistic.planFact.StatisticPlanFactDto;
 import com.example.NewBuildingFinance.dto.statistic.planFact.StatisticPlanFactTableDto;
 import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
@@ -11,13 +14,19 @@ import com.example.NewBuildingFinance.entities.currency.InternalCurrency;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
 import com.example.NewBuildingFinance.entities.flat.StatusFlat;
+import com.example.NewBuildingFinance.others.specifications.FlatStatisticSpecification;
 import com.example.NewBuildingFinance.repository.CashRegisterRepository;
 import com.example.NewBuildingFinance.repository.FlatPaymentRepository;
 import com.example.NewBuildingFinance.repository.FlatRepository;
-import com.example.NewBuildingFinance.repository.InternalCurrencyRepository;
 import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
+import com.example.NewBuildingFinance.service.staticService.StaticServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +39,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Log4j2
@@ -40,13 +51,18 @@ public class StatisticServiceImpl {
     private final CashRegisterRepository cashRegisterRepository;
 
     private final InternalCurrencyServiceImpl internalCurrencyService;
+    private final StaticServiceImpl staticService;
 
-    public StatisticPlanFactDto getMainMonthlyStatistic(Long objectId, String dateStartString, String dateFinString) throws ParseException {
+    public StatisticPlanFactDto getMainMonthlyStatistic(
+            Long objectId,
+            String dateStartString,
+            String dateFinString
+    ) throws ParseException {
         List<Flat> flats;
         if (objectId != null){
-            flats = flatRepository.findAllByObjectId(objectId);
+            flats = flatRepository.findAllByObjectIdAndDeletedFalse(objectId);
         } else {
-            flats = flatRepository.findAll();
+            flats = flatRepository.findAllByDeletedFalse();
         }
 
         Integer boxFlats = flats.size();
@@ -84,6 +100,7 @@ public class StatisticServiceImpl {
         List<StatisticPlanFactTableDto> list = new ArrayList<>();
 
         for(; localDateStart.isBefore(localDateFin); localDateStart = localDateStart.plusMonths(1)){
+            boxAllFlatSalePrice = 0;
             boxSalesFlats = 0;
             boxOnSaleFlats = 0;
             boxArea = 0d;
@@ -156,6 +173,31 @@ public class StatisticServiceImpl {
         statisticPlanFactDto.setBoxSalesFlats(boxSalesFlats);
         statisticPlanFactDto.setBoxOnSaleFlats(boxOnSaleFlats);
         return statisticPlanFactDto;
+    }
+
+    public Page<StatisticFlatsTableDto> getFlatPaymentStatistic(StatisticFlatsSearchDto searchDto){
+        log.info("get statistic page. page: {}, size: {} field: {}, direction: {}",
+                searchDto.getPage() - 1, searchDto.getSize(),
+                searchDto.getSortingField(), searchDto.getSortingDirection());
+        Specification<Flat> specification = Specification
+                .where(FlatStatisticSpecification.likeNumber(searchDto.getFlatNumber()))
+                .and(FlatStatisticSpecification.likeObjectId(searchDto.getObjectId()))
+                .and(FlatStatisticSpecification.likePrice(searchDto.getPriceStart(), searchDto.getPriceFin()))
+                .and(FlatStatisticSpecification.likeSalePrice(searchDto.getSalePriceStart(), searchDto.getSalePriceFin()))
+//                .and(FlatStatisticSpecification.likeFact(searchDto.getFactStart(), searchDto.getFactFin()))
+//                .and(FlatStatisticSpecification.likeRemains(searchDto.getRemainsStart(), searchDto.getRemainsFin()))
+//                .and(FlatStatisticSpecification.likeDebt(searchDto.getDebtStart(), searchDto.getDebtFin()))
+                .and(FlatStatisticSpecification.likeStatus(searchDto.getStatus()))
+                .and(FlatStatisticSpecification.likeContractId(searchDto.getContractId()))
+                .and(FlatStatisticSpecification.likeBuyer(searchDto.getBuyer()))
+                .and(FlatStatisticSpecification.likeRealtor(searchDto.getRealtor()))
+                .and(FlatStatisticSpecification.deletedFalse());
+//                .and(FlatStatisticSpecification.likeSale(searchDto.getSale()));
+        Sort sort = staticService.sort(searchDto.getSortingField(), searchDto.getSortingDirection());
+        Pageable pageable = PageRequest.of(searchDto.getPage() - 1, searchDto.getSize(), sort);
+        Page<StatisticFlatsTableDto> statisticFlatPayments = flatRepository.findAll(specification, pageable).map(Flat::buildStatisticTableDto);
+        log.info("success get statistic page.");
+        return statisticFlatPayments;
     }
 
     public Pair<Date, Date> getMinDateAndMaxDate() {
@@ -244,7 +286,7 @@ public class StatisticServiceImpl {
 
     public StatisticFlatsDto getFlatBoxes() {
         StatisticFlatsDto statistics = new StatisticFlatsDto();
-        List<Flat> flats = flatRepository.findAll();
+        List<Flat> flats = flatRepository.findAllByDeletedFalse();
 
         long boxCountFlats;
         long boxCountFlatsSales = 0L;
@@ -253,7 +295,7 @@ public class StatisticServiceImpl {
         long boxAllFlatSalePrice = 0L;
         long boxPlaned = 0L;
         long boxFact = 0L;
-        long boxDuty = 0L;
+        long boxDuty;
 
         long boxArrears = 0L;
 
@@ -285,5 +327,15 @@ public class StatisticServiceImpl {
         statistics.setBoxDuty(boxDuty);
         statistics.setBoxArrears(boxArrears);
         return statistics;
+    }
+
+    public List<StatisticFlatPaymentBarChartDto> getFlatPaymentsByFlatId(Long flatId) {
+        Sort sort = Sort.by(Sort.Direction.valueOf("ASC"), "date");
+        List<StatisticFlatPaymentBarChartDto> statistic =
+                flatPaymentRepository.findAllByFlatIdAndDeletedFalse(sort, flatId)
+                .stream()
+                .map(FlatPayment::buildFlatPaymentForBarChart)
+                .collect(Collectors.toList());
+        return statistic;
     }
 }

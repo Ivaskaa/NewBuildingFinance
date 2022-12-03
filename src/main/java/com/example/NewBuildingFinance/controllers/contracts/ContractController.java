@@ -190,8 +190,8 @@ public class ContractController {
 
     @GetMapping("/getAllOnSaleObjects")
     @ResponseBody
-    public String getObjects() throws JsonProcessingException {
-        List<Object> objects = objectServiceImpl.findAllOnSale();
+    public String getObjects(Long objectId) throws JsonProcessingException {
+        List<Object> objects = objectServiceImpl.findAllOnSaleOrObjectId(objectId);
         return mapper.writeValueAsString(objects);
     }
 
@@ -226,8 +226,10 @@ public class ContractController {
 
     @GetMapping("/getContractTemplates")
     @ResponseBody
-    public String getContractTemplates() throws JsonProcessingException {
-        List<ContractTemplate> contractTemplates = contractTemplateServiceImpl.findAll();
+    public String getContractTemplates(
+            Long contractTemplateId
+    ) throws JsonProcessingException {
+        List<ContractTemplate> contractTemplates = contractTemplateServiceImpl.findAllDeletedFalseOrById(contractTemplateId);
         return mapper.writeValueAsString(contractTemplates);
     }
 
@@ -250,15 +252,5 @@ public class ContractController {
         Flat flat = flatServiceImpl.findById(id);
         return mapper.writeValueAsString(flat);
     }
-
-
-//    @GetMapping("/getBuyerById")
-//    @ResponseBody
-//    public String getBuyerById(
-//            Long id
-//    ) throws JsonProcessingException {
-//        Buyer buyer = buyerService.findById(id);
-//        return mapper.writeValueAsString(buyer);
-//    }
 
 }

@@ -1,4 +1,4 @@
-package com.example.NewBuildingFinance.service.secureToken.staticService;
+package com.example.NewBuildingFinance.service.staticService;
 
 import org.springframework.web.multipart.MultipartFile;
 

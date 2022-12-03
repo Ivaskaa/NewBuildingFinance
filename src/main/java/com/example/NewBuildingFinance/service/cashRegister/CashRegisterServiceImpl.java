@@ -9,6 +9,7 @@ import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.cashRegister.Article;
 import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
 import com.example.NewBuildingFinance.entities.cashRegister.StatusCashRegister;
+import com.example.NewBuildingFinance.entities.currency.InternalCurrency;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
 import com.example.NewBuildingFinance.others.mail.context.AbstractEmailContextBuyerFlatPayment;
 import com.example.NewBuildingFinance.others.mail.MailThread;
@@ -17,6 +18,7 @@ import com.example.NewBuildingFinance.repository.CashRegisterRepository;
 import com.example.NewBuildingFinance.repository.FlatPaymentRepository;
 import com.example.NewBuildingFinance.repository.RealtorRepository;
 import com.example.NewBuildingFinance.repository.auth.UserRepository;
+import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
 import com.example.NewBuildingFinance.service.mail.MailServiceImpl;
 import com.example.NewBuildingFinance.service.setting.SettingServiceImpl;
 import com.itextpdf.html2pdf.HtmlConverter;
@@ -63,6 +65,7 @@ public class CashRegisterServiceImpl implements CashRegisterService{
 
     private final MailServiceImpl mailServiceImpl;
     private final SettingServiceImpl settingService;
+    private final InternalCurrencyServiceImpl internalCurrencyService;
 
     @Override
     public Page<CashRegisterTableDto> findSortingAndSpecificationPage(
@@ -118,7 +121,7 @@ public class CashRegisterServiceImpl implements CashRegisterService{
                 cashRegister.setCounterparty(
                         flatPayment.getFlat().getBuyer().getSurname() + " " +
                         flatPayment.getFlat().getBuyer().getName());
-                flatPayment.setActually(cashRegister.getPrice() * cashRegister.getAdmissionCourse());
+                flatPayment.setActually(cashRegister.getPrice() / internalCurrencyService.getUSD().getPrice() * cashRegister.getAdmissionCourse());
                 flatPayment.setPaid(true);
                 flatPaymentRepository.save(flatPayment);
 
@@ -150,17 +153,16 @@ public class CashRegisterServiceImpl implements CashRegisterService{
         if (income.getArticle().equals(Article.FLAT_PAYMENT)) {
             FlatPayment newFlatPayment = flatPaymentRepository.findById(cashRegisterAfterSave.getFlatPayment().getId()).orElse(null);
             if (newFlatPayment != null) {
-                if(!cashRegister.getFlatPayment().equals(newFlatPayment)){
-                    if (oldFlatPayment != null) {
-                        oldFlatPayment.setActually(null);
-                        oldFlatPayment.setPaid(false);
-                        flatPaymentRepository.save(oldFlatPayment);
-                    }
+                if(!oldFlatPayment.equals(newFlatPayment)){
+                    oldFlatPayment.setActually(null);
+                    oldFlatPayment.setPaid(false);
+                    flatPaymentRepository.save(oldFlatPayment);
                 }
+
                 cashRegisterAfterSave.setCounterparty(
                         newFlatPayment.getFlat().getBuyer().getSurname() + " " +
                                 newFlatPayment.getFlat().getBuyer().getName());
-                newFlatPayment.setActually(cashRegisterAfterSave.getPrice());
+                newFlatPayment.setActually(cashRegisterAfterSave.getPrice() / internalCurrencyService.getUSD().getPrice() * cashRegisterAfterSave.getAdmissionCourse());
                 newFlatPayment.setPaid(true);
                 flatPaymentRepository.save(newFlatPayment);
 
@@ -228,18 +230,16 @@ public class CashRegisterServiceImpl implements CashRegisterService{
     }
 
     @Override
-    public void deleteSpendingById(Long id) {
-        log.info("delete spending by id: {}", id);
-        CashRegister cashRegister = cashRegisterRepository.findById(id).orElseThrow();
-        cashRegister.setDeleted(true);
-        cashRegisterRepository.save(cashRegister);
-        log.info("success delete spending by id");
+    public void deleteSpendingById(Long cashRegisterId) {
+        log.info("set cash_register.delete true for spending by id: {}", cashRegisterId);
+        cashRegisterRepository.setDeleted(cashRegisterId);
+        log.info("success set cash_register.delete true for spending");
     }
 
     @Override
-    public void deleteIncomeById(Long id) {
-        log.info("delete income by id: {}", id);
-        CashRegister cashRegister = cashRegisterRepository.findById(id).orElseThrow();
+    public void deleteIncomeById(Long cashRegisterId) {
+        log.info("set cash_register.delete true for income by id: {}", cashRegisterId);
+        CashRegister cashRegister = cashRegisterRepository.findById(cashRegisterId).orElseThrow();
         if (cashRegister.getArticle().equals(Article.FLAT_PAYMENT)){
             cashRegister.setFlatPayment(null);
             cashRegister.setObject(null);
@@ -252,7 +252,7 @@ public class CashRegisterServiceImpl implements CashRegisterService{
         }
         cashRegister.setDeleted(true);
         cashRegisterRepository.save(cashRegister);
-        log.info("success delete income by id");
+        log.info("success set cash_register.delete true for income");
     }
 
     @Override

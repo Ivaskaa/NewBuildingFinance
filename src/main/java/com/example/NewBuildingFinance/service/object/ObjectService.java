@@ -17,6 +17,8 @@ public interface ObjectService {
 
     List<Object> findAll();
 
+    List<Object> findAllByDeletedFalse();
+
     Object save(Object object);
 
     Object update(Object objectForm);
@@ -25,7 +27,7 @@ public interface ObjectService {
 
     Object findById(Long id);
 
-    boolean checkPercentages(Integer agency, Integer manager);
 
-    List<Object> findAllOnSale();
+
+    boolean checkPercentages(Integer agency, Integer manager);
 }

@@ -2,14 +2,16 @@ package com.example.NewBuildingFinance.repository;
 
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.flat.StatusFlat;
-import com.example.NewBuildingFinance.entities.object.Object;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -30,9 +32,17 @@ public interface FlatRepository extends JpaRepository<Flat, Long>, JpaSpecificat
     List<Flat> findAllByDeletedFalseAndObjectIdAndContractNullAndStatusOrId(Long object_id, StatusFlat status, Long id);
 
     List<Flat> findAllByDeletedFalseAndObjectIdAndContractNotNull(Long object_id);
-    List<Flat> findAllByDeletedFalseAndObjectIdAndContractNotNullOrId(Long object_id, Long id);
+    List<Flat> findAllByDeletedFalseAndObjectIdAndContractNotNullOrObjectIdAndId(Long object_id, Long object_id2, Long id);
 
+
+    List<Flat> findAllByObjectIdAndDeletedFalse(Long objectId);
     List<Flat> findAllByDeletedFalse();
 
-    List<Flat> findAllByObjectId(Long objectId);
+    @Modifying
+    @Query(value = "update flats set flats.deleted = true where flats.id = :id", nativeQuery = true)
+    @Transactional
+    void setDeleted(@Param("id") Long id);
+
+    @Query("Select f.number from Flat f where f.id = ?1")
+    Integer findFlatNumberById(Long id);
 }

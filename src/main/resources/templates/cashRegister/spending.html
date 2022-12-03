@@ -156,21 +156,18 @@
 <script src="https://unpkg.com/imask"></script>
 
 <script>
-
     let SpendingId = "[[${cashRegisterId}]]";
     let FlatId = "[[${flatId}]]";
     let Spending = {};
     let Flat = {};
     let Realtor = {};
-    console.log('hello');
 
-    let Planed;
-    let Currency;
+    let Planned;
+    let Currencies = [];
+    let Currency = {};
 
-    let modal = document.getElementById("popup");
     let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
     let url = window.location.protocol+"//"+ window.location.host + context;
-    console.log(url)
 
     $(document).ready(function() {
         Spending.id = SpendingId;
@@ -190,24 +187,28 @@
 
     function articles(){
         if ($("#article").val() === 'COMMISSION_AGENCIES'){
+            getFlatsByObjectId()
             $("#forFlatPayment").show();
             $("#counterpartyDivManager").hide();
             $("#counterpartyDivString").hide();
             $("#counterpartyDivDirector").hide();
             $("#counterpartyDivRealtor").show();
         } else if($("#article").val() === 'COMMISSION_MANAGER'){
+            getFlatsByObjectId()
             $("#forFlatPayment").show();
             $("#counterpartyDivString").hide();
             $("#counterpartyDivRealtor").hide();
             $("#counterpartyDivDirector").hide();
             $("#counterpartyDivManager").show();
         } else if($("#article").val() === 'CONSTRUCTION_COSTS'){
+            Planned = undefined;
             $("#forFlatPayment").hide();
             $("#counterpartyDivRealtor").hide();
             $("#counterpartyDivManager").hide();
             $("#counterpartyDivDirector").hide();
             $("#counterpartyDivString").show();
         } else if($("#article").val() === 'MONEY_FOR_DIRECTOR'){
+            Planned = undefined;
             $("#forFlatPayment").hide();
             $("#counterpartyDivRealtor").hide();
             $("#counterpartyDivManager").hide();
@@ -468,25 +469,31 @@
     //upload info
 
     function uploadPriceInput(){
-        if (Planed !== undefined){
-            document.getElementById('price').value = roundPlus(Planed / document.getElementById('admissionCourse').value, 2);
-        } else {
-            document.getElementById('price').value = 0;
+        if (Planned !== undefined){
+            Currencies.forEach((element) => {
+                if(element.name === 'USD'){
+                    document.getElementById('price').value = roundPlus(Planned * element.price / document.getElementById('admissionCourse').value, 2);
+                }
+            })
         }
     }
 
     function uploadPriceCurrency(){
-        if(Currency !== undefined){
-            if(Planed !== undefined){
+        if(Currency.name !== undefined){
+            if(Planned !== undefined){
                 // all not undefined
-                document.getElementById('price').value = roundPlus(Planed / Currency, 2);
+                Currencies.forEach((element) => {
+                    if(element.name === 'USD'){
+                        document.getElementById('price').value = roundPlus(Planned * element.price / Currency.price, 2);
+                    }
+                })
             } else {
                 // planned undefined
                 document.getElementById('price').value = 0;
             }
-        } else if(Planed !== undefined){
+        } else if(Planned !== undefined){
             // currency undefined
-            document.getElementById('price').value = Planed;
+            document.getElementById('price').value = Planned;
         } else {
             //all undefined
             document.getElementById('price').value = 0;
@@ -504,11 +511,11 @@
                 console.log('success /getFlatById');
                 if ($("#article").val() === 'COMMISSION_AGENCIES'){
                     let price = roundPlus(data.salePrice / 100 * data.agency, 2)
-                    Planed = price;
+                    Planned = price;
                     uploadPriceCurrency();
                 } else if($("#article").val() === 'COMMISSION_MANAGER'){
                     let price = roundPlus(data.salePrice / 100 * data.manager, 2)
-                    Planed = price;
+                    Planned = price;
                     uploadPriceCurrency();
                 }
             },
@@ -519,21 +526,25 @@
     }
 
     function uploadAdmissionCourse(){
-        let data = {id: $("#currency").val()}
+        let id = $("#currency").val();
         $.ajax({
             type: 'get',
-            url: url + '/getCurrencyById',
+            url: url + '/getCurrencies',
             dataType: "json",
-            data: data,
             success: function (data) {
-                console.log('success /getCurrencyById');
-                Currency = data.price;
-                uploadPriceCurrency();
-                document.getElementById('admissionCourse').value = data.price;
-                document.getElementById('admissionCourse').disabled = data.name === 'UAH';
+                console.log('success /getCurrencies');
+                data.forEach((element) =>{
+                    if(id == element.id){
+                        Currency.name = element.name;
+                        Currency.price = element.price;
+                        document.getElementById('admissionCourse').value = element.price;
+                        document.getElementById('admissionCourse').disabled = element.name === 'UAH';
+                        uploadPriceCurrency();
+                    }
+                })
             },
             error: function () {
-                console.log('error /getCurrencyById');
+                console.log('error /getCurrencies');
             }
         });
     }
@@ -596,11 +607,13 @@
                 $("#currency").append($("" +
                     "<option selected disabled value='" + null + "'>Choose currency</option>"
                 ));
+                Currencies = data;
                 data.forEach((element) => {
                     if(element.id === Spending?.currencyId ?? null){
                         $("#currency").append($("" +
                             "<option selected value='" + element.id + "'> " + element.name + " (" + element.price + ")</option>"
                         ));
+                        document.getElementById('admissionCourse').disabled = element.name === 'UAH';
                     } else {
                         $("#currency").append($("" +
                             "<option value='" + element.id + "'> " + element.name + " (" + element.price + ")</option>"
@@ -615,6 +628,7 @@
     }
 
     function getManagers(){
+        let data = {managerId: Spending?.managerId ?? null};
         $("#counterpartyManager").empty();
         $("#counterpartyManager").append($("" +
             "<option selected disabled value='" + null + "'>Choose manager</option>"
@@ -623,6 +637,7 @@
             type: 'get',
             url: url + '/getManagers',
             dataType: "json",
+            data: data,
             success: function (data) {
                 console.log('success /getManagers');
                 data.forEach((element) => {
@@ -655,8 +670,6 @@
             success: function (data) {
                 console.log('success /getAgencies');
                 data.forEach((element) => {
-                    console.log(Realtor);
-                    console.log(element.id);
                     if(element.id === Realtor?.agencyId ?? null){
                         $("#agency").append($("" +
                             "<option selected value='" + element.id + "'> " + element.name + "</option>"
@@ -681,7 +694,10 @@
     }
 
     function getRealtorsByAgencyId(){
-        let data = {id: $("#agency").val()};
+        let data = {
+            agencyId: $("#agency").val(),
+            realtorId: Spending?.realtorId ?? null
+        };
         $("#counterpartyRealtor").empty();
         $("#counterpartyRealtor").append($("" +
             "<option selected disabled value='" + null + "'>Choose manager</option>"
@@ -716,10 +732,20 @@
     }
 
     function getObjects(){
+        let objectId;
+        if(null != Spending?.objectId ?? null){
+            objectId = Spending.objectId;
+        } else if (null != Flat?.object?.id ?? null) {
+            objectId = Flat.object.id;
+        } else {
+            objectId = null
+        }
+        let data = {objectId: objectId}
         $.ajax({
             type: 'get',
             url: url + '/getObjects',
             dataType: "json",
+            data: data,
             success: function (data) {
                 console.log('success /getObjects');
                 $("#object").empty();
@@ -771,12 +797,13 @@
                         $("#flat").append($("" +
                             "<option selected value='" + element.id + "'> " + element.number + "</option>"
                         ));
-                        Planed = roundPlus(element.salePrice / 100 * element.agency, 2);
+                        Planned = roundPlus(element.salePrice / 100 * element.agency, 2);
                         getFlatPaymentsByFlatId();
                     } else if (element.id === Flat?.id ?? null){
                         $("#flat").append($("" +
                             "<option selected value='" + element.id + "'> " + element.number + "</optionselected>"
                         ));
+                        Planned = roundPlus(element.salePrice / 100 * element.agency, 2);
                         getFlatPaymentsByFlatId();
                     } else {
                         $("#flat").append($("" +

@@ -641,10 +641,12 @@
     // selects
 
     function getObjects(){
+        let data = {objectId: Contract?.flat?.object?.id ?? null};
         $.ajax({
             type: 'get',
             url: url +'/getAllOnSaleObjects',
             dataType: "json",
+            data: data,
             success: function (data){
                 console.log('success /getAllOnSaleObjects');
                 $("#object").append($("" +
@@ -735,10 +737,12 @@
     }
 
     function getContractTemplates(){
+        let data = {contractTemplateId: Contract?.contractTemplate?.id ?? null }
         $.ajax({
             type: 'get',
             url: url + '/getContractTemplates',
             dataType: "json",
+            data: data,
             success: function (data){
                 console.log('success /getContractTemplates');
                 $("#template").append($("" +

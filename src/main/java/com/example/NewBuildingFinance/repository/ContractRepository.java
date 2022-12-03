@@ -6,16 +6,22 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface ContractRepository extends JpaRepository<Contract, Long>, JpaSpecificationExecutor<Contract> {
-//    @Query("select c from Contract c where c.deleted = false")
-
     Page<Contract> findAll(Specification<Contract> specification, Pageable pageable);
 
-    Page<Contract> findAllByBuyerId(Pageable pageable, Long buyerId);
+    Page<Contract> findAllByBuyerIdAndDeletedFalse(Pageable pageable, Long buyerId);
 
-    Page<Contract> findAllByFlatRealtorAgencyId(Pageable pageable, Long agencyId);
+    Page<Contract> findAllByFlatRealtorAgencyIdAndDeletedFalse(Pageable pageable, Long agencyId);
+
+    @Modifying
+    @Query(value = "update newbuildingfinance.contracts set contracts.deleted = true, contracts.status = 'ONREVIEW' where contracts.id = :id", nativeQuery = true)
+    @Transactional
+    void setDeleted(@Param("id") Long id);
 }

@@ -1,6 +1,5 @@
 package com.example.NewBuildingFinance.entities.auth;
 
-import com.example.NewBuildingFinance.dto.auth.ProfileDto;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
@@ -10,8 +9,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Set;
@@ -39,6 +36,7 @@ public class User implements UserDetails {
     private String username; // email
     private String password;
     private boolean active;
+    private boolean deleted = true;
     @JoinColumn(name = "role_id")
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JsonManagedReference

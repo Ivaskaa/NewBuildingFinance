@@ -32,16 +32,23 @@ public class RealtorServiceImpl implements RealtorService{
                 currentPage - 1, size, sortingField, sortingDirection);
         Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
         Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
-        Page<Realtor> agencies = realtorRepository.findAllByAgencyId(pageable, id);
+        Page<Realtor> agencies = realtorRepository.findAllByAgencyIdAndDeletedFalse(pageable, id);
         log.info("success");
         return agencies;
     }
 
     @Override
-    public List<Realtor> findAllByAgencyId(Long id) {
-        log.info("get all realtors by agencyId: {}", id);
-        List<Realtor> realtorList = realtorRepository.findAllByAgencyId(id);
-        log.info("success");
+    public List<Realtor> findAllByAgencyIdOrRealtorId(Long agencyId, Long realtorId) {
+        List<Realtor> realtorList;
+        if(realtorId == null){
+            log.info("get all not deleted realtors by agencyId: {}", agencyId);
+            realtorList = realtorRepository.findAllByAgencyIdAndDeletedFalse(agencyId);
+            log.info("success get all not deleted realtors by agencyId");
+        } else {
+            log.info("get all not deleted realtors by agencyId: {} or realtorId: {}", agencyId, realtorId);
+            realtorList = realtorRepository.findAllByAgencyIdAndDeletedFalseOrAgencyIdAndId(agencyId, agencyId, realtorId);
+            log.info("success get all not deleted realtors by agencyId or realtorId");
+        }
         return realtorList;
     }
 
@@ -86,9 +93,9 @@ public class RealtorServiceImpl implements RealtorService{
 
     @Override
     public void deleteById(Long id) {
-        log.info("delete realtor by id: {}", id);
-        realtorRepository.deleteById(id);
-        log.info("success");
+        log.info("set realtor.deleted true by id: {}", id);
+        realtorRepository.setDeleted(id);
+        log.info("success set realtor.deleted true");
     }
 
     @Override
@@ -103,4 +110,5 @@ public class RealtorServiceImpl implements RealtorService{
     public boolean checkPhone(String phone) {
         return phone.contains("_");
     }
+
 }

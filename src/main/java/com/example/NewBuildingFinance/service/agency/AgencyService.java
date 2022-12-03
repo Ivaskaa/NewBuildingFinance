@@ -38,7 +38,7 @@ public interface AgencyService {
      * find all agencies
      * @return list of agency
      */
-    List<Agency> findAll();
+    List<Agency> findAllByDeletedFalseOrId(Long agencyId);
 
     /**
      * save new agency

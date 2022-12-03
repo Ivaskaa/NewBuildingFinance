@@ -1,6 +1,7 @@
 package com.example.NewBuildingFinance.entities.flat;
 
 import com.example.NewBuildingFinance.dto.flat.FlatPaymentTableDto;
+import com.example.NewBuildingFinance.dto.statistic.flats.StatisticFlatPaymentBarChartDto;
 import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -27,6 +28,7 @@ public class FlatPayment {
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JsonManagedReference
     private Flat flat;
+    private boolean deleted = false;
 
     public FlatPaymentTableDto build(){
         FlatPaymentTableDto flat = new FlatPaymentTableDto();
@@ -36,9 +38,23 @@ public class FlatPayment {
         flat.setPlanned(planned);
         flat.setActually(actually);
         if (actually != null) {
-            flat.setRemains(actually - planned);
+            flat.setRemains(planned - actually);
         }
         return flat;
+    }
+
+    public StatisticFlatPaymentBarChartDto buildFlatPaymentForBarChart(){
+        StatisticFlatPaymentBarChartDto flatPayment = new StatisticFlatPaymentBarChartDto();
+        flatPayment.setPlaned(planned);
+        flatPayment.setDate(date);
+        if(paid){
+            flatPayment.setFact(actually);
+            flatPayment.setRemains(planned - actually);
+        } else {
+            flatPayment.setFact(0d);
+            flatPayment.setRemains(planned);
+        }
+        return flatPayment;
     }
 
     @Override

@@ -126,7 +126,7 @@
                             </div>
                         </th>
                         <th scope="col">
-                            <div onclick="sortContracts('flat.object.name')">
+                            <div onclick="sortContracts('flat.object')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Object</p>
                             </div>
                         </th>
@@ -180,6 +180,68 @@
                         <h1 class="m-0">Commissions</h1>
                     </div>
                 </div>
+
+                <label>
+                    <select id="sizeSelectCommissions" style="width: 50px; " onchange="changeSizeCommissions()" name='status' class='form-control'>
+                        <option value=10 selected>10</option>
+                        <option value=20>20</option>
+                    </select>
+                </label>
+
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">
+                            <div onclick="sortCommissions('flat.number')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Flat number</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div onclick="sortCommissions('flat.object')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Object</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div onclick="sortCommissions('flatArea')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Area</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div onclick="sortCommissions('price')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Price</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div onclick="sortCommissions('status')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Status</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div onclick="sortCommissions('flat.agency')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">%</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div onclick="sortCommissions('price')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Money</p>
+                            </div>
+                        </th>
+                        <th scope="col">
+                            <div onclick="sortCommissions('date')">
+                                <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Date</p>
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody id="listCommissions">
+                    <!-- list -->
+                    </tbody>
+                </table>
+                <nav>
+                    <ul id="choose-pageCommissions" class="pagination">
+                        <!-- pagination buttons -->
+                    </ul>
+                </nav>
 
             </div>
         </section>
@@ -558,7 +620,6 @@
         IdForUpdating = id;
         openPopup('edit');
         let data = { id: id };
-        console.log('hello1');
         $.ajax({
             type: 'get',
             url: url + '/agencies/realtors/getRealtorById',
@@ -570,10 +631,44 @@
                 document.getElementById('realtorSurname').value = object.surname;
                 document.getElementById('realtorPhone').value = object.phone;
                 document.getElementById('realtorEmail').value = object.email;
-                document.getElementById('realtorEmail').checked = object.director;
+                document.getElementById('realtorDirector').checked = object.director;
             },
             error: function() {
                 console.log('error /getRealtorById');
+            }
+        });
+    }
+
+    function deleteObject(id){
+        let data = {id: id};
+        $.ajax({
+            type: 'post',
+            url: url + '/agencies/realtors/deleteRealtorById',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                console.log('success /deleteRealtorById');
+                updateRealtors();
+            },
+            error: function() {
+                console.log('error /deleteRealtorById');
+            }
+        });
+    }
+
+    function getUserPermissions(){
+        let data = {id: UserId};
+        $.ajax({
+            type: 'get',
+            url: url + '/agencies/getUserPermissionsById',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                console.log('success /getUserPermissionsById');
+                Permissions = data;
+            },
+            error: function() {
+                console.log('error /getUserPermissionsById');
             }
         });
     }
@@ -751,23 +846,6 @@
         paginationButtonContracts();
     }
 
-    function getUserPermissions(){
-        let data = {id: UserId};
-        $.ajax({
-            type: 'get',
-            url: url + '/agencies/getUserPermissionsById',
-            data: data,
-            dataType: "json",
-            success: function (data){
-                console.log('success /getUserPermissionsById');
-                Permissions = data;
-            },
-            error: function() {
-                console.log('error /getUserPermissionsById');
-            }
-        });
-    }
-
     function goToFlat(id){
         Permissions.forEach((permission)=>{
             if(permission === "FLATS"){
@@ -876,6 +954,184 @@
         updateListContracts()
     }
 
+    // commissions
+
+    let currentPageCommissions = 1;
+    let sizeCommissions = $('#sizeSelectCommissions').val();
+    let sortingFieldCommissions = 'id';
+    let sortingDirectionCommissions = 'ASC';  // DESC
+    let totalPageCommissions;
+
+    $(document).ready(function() {
+        updateListCommissions();
+    });
+
+    function sortCommissions(field){
+        if(sortingDirectionCommissions === 'ASC'){
+            sortingDirectionCommissions = 'DESC';
+        } else {
+            sortingDirectionCommissions = 'ASC';
+        }
+        sortingFieldCommissions = field;
+        updateListCommissions();
+    }
+
+    function updateListCommissions(){
+        let data = {
+            page: currentPageCommissions,
+            size: sizeCommissions,
+            field: sortingFieldCommissions,
+            direction: sortingDirectionCommissions,
+            agencyId: AgencyId
+        }
+        $.ajax({
+            type: 'get',
+            url: url + '/agencies/getCommissionsByAgencyId',
+            data: data,
+            dataType: "json",
+            success: function (data){
+                totalPageCommissions = data.totalPages;
+                if(currentPageCommissions > totalPageCommissions){
+                    if (currentPageCommissions !== 1) {
+                        currentPageCommissions--;
+                        updateListCommissions();
+                    }
+                }
+                updateCommissions(data)
+                console.log('success /getCommissionsByAgencyId');
+            },
+            error: function() {
+                console.log('error /getCommissionsByAgencyId');
+            }
+        });
+    }
+
+    function updateCommissions(data) {
+        $("#listCommissions").empty();
+        data.content.forEach((object) => {
+            $("#listCommissions").append($("" +
+                "<tr>" +
+                "<td>" +
+                "<p onclick='goToFlat(" + object.flatId + ")'>" + object.flatNumber + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.object + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.flatArea + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.price + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.status + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.percent + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + object.money + "</p>" +
+                "</td>" +
+                "<td>" +
+                "<p>" + moment(object.date).format('YYYY-MM-DD') + "</p>" +
+                "</td>" +
+                "</tr>"
+            ));
+        })
+        paginationButtonCommissions();
+    }
+
+    function changeSizeCommissions(){
+        sizeCommissions = $('#sizeSelectCommissions').val();
+        currentPageCommissions = 1;
+        updateListCommissions()
+    }
+
+    function paginationButtonCommissions(){
+        $("#choose-pageCommissions").empty();
+        if(totalPageCommissions > 1){
+            if(currentPageCommissions !== 1){
+                $("#choose-pageCommissions").append($("" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goFirstPageCommissions()' style='height: 40px'>First</button>" +
+                    "</div>" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goPreviousPageCommissions()' style='height: 40px'>\<\<</a>" +
+                    "</div>"
+                ));
+            } else {
+                $("#choose-pageCommissions").append($("" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goFirstPageCommissions()' style='height: 40px'>First</button>" +
+                    "</div>" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goPreviousPageCommissions()' style='height: 40px'>\<\<</a>" +
+                    "</div>"
+                ));
+            }
+            let start = currentPageCommissions - 2;
+            let finish = currentPageCommissions + 2;
+            for(let i = start; i <= finish; i++) {
+                if(i > 0 && i <= totalPageCommissions) {
+                    if (currentPageCommissions === i) {
+                        $("#choose-pageCommissions").append($("" +
+                            "<div class='page-item active'>" +
+                            "<button onclick='goToPageCommissions(" + i + ")' class='page-link' tabIndex=\"-1\" style='height: 40px; width: 40px'>" + i + "</button>" +
+                            "</div>"
+                        ));
+                    } else {
+                        $("#choose-pageCommissions").append($("" +
+                            "<div class='page-item'>" +
+                            "<button onclick='goToPageCommissions(" + i + ")' class='page-link' tabIndex=\"-1\" style='height: 40px; width: 40px'>" + i + "</button>" +
+                            "</div>"
+                        ));
+                    }
+                }
+            }
+            if(currentPageCommissions !== totalPageCommissions) {
+                $("#choose-pageCommissions").append($("" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goNextPageCommissions()' style='height: 40px'>\>\></button>" +
+                    "</div>" +
+                    "<div class='page-item'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goLastPageCommissions()' style='height: 40px'>Last</a>" +
+                    "</div>"
+                ));
+            } else {
+                $("#choose-pageCommissions").append($("" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goNextPageCommissions()' style='height: 40px'>\>\></button>" +
+                    "</div>" +
+                    "<div class='page-item disabled'>" +
+                    "   <button class='page-link' tabIndex=\"-1\" onclick='goLastPageCommissions()' style='height: 40px'>Last</a>" +
+                    "</div>"
+                ));
+            }
+        }
+    }
+
+    function goFirstPageCommissions(){
+        currentPageCommissions = 1;
+        updateListCommissions();
+    }
+
+    function goPreviousPageCommissions(){
+        currentPageCommissions--;
+        updateListCommissions()
+    }
+
+    function goToPageCommissions(i){
+        currentPageCommissions = i;
+        updateListCommissions()
+    }
+    function goNextPageCommissions(){
+        currentPageCommissions++;
+        updateListCommissions()
+    }
+    function goLastPageCommissions(){
+        currentPageCommissions = totalPageCommissions;
+        updateListCommissions()
+    }
 
 
     function mask(){

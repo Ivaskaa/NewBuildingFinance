@@ -44,33 +44,6 @@ public class AgencyController {
         return "agency/agencies";
     }
 
-    @GetMapping("/agency/{id}")
-    public String agency(
-            @PathVariable(required = false) Long id,
-            Model model
-    ) throws JsonProcessingException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", internalCurrencyServiceImpl.findAll());
-        model.addAttribute("agencyId", id);
-        model.addAttribute("userId", user.getId());
-        model.addAttribute("user", user);
-        return "agency/agency";
-    }
-
-    @GetMapping("/getContractsByAgencyId")
-    @ResponseBody
-    public String getContractsByBuyerId(
-            Integer page,
-            Integer size,
-            String field,
-            String direction,
-            Long agencyId
-    ) throws JsonProcessingException {
-        return mapper.writeValueAsString(contractServiceImpl.findSortingPageByAgencyId(
-                page, size, field, direction, agencyId));
-    }
-
     @GetMapping("/getAgencies")
     @ResponseBody
     public String getAgencies(
@@ -95,6 +68,46 @@ public class AgencyController {
                 phone,
                 email,
                 count));
+    }
+
+    @GetMapping("/agency/{id}")
+    public String agency(
+            @PathVariable(required = false) Long id,
+            Model model
+    ) throws JsonProcessingException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = userServiceImpl.loadUserByUsername(authentication.getName());
+        model.addAttribute("currencies", internalCurrencyServiceImpl.findAll());
+        model.addAttribute("agencyId", id);
+        model.addAttribute("userId", user.getId());
+        model.addAttribute("user", user);
+        return "agency/agency";
+    }
+
+    @GetMapping("/getContractsByAgencyId")
+    @ResponseBody
+    public String getContractsByBuyerId(
+            Integer page,
+            Integer size,
+            String field,
+            String direction,
+            Long agencyId
+    ) throws JsonProcessingException {
+        return mapper.writeValueAsString(contractServiceImpl.findSortingContractsPageByAgencyId(
+                page, size, field, direction, agencyId));
+    }
+
+    @GetMapping("/getCommissionsByAgencyId")
+    @ResponseBody
+    public String getCommissionsByAgencyId(
+            Integer page,
+            Integer size,
+            String field,
+            String direction,
+            Long agencyId
+    ) throws JsonProcessingException {
+        return mapper.writeValueAsString(contractServiceImpl.findSortingCommissionsPageByAgencyId(
+                page, size, field, direction, agencyId));
     }
 
     @PostMapping("/addAgency")

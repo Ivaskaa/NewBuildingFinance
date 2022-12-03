@@ -1,8 +1,12 @@
 package com.example.NewBuildingFinance.service.buyer;
 
+import com.example.NewBuildingFinance.dto.buyer.BuyerSaveDto;
 import com.example.NewBuildingFinance.dto.buyer.BuyerTableDto;
+import com.example.NewBuildingFinance.entities.agency.Realtor;
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
+import com.example.NewBuildingFinance.entities.buyer.DocumentStyle;
 import com.example.NewBuildingFinance.repository.BuyerRepository;
+import com.example.NewBuildingFinance.service.staticService.StaticServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -10,6 +14,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 
 import java.util.List;
 
@@ -18,6 +24,7 @@ import java.util.List;
 @AllArgsConstructor
 public class BuyerServiceImpl implements BuyerService{
     private final BuyerRepository buyerRepository;
+    private final StaticServiceImpl staticService;
 
     @Override
     public Page<BuyerTableDto> findSortingPage(
@@ -26,9 +33,14 @@ public class BuyerServiceImpl implements BuyerService{
             String sortingField,
             String sortingDirection) {
         log.info("get buyer page: {}, field: {}, direction: {}", currentPage - 1, sortingField, sortingDirection);
-        Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
+        Sort sort;
+        if(sortingField.contains(" and ")) {
+            sort = staticService.sort(sortingField, sortingDirection);
+        } else {
+            sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
+        }
         Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
-        Page<BuyerTableDto> buyerPage = buyerRepository.findAll(pageable).map(Buyer::build);
+        Page<BuyerTableDto> buyerPage = buyerRepository.findAllByDeletedFalse(pageable).map(Buyer::build);
         log.info("success");
         return buyerPage;
     }
@@ -36,6 +48,7 @@ public class BuyerServiceImpl implements BuyerService{
     @Override
     public Buyer save(Buyer buyer) {
         log.info("save buyer: {}", buyer);
+        System.out.println();
         Buyer buyerAfterSave = buyerRepository.save(buyer);
         log.info("success");
         return buyerAfterSave;
@@ -63,10 +76,10 @@ public class BuyerServiceImpl implements BuyerService{
     }
 
     @Override
-    public void deleteById(Long id) {
-        log.info("delete buyer by id: {}", id);
-        buyerRepository.deleteById(id);
-        log.info("success");
+    public void deleteById(Long buyerId) {
+        log.info("set buyer.delete true by id: {}", buyerId);
+        buyerRepository.setDeleted(buyerId);
+        log.info("success set buyer.delete true");
     }
 
     @Override
@@ -76,11 +89,11 @@ public class BuyerServiceImpl implements BuyerService{
         if(name.contains(" ") && name.split(" ").length > 1) {
             String[] words = name.split(" ");
             if (words.length == 2){
-                buyers = buyerRepository.findByName(words[0], words[1]);
+                buyers = buyerRepository.findByNameAndDeletedFalse(words[0], words[1]);
             }
         } else {
             name = name.replace(" ", "");
-            buyers = buyerRepository.findByName(name);
+            buyers = buyerRepository.findByNameAndDeletedFalse(name);
         }
         log.info("success");
         return buyers;
@@ -92,5 +105,51 @@ public class BuyerServiceImpl implements BuyerService{
         Buyer object = buyerRepository.findById(id).orElseThrow();
         log.info("success");
         return object;
+    }
+
+    public void documentValidation(BindingResult bindingResult, BuyerSaveDto buyerSaveDto) {
+        if(buyerSaveDto.getDocumentStyle() == null || buyerSaveDto.getDocumentStyle().equals("")){
+            return;
+        }
+        DocumentStyle documentStyle = null;
+        try {
+            documentStyle = DocumentStyle.valueOf(buyerSaveDto.getDocumentStyle());
+        } catch (Exception exception){
+            exception.printStackTrace();
+        }
+        if(documentStyle != null) {
+            if (documentStyle.equals(DocumentStyle.ID_CARD)) {
+                if (buyerSaveDto.getIdCardNumber() == null) {
+                    bindingResult.addError(new FieldError("buyerSaveDto", "idCardNumber", "Must not be empty"));
+                } else if (buyerSaveDto.getIdCardNumber() > 9999999999999L || buyerSaveDto.getIdCardNumber() <= 999999999999L) {
+                    bindingResult.addError(new FieldError("buyerSaveDto", "idCardNumber", "Must be entered 13 numbers"));
+                }
+                if (buyerSaveDto.getIdCardWhoIssued() == null) {
+                    bindingResult.addError(new FieldError("buyerSaveDto", "idCardWhoIssued", "Must not be empty"));
+                } else if (buyerSaveDto.getIdCardWhoIssued() > 9999 || buyerSaveDto.getIdCardWhoIssued() <= 999) {
+                    bindingResult.addError(new FieldError("buyerSaveDto", "idCardWhoIssued", "Must be entered 4 numbers"));
+                }
+            } else if (documentStyle.equals(DocumentStyle.PASSPORT)) {
+                if (buyerSaveDto.getPassportSeries() == null || buyerSaveDto.getPassportSeries().equals("")) {
+                    bindingResult.addError(new FieldError("buyerSaveDto", "passportSeries", "Must not be empty"));
+                } else if (buyerSaveDto.getPassportSeries().length() != 2) {
+                    bindingResult.addError(new FieldError("buyerSaveDto", "passportSeries", "Must be entered 2 letters"));
+                }
+                if (buyerSaveDto.getPassportNumber() == null) {
+                    bindingResult.addError(new FieldError("buyerSaveDto", "passportNumber", "Must not be empty"));
+                } else if (buyerSaveDto.getPassportNumber() > 999999 || buyerSaveDto.getPassportNumber() <= 99999) {
+                    bindingResult.addError(new FieldError("buyerSaveDto", "passportNumber", "Must be entered 6 numbers"));
+                }
+                if (buyerSaveDto.getPassportWhoIssued() == null || buyerSaveDto.getPassportWhoIssued().equals("")) {
+                    bindingResult.addError(new FieldError("buyerSaveDto", "passportWhoIssued", "Must not be empty"));
+                }
+            }
+        }
+    }
+
+    public void phoneValidation(BindingResult bindingResult, String phone) {
+        if(phone.contains("_")){
+            bindingResult.addError(new FieldError("buyerSaveDto", "phone", "Phone must be valid"));
+        }
     }
 }

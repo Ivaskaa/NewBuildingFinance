@@ -1,4 +1,4 @@
-package com.example.NewBuildingFinance.dto.statistic.flatPayments;
+package com.example.NewBuildingFinance.dto.statistic.flats;
 
 import lombok.Data;
 

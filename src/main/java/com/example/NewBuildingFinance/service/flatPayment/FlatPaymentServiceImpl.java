@@ -35,8 +35,8 @@ public class FlatPaymentServiceImpl implements FlatPaymentService{
                 currentPage - 1, size, sortingField, sortingDirection, flatId);
         Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
         Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
-        Page<FlatPaymentTableDto> flats = flatPaymentRepository.findAllByFlatId(pageable, flatId).map(FlatPayment::build);
-        log.info("success");
+        Page<FlatPaymentTableDto> flats = flatPaymentRepository.findAllByFlatIdAndDeletedFalse(pageable, flatId).map(FlatPayment::build);
+        log.info("success get flat payment page");
         return flats;
     }
 
@@ -63,9 +63,9 @@ public class FlatPaymentServiceImpl implements FlatPaymentService{
     }
 
     @Override
-    public void deleteById(Long id) {
-        log.info("delete flatPayment by id: {}", id);
-        flatPaymentRepository.deleteById(id);
+    public void deleteById(Long flatPaymentId) {
+        log.info("delete flatPayment by id: {}", flatPaymentId);
+        flatPaymentRepository.setDeleted(flatPaymentId);
         log.info("success");
     }
 
@@ -80,7 +80,7 @@ public class FlatPaymentServiceImpl implements FlatPaymentService{
     @Override
     public boolean checkNumber(Integer number, Long flatId) {
         if (number != null) {
-            FlatPayment flatPayment = flatPaymentRepository.findByNumberAndFlatId(number, flatId);
+            FlatPayment flatPayment = flatPaymentRepository.findByNumberAndFlatIdAndDeletedFalse(number, flatId);
             return flatPayment != null;
         } else {
             return false;
@@ -93,7 +93,7 @@ public class FlatPaymentServiceImpl implements FlatPaymentService{
             if (planned.equals(0d)){
                 return false;
             }
-            List<FlatPayment> flatPaymentList = flatPaymentRepository.findAllByFlatId(flatId);
+            List<FlatPayment> flatPaymentList = flatPaymentRepository.findAllByFlatIdAndDeletedFalse(flatId);
             Flat flat = flatServiceImpl.findById(flatId);
             Double flatPrice = flat.getSalePrice();
             for (FlatPayment flatPayment : flatPaymentList) {
@@ -108,7 +108,7 @@ public class FlatPaymentServiceImpl implements FlatPaymentService{
 
     @Override
     public boolean checkPlanedEdit(Long id, Double planned, Long flatId) {
-        List<FlatPayment> flatPaymentList = flatPaymentRepository.findAllByFlatId(flatId);
+        List<FlatPayment> flatPaymentList = flatPaymentRepository.findAllByFlatIdAndDeletedFalse(flatId);
         Flat flat = flatServiceImpl.findById(flatId);
         Double flatPrice = flat.getSalePrice();
         for(FlatPayment flatPayment : flatPaymentList){
@@ -120,23 +120,27 @@ public class FlatPaymentServiceImpl implements FlatPaymentService{
         return flatPrice < 0;
     }
 
-    @Override
-    public List<FlatPayment> getByFlatId(Long id) {
-        log.info("get flat payments by flat id: {}", id);
-        List<FlatPayment> flatPayments;
-        flatPayments = flatPaymentRepository.findByFlatId(id);
-        log.info("success get flat payments by flat id");
-        return flatPayments;
-    }
+//    @Override
+//    public List<FlatPayment> getAllByFlatIdAndDeletedFalse(Long flatId, Long flatPaymentId) {
+//        List<FlatPayment> flatPayments;
+//        if(flatPaymentId == null) {
+//            log.info("get flat payments with paid false by flat id : {}", flatId);
+//            flatPayments = flatPaymentRepository.findAllByFlatIdAndDeletedFalse(flatId);
+//        } else {
+//            flatPayments = flatPaymentRepository.findAllByFlatIdAndDeletedFalseOrFlatIdAndId(flatId, flatId, flatPaymentId);
+//        }
+//        log.info("success get flat payments with paid false by flat id");
+//        return flatPayments;
+//    }
 
     @Override
-    public List<FlatPayment> getByFlatId(Long flatId, Long flatPaymentId) {
-        log.info("get flat payments with paid false by flat id : {}", flatId);
+    public List<FlatPayment> getAllByFlatIdPaidFalseAndDeletedFalse(Long flatId, Long flatPaymentId) {
         List<FlatPayment> flatPayments;
         if(flatPaymentId == null) {
-            flatPayments = flatPaymentRepository.findByFlatIdAndPaidFalse(flatId);
+            log.info("get flat payments with paid false by flat id : {}", flatId);
+            flatPayments = flatPaymentRepository.findAllByFlatIdAndPaidFalseAndDeletedFalse(flatId);
         } else {
-            flatPayments = flatPaymentRepository.findByFlatIdAndPaidFalseOrId(flatId, flatPaymentId);
+            flatPayments = flatPaymentRepository.findAllByFlatIdAndPaidFalseAndDeletedFalseOrFlatIdAndId(flatId, flatId, flatPaymentId);
         }
         log.info("success get flat payments with paid false by flat id");
         return flatPayments;

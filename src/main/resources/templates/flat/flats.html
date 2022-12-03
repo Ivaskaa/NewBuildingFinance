@@ -237,7 +237,7 @@
     let currentPage = 1;
     let size = $('#sizeSelect').val();
     let sortingField = 'id';
-    let sortingDirection = 'DESC';  // DESC
+    let sortingDirection = 'DESC';  // ASC
 
     let searchNumber;
     let searchObjectId;
@@ -452,7 +452,7 @@
         let data = { id: id };
         $.ajax({
             type: 'post',
-            url: '../flats/deleteFlatById',
+            url: url + '/flats/deleteFlatById',
             data: data,
             dataType: "json",
             success: function (success){

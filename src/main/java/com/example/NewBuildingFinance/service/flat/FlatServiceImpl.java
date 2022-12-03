@@ -1,5 +1,6 @@
 package com.example.NewBuildingFinance.service.flat;
 
+import com.example.NewBuildingFinance.dto.flat.FlatSaveDto;
 import com.example.NewBuildingFinance.dto.flat.FlatTableDto;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
@@ -19,13 +20,17 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.util.Pair;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.constraints.NotNull;
 import java.io.*;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
@@ -69,7 +74,8 @@ public class FlatServiceImpl implements FlatService{
                 .and(FlatSpecification.likePrice(priceStart, priceFin))
                 .and(FlatSpecification.likeAdvance(advanceStart, advanceFin))
                 .and(FlatSpecification.likeEntered(enteredStart, enteredFin))
-                .and(FlatSpecification.likeRemains(remainsStart, remainsFin));
+                .and(FlatSpecification.likeRemains(remainsStart, remainsFin))
+                .and(FlatSpecification.deletedFalse());
         Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
         Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
         Page<FlatTableDto> flats = flatRepository.findAll(specification, pageable).map(Flat::buildTableDto);
@@ -110,9 +116,9 @@ public class FlatServiceImpl implements FlatService{
 
     @Override
     public void deleteById(Long id) {
-        log.info("delete flat by id: {}", id);
-        flatRepository.deleteById(id);
-        log.info("success");
+        log.info("set flat.deleted true by id: {}", id);
+        flatRepository.setDeleted(id);
+        log.info("success set flat.deleted true");
     }
 
     @Override
@@ -122,16 +128,16 @@ public class FlatServiceImpl implements FlatService{
         Workbook workbook = new XSSFWorkbook();
 
         Sheet sheet = workbook.createSheet("flats");
-        sheet.setColumnWidth(0, 3000);
-        sheet.setColumnWidth(1, 7000);
-        sheet.setColumnWidth(2, 3000);
-        sheet.setColumnWidth(3, 2500);
-        sheet.setColumnWidth(4, 2500);
-        sheet.setColumnWidth(5, 3500);
-        sheet.setColumnWidth(6, 3500);
-        sheet.setColumnWidth(7, 3500);
-        sheet.setColumnWidth(8, 3500);
-
+        sheet.setColumnWidth(0, 6000);
+        sheet.setColumnWidth(1, 6000);
+        sheet.setColumnWidth(2, 6000);
+        sheet.setColumnWidth(3, 6000);
+        sheet.setColumnWidth(4, 6000);
+        sheet.setColumnWidth(5, 6000);
+        sheet.setColumnWidth(6, 6000);
+        sheet.setColumnWidth(7, 6000);
+        sheet.setColumnWidth(8, 6000);
+        sheet.setColumnWidth(9, 6000);
         Row header = sheet.createRow(0);
 
         CellStyle headerStyle = workbook.createCellStyle();
@@ -143,40 +149,54 @@ public class FlatServiceImpl implements FlatService{
         font.setFontHeightInPoints((short) 15);
         headerStyle.setFont(font);
 
+        // cell0 number
         Cell headerCell = header.createCell(0);
         headerCell.setCellValue("Number");
         headerCell.setCellStyle(headerStyle);
 
+        // cell1 quantity rooms
         headerCell = header.createCell(1);
-        headerCell.setCellValue("Object");
+        headerCell.setCellValue("Quantity rooms");
         headerCell.setCellStyle(headerStyle);
 
+        // cell2 flor
         headerCell = header.createCell(2);
-        headerCell.setCellValue("Status");
+        headerCell.setCellValue("Flor");
         headerCell.setCellStyle(headerStyle);
 
+        // cell3 area
         headerCell = header.createCell(3);
         headerCell.setCellValue("Area");
         headerCell.setCellStyle(headerStyle);
 
+        // cell4 object
         headerCell = header.createCell(4);
+        headerCell.setCellValue("Object");
+        headerCell.setCellStyle(headerStyle);
+
+        // cell5 style
+        headerCell = header.createCell(5);
+        headerCell.setCellValue("Status");
+        headerCell.setCellStyle(headerStyle);
+
+        // cell6 price
+        headerCell = header.createCell(6);
         headerCell.setCellValue("Price");
         headerCell.setCellStyle(headerStyle);
 
-        headerCell = header.createCell(5);
+        // cell7 sale price
+        headerCell = header.createCell(7);
         headerCell.setCellValue("Sale price");
         headerCell.setCellStyle(headerStyle);
 
-        headerCell = header.createCell(6);
-        headerCell.setCellValue("Advance");
-        headerCell.setCellStyle(headerStyle);
-
-        headerCell = header.createCell(7);
-        headerCell.setCellValue("Entered");
-        headerCell.setCellStyle(headerStyle);
-
+        // cell8 manager %
         headerCell = header.createCell(8);
-        headerCell.setCellValue("Remains");
+        headerCell.setCellValue("Manager %");
+        headerCell.setCellStyle(headerStyle);
+
+        // cell9 agency %
+        headerCell = header.createCell(9);
+        headerCell.setCellValue("Agency %");
         headerCell.setCellStyle(headerStyle);
 
         CellStyle style = workbook.createCellStyle();
@@ -192,13 +212,11 @@ public class FlatServiceImpl implements FlatService{
             cell.setCellStyle(style);
 
             cell = row.createCell(1);
-            cell.setCellValue(
-                    flats.get(i).getObject().getHouse() + "(" +
-                            flats.get(i).getObject().getSection() + ")");
+            cell.setCellValue(flats.get(i).getQuantityRooms());
             cell.setCellStyle(style);
 
             cell = row.createCell(2);
-            cell.setCellValue(flats.get(i).getStatus().getValue());
+            cell.setCellValue(flats.get(i).getFloor());
             cell.setCellStyle(style);
 
             cell = row.createCell(3);
@@ -206,36 +224,29 @@ public class FlatServiceImpl implements FlatService{
             cell.setCellStyle(style);
 
             cell = row.createCell(4);
-            cell.setCellValue(flats.get(i).getPrice());
+            cell.setCellValue(
+                    flats.get(i).getObject().getHouse() + "(" +
+                            flats.get(i).getObject().getSection() + ")");
             cell.setCellStyle(style);
 
             cell = row.createCell(5);
-            cell.setCellValue(flats.get(i).getSalePrice());
+            cell.setCellValue(flats.get(i).getStatus().toString());
             cell.setCellStyle(style);
 
-            Double advance = 0d;
-            Double entered = 0d;
-            Date date = new Date(99999999999999L);
-            for(FlatPayment flatPayment : flats.get(i).getFlatPayments()){
-                if(date.after(flatPayment.getDate())){
-                    date = flatPayment.getDate();
-                    advance = flatPayment.getPlanned();
-                    if(flatPayment.getActually() != null) {
-                        entered += flatPayment.getActually();
-                    }
-                }
-            }
-
             cell = row.createCell(6);
-            cell.setCellValue(advance);
+            cell.setCellValue(flats.get(i).getPrice());
             cell.setCellStyle(style);
 
             cell = row.createCell(7);
-            cell.setCellValue(entered);
+            cell.setCellValue(flats.get(i).getSalePrice());
             cell.setCellStyle(style);
 
             cell = row.createCell(8);
-            cell.setCellValue(flats.get(i).getSalePrice() - entered);
+            cell.setCellValue(flats.get(i).getManager());
+            cell.setCellStyle(style);
+
+            cell = row.createCell(9);
+            cell.setCellValue(flats.get(i).getAgency());
             cell.setCellStyle(style);
         }
 
@@ -315,7 +326,7 @@ public class FlatServiceImpl implements FlatService{
 
         // cell5 style
         headerCell = header.createCell(5);
-        headerCell.setCellValue("Style");
+        headerCell.setCellValue("Status");
         headerCell.setCellStyle(headerStyle);
 
         // cell6 price
@@ -418,7 +429,7 @@ public class FlatServiceImpl implements FlatService{
     }
 
     @Override
-    public boolean setXlsx(MultipartFile file) throws IOException {
+    public boolean setXlsx(@NotNull MultipartFile file) throws IOException {
         log.info("save flats.xlsx");
 
         Workbook workbook = new XSSFWorkbook(file.getInputStream());
@@ -444,7 +455,6 @@ public class FlatServiceImpl implements FlatService{
             Cell cell4 = row.getCell(4);
             if(cell4.getCellType().equals(CellType.STRING)){
                 if(cell4.getStringCellValue().contains("(")){
-                    System.out.println(cell4.getStringCellValue());
                     String[] words = cell4.getStringCellValue().split("\\(");
                     if (words.length == 2){
                         String house = words[0];
@@ -487,7 +497,7 @@ public class FlatServiceImpl implements FlatService{
             Cell cell0 = row.getCell(0);
             if(cell0.getCellType().equals(CellType.NUMERIC)){
                 if(object != null){
-                    if(!checkFlatNumber((int) Math.round(cell0.getNumericCellValue()), object.getId())){
+                    if(flatRepository.findFlatInObject((int) Math.round(cell0.getNumericCellValue()), object.getId()) == null){
                         flat.setNumber((int) Math.round(cell0.getNumericCellValue()));
                         cell0.setCellStyle(cellStyleCorrect);
                     } else {
@@ -645,7 +655,7 @@ public class FlatServiceImpl implements FlatService{
     }
 
     @Override
-    public Flat findById(Long id) {
+    public Flat findById(@NotNull Long id) {
         log.info("get flat by id: {}", id);
         Flat flat = null;
         if (id != null) {
@@ -655,21 +665,49 @@ public class FlatServiceImpl implements FlatService{
         return flat;
     }
 
+    public List<Pair<StatusFlat, String>> getStatusesByFlatId(@NotNull Long flatId) {
+
+        List<Pair<StatusFlat, String>> list = new ArrayList<>();
+        if(flatId != null && flatId != 0){
+            Flat flat = flatRepository.findById(flatId).orElseThrow();
+            if(flat.getContract() != null){
+                for(StatusFlat statusObject : StatusFlat.values()){
+                    if(statusObject.equals(StatusFlat.SOLD)) {
+                        list.add(Pair.of(statusObject, statusObject.getValue()));
+                    }
+                }
+            } else {
+                for(StatusFlat statusObject : StatusFlat.values()){
+                    if(!statusObject.equals(StatusFlat.SOLD)) {
+                        list.add(Pair.of(statusObject, statusObject.getValue()));
+                    }
+                }
+            }
+        } else {
+            for(StatusFlat statusObject : StatusFlat.values()){
+                if(!statusObject.equals(StatusFlat.SOLD)) {
+                    list.add(Pair.of(statusObject, statusObject.getValue()));
+                }
+            }
+        }
+        return list;
+    }
+
     @Override
-    public List<Flat> getWithContractWithFlatPaymentByObjectId(Long id, Long flatId) {
-        log.info("get flats with contract with flat payments by object id: {}", id);
+    public List<Flat> getFlatsWithContractWithFlatPaymentByObjectId(@NotNull Long objectId, Long flatId) {
+        log.info("get flats with contract with flat payments by object id: {}", objectId);
         List<Flat> flats;
         if(flatId == null) {
-            flats = flatRepository.findAllByDeletedFalseAndObjectIdAndContractNotNull(id);
+            flats = flatRepository.findAllByDeletedFalseAndObjectIdAndContractNotNull(objectId);
         } else {
-            flats = flatRepository.findAllByDeletedFalseAndObjectIdAndContractNotNullOrId(id, flatId);
+            flats = flatRepository.findAllByDeletedFalseAndObjectIdAndContractNotNullOrObjectIdAndId(objectId, objectId, flatId);
         }
         log.info("success get flats with contract with flat payments by object id");
         return flats;
     }
 
     @Override
-    public List<Flat> getFlatsWithoutContractByObjectId(Long id, Long flatId) {
+    public List<Flat> getFlatsWithoutContractByObjectId(@NotNull Long id, Long flatId) {
         log.info("get flats without contracts by object id: {}", id);
         List<Flat> flats;
         if(flatId == null) {
@@ -681,28 +719,72 @@ public class FlatServiceImpl implements FlatService{
         return flats;
     }
 
-    @Override
-    public boolean checkPrice(Double price, Double salePrice) {
-        return price < salePrice;
-    }
-
-    @Override
-    public boolean checkPercentages(Integer agency, Integer manager) {
-        if (agency == null || manager == null){
-            return false;
+    public boolean validationWithoutDatabase(@NotNull BindingResult bindingResult, @NotNull FlatSaveDto flatSaveDto) {
+        boolean isValid = true;
+        if(flatSaveDto.getPrice() != null && flatSaveDto.getSalePrice() != null){
+            if(flatSaveDto.getPrice() < flatSaveDto.getSalePrice()){
+                isValid = false;
+                bindingResult.addError(new FieldError("flatSaveDto", "price", "Price must be rather then sale price"));
+                bindingResult.addError(new FieldError("flatSaveDto", "salePrice", "Price must be rather then sale price"));
+            }
         }
-        return agency + manager > 100;
+        if(flatSaveDto.getAgency() != null && flatSaveDto.getManager() != null){
+            if(flatSaveDto.getAgency() + flatSaveDto.getManager() > 100){
+                isValid = false;
+                bindingResult.addError(new FieldError("flatSaveDto", "agency", "The sum of percentages must be less than 100"));
+                bindingResult.addError(new FieldError("flatSaveDto", "manager", "The sum of percentages must be less than 100"));
+            }
+        }
+        return isValid;
+    }
+
+    public boolean validationCreateWithDatabase(@NotNull BindingResult bindingResult, @NotNull FlatSaveDto flatSaveDto) {
+        boolean isValid = true;
+        if(flatSaveDto.getNumber() != null && flatSaveDto.getObjectId() != null) {
+            Flat flat = flatRepository.findFlatInObject(flatSaveDto.getNumber(), flatSaveDto.getObjectId());
+            if (flat != null) {
+                isValid = false;
+                bindingResult.addError(new FieldError("flatSaveDto", "number", "In selected object the flat with this number is exists"));
+            }
+        }
+        return isValid;
+    }
+
+    public boolean validationUpdateWithDatabase(BindingResult bindingResult, FlatSaveDto flatSaveDto) {
+        boolean isValid = true;
+        Integer flatNumber = flatRepository.findFlatNumberById(flatSaveDto.getId());
+        if(flatNumber == null){
+            return false;
+        } else {
+            if(flatSaveDto.getNumber() != null && flatSaveDto.getObjectId() != null) {
+                if(!flatNumber.equals(flatSaveDto.getNumber())){
+                    Flat flat2 = flatRepository.findFlatInObject(flatSaveDto.getNumber(), flatSaveDto.getObjectId());
+                    if (flat2 != null) {
+                        isValid = false;
+                        bindingResult.addError(new FieldError("flatSaveDto", "number", "In selected object the flat with this number is exists"));
+                    }
+                }
+            }
+            if(flatSaveDto.getId() != null && flatSaveDto.getSalePrice() != null){
+                Flat flat2 = flatRepository.findById(flatSaveDto.getId()).orElse(null);
+                Double price = 0d;
+                if(flat2 == null){
+                    return false;
+                } else {
+                    for(FlatPayment flatPayment : flat2.getFlatPayments()){
+                        price += flatPayment.getPlanned();
+                    }
+                }
+                if(price > flatSaveDto.getSalePrice()){
+                    bindingResult.addError(new FieldError("flatSaveDto", "salePrice", "Sale price must be rather or equals to flat payment list"));
+                }
+            }
+        }
+        return isValid;
     }
 
     @Override
-    public boolean checkFlatNumber(Integer number, Long objectId) {
-        Flat flat;
-        flat = flatRepository.findFlatInObject(number, objectId);
-        return flat != null;
-    }
-
-    @Override
-    public boolean checkStatus(StatusFlat status) {
+    public boolean validationCheckStatus(StatusFlat status) {
         return !status.equals(StatusFlat.ACTIVE);
     }
 }

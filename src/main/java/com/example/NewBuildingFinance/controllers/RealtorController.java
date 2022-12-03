@@ -78,7 +78,6 @@ public class RealtorController {
             System.out.println(errors);
             return mapper.writeValueAsString(errors);
         }
-        System.out.println(realtorDto);
         //action
         realtorServiceImpl.update(realtorDto.build(), realtorDto.getAgencyId());
         return mapper.writeValueAsString(null);
@@ -99,6 +98,6 @@ public class RealtorController {
             Long id
     ) throws JsonProcessingException {
         realtorServiceImpl.deleteById(id);
-        return mapper.writeValueAsString("success");
+        return mapper.writeValueAsString(null);
     }
 }
