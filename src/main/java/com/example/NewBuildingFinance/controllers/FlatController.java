@@ -327,6 +327,8 @@ public class FlatController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
+        buyerServiceImpl.documentValidation(bindingResult, buyerSaveDto);
+        buyerServiceImpl.phoneValidation(bindingResult, buyerSaveDto.getPhone());
         if(bindingResult.hasErrors()){
             Map<String, String> errors = new HashMap<>();
             for (FieldError error : bindingResult.getFieldErrors()) {

@@ -108,4 +108,10 @@ public class CashRegisterSpecification {
             return cb.like(root.get(CashRegister_.COUNTERPARTY), "%" + counterparty.toLowerCase(Locale.ROOT) + "%");
         };
     }
+
+    public static Specification<CashRegister> deletedFalse() {
+        return (root, query, cb) -> {
+            return cb.isFalse(root.get(CashRegister_.DELETED));
+        };
+    }
 }

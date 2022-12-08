@@ -26,7 +26,6 @@ import java.util.Map;
 @RequestMapping("/settings")
 public class UserController {
     private final InternalCurrencyServiceImpl currencyService;
-    private final RestTemplate restTemplate;
     private final UserServiceImpl userServiceImpl;
     private final ObjectMapper mapper;
 
@@ -48,10 +47,10 @@ public class UserController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        if (userServiceImpl.checkPhone(userDto.getUsername())) {
+        if (userServiceImpl.checkPhone(userDto.getPhone())) {
             bindingResult.addError(new FieldError("userDto", "phone", "Phone must be valid"));
         }
-        if (userServiceImpl.checkEmail(userDto.getPhone())) {
+        if (userServiceImpl.checkEmail(userDto.getUsername())) {
             bindingResult.addError(new FieldError("userDto", "username", "Email is already registered"));
         }
         if(bindingResult.hasErrors()){
@@ -78,6 +77,9 @@ public class UserController {
             if (userServiceImpl.checkEmail(userDto.getUsername())) {
                 bindingResult.addError(new FieldError("userDto", "username", "Email is already registered"));
             }
+        }
+        if (userServiceImpl.checkPhone(userDto.getPhone())) {
+            bindingResult.addError(new FieldError("userDto", "phone", "Phone must be valid"));
         }
         if(bindingResult.hasErrors()){
             Map<String, String> errors = new HashMap<>();

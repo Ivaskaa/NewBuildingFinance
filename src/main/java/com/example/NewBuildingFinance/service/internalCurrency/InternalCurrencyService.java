@@ -11,6 +11,4 @@ public interface InternalCurrencyService {
     InternalCurrency update(InternalCurrency objectForm);
 
     InternalCurrency findById(Long id);
-
-    boolean checkPrice(String price);
 }

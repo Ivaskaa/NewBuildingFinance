@@ -19,7 +19,7 @@ public class MvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/img/**")                    // каждое обращение к серверу по пути img
+        registry.addResourceHandler("/profile/img/**")                    // каждое обращение к серверу по пути img
                 .addResourceLocations("file:///" + uploadPath + "/");          // перенаправляется на  file:// + uploadPath + /
         registry.addResourceHandler("/plugins/**")
                 .addResourceLocations("classpath:/static/plugins/");

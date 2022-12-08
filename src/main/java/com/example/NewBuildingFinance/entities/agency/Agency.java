@@ -47,33 +47,20 @@ public class Agency {
             "       and realtors.director = true)")
     private String directorEmail;
 
-    @Formula("(select count(*) from flats where flats.realtor_id =\n" +
-            "                               (select id from realtors where realtors.id = flats.realtor_id and realtors.agency_id =\n" +
-            "                                                              (select id from agencies where agencies.id = realtors.agency_id and agencies.id = id))\n" +
-            "                             and flats.contract_id IS NOT NULL)")
-    private long countContracts;
+    @Formula("(select count(*) from contracts where contracts.flat_id =\n" +
+            "                (select flats.id from flats where flats.id = contracts.flat_id and flats.contract_id IS NOT NULL and flats.realtor_id =\n" +
+            "                                (select realtors.id from realtors where realtors.id = flats.realtor_id and realtors.agency_id = id)))")
+    private Integer countContracts;
 
 
     public AgencyTableDto build(){
         AgencyTableDto agency = new AgencyTableDto();
         agency.setId(id);
         agency.setName(name);
-
-        Integer count = 0;
-        for(Realtor realtor : realtors){
-            if(realtor.isDirector() && realtor.getAgency().equals(this)){
-                agency.setDirectorName(realtor.getName() + " " + realtor.getSurname());
-                agency.setDirectorPhone(realtor.getPhone());
-                agency.setDirectorEmail(realtor.getEmail());
-            }
-            for(Flat flat : realtor.getFlats()){
-                if (flat.getContract() != null) {
-                    count++;
-                }
-            }
-        }
-
-        agency.setCount(count);
+        agency.setDirectorName(directorName);
+        agency.setDirectorEmail(directorEmail);
+        agency.setDirectorPhone(directorPhone);
+        agency.setCount(countContracts);
         return agency;
     }
 

@@ -8,8 +8,9 @@
 
     <style th:replace="blocks/linkAdminLTE"></style>
     <div th:replace="blocks/links"></div>
-    <script th:src="@{/js/app.js}"></script>
+
     <link rel="stylesheet" th:href="@{/css/popup.css}">
+    <link rel="stylesheet" th:href="@{/css/tableSort.css}">
 </head>
 
 <body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
@@ -39,48 +40,57 @@
                 <thead>
                 <tr>
                     <th scope="col">
-                        <div onclick="sort('flat.number')">
+                        <div onclick="sort(this, 'flat.number')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Flat number</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
-                        <div onclick="sort('flat.object')">
+                        <div onclick="sort(this, 'flat.object')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Object</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
-                        <div onclick="sort('status')">
+                        <div onclick="sort(this, 'status')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Status</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
-                        <div onclick="sort('flatArea')">
+                        <div onclick="sort(this, 'flatArea')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Area</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
-                        <div onclick="sort('price')">
+                        <div onclick="sort(this, 'price')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Price</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
-                        <div onclick="sort('buyer.realtor.agency.name')">
+                        <div onclick="sort(this, 'buyer.realtor.agency.name')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Agency</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
-                        <div onclick="sort('price')">
+                        <div onclick="sort(this, 'price')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Realtor</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
-                        <div onclick="sort('id')">
+                        <div onclick="sort(this, 'id')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Contract number</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
-                        <div onclick="sort('date')">
+                        <div onclick="sort(this, 'date')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Date</p>
+                            <div></div>
                         </div>
                     </th>
                 </tr>
@@ -98,12 +108,9 @@
     </div>
 </div>
 
-<div th:replace="blocks/scriptAdminLTE"></div>
-<script th:src="@{/js/validation.js}"></script>
-
 <script>
-    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
-    let url = window.location.protocol+"//"+ window.location.host + context;
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 1));
+    let url = window.location.protocol + "//" + window.location.host + context;
 
     let BuyerId = "[[${buyerId}]]";
 
@@ -122,16 +129,6 @@
         getUserPermissions();
     });
 
-    function sort(field){
-        if(sortingDirection === 'ASC'){
-            sortingDirection = 'DESC';
-        } else {
-            sortingDirection = 'ASC';
-        }
-        sortingField = field;
-        updatePage(currentPage, size, sortingField, sortingDirection);
-    }
-
     function updatePage(){
         let data = {
             page: currentPage,
@@ -147,10 +144,10 @@
             dataType: "json",
             success: function (data){
                 totalPage = data.totalPages;
-                if(currentPage > totalPage){
+                if(currentPage > totalPage && currentPage > 1){
                     if (currentPage !== 1) {
-                        currentPage--;
-                        updatePage(currentPage, size, sortingField, sortingDirection);
+                        currentPage = totalPage;
+                        updatePage();
                     }
                 }
                 updateList(data)
@@ -236,7 +233,7 @@
     function changeSize(){
         size = $('#sizeSelect').val();
         currentPage = 1;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
 
     function paginationButton(){
@@ -302,29 +299,30 @@
         }
     }
 
-    function goFirstPage(){
+    function goFirstPage() {
         currentPage = 1;
-        updatePage(currentPage, size, sortingField, sortingDirection);
+        updatePage();
     }
-
     function goPreviousPage(){
         currentPage--;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
-
     function goToPage(i){
         currentPage = i;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
     function goNextPage(){
         currentPage++;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
     function goLastPage(){
         currentPage = totalPage;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
 </script>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script th:src="@{/js/app.js}"></script>
 
 </main>
 </body>

@@ -3,18 +3,18 @@ package com.example.NewBuildingFinance.dto;
 import com.example.NewBuildingFinance.entities.agency.Realtor;
 import lombok.Data;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.*;
 
 @Data
 public class RealtorDto {
     private Long id;
     @NotNull(message = "Must not be empty")
     private Long agencyId;
-    @NotEmpty(message = "Must not be empty")
+    @NotBlank(message = "Must not be empty")
+    @Pattern(regexp = "^((?![\\s]).)*$", message = "Must not contain spaces")
     private String name;
-    @NotEmpty(message = "Must not be empty")
+    @NotBlank(message = "Must not be empty")
+    @Pattern(regexp = "^((?![\\s]).)*$", message = "Must not contain spaces")
     private String surname;
     @NotEmpty(message = "Must not be empty")
     private String phone;

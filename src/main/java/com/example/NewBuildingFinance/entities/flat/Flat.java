@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Formula;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -53,7 +54,6 @@ public class Flat {
     private Double area; // площа
     private Double price; // ціна
     private Double salePrice; // ціна продажі
-    private Double advance; // аванс
 
     private Integer number;
     private Integer quantityRooms;
@@ -65,6 +65,32 @@ public class Flat {
 
     private boolean deleted = false;
 
+    @Formula("(select max(fp.planned)\n" +
+            "from flat_payments fp\n" +
+            "where fp.date = (select min(flat_payments.date)\n" +
+            "                from flat_payments\n" +
+            "                         INNER JOIN flats f on flat_payments.flat_id = f.id\n" +
+            "                where flat_payments.flat_id = id\n" +
+            "                and flat_payments.deleted = false\n" +
+            "                order by flat_payments.flat_id)\n" +
+            "and fp.flat_id = id\n" +
+            "and fp.deleted = false\n" +
+            "order by fp.flat_id)")
+    private Double advance;
+    @Formula("(select sum(fp.actually)\n" +
+            "from flat_payments fp\n" +
+            "where fp.flat_id = id\n" +
+            "and fp.deleted = false)")
+    private Double entered;
+    @Formula("(select f.sale_price - (select sum(fp.actually)\n" +
+            "                       from flat_payments fp\n" +
+            "                       where fp.flat_id = id\n" +
+            "                       group by fp.flat_id)\n" +
+            "from flats f\n" +
+            "where f.id = id)")
+    private Double remains;
+
+
     public FlatTableDto buildTableDto(){
         FlatTableDto flat = new FlatTableDto();
         flat.setId(id);
@@ -74,24 +100,19 @@ public class Flat {
         flat.setArea(area);
         flat.setPrice(price);
 
-        Double advance = 0d;
-        Double entered = 0d;
-        Date date = new Date(Long.MAX_VALUE);
-        for(FlatPayment flatPayment : flatPayments){
-            if(!flatPayment.isDeleted()) {
-                if(date.after(flatPayment.getDate())){
-                    date = flatPayment.getDate();
-                    advance = flatPayment.getPlanned();
-                    if (flatPayment.getActually() != null) {
-                        entered += flatPayment.getActually();
-                    }
-                }
-            }
+        if(advance == null){
+            advance = 0d;
         }
-
         flat.setAdvance(advance);
+
+        if(entered == null){
+            entered = 0d;
+        }
         flat.setEntered(entered);
-        flat.setRemains(salePrice - entered);
+        if(remains == null){
+            remains = 0d;
+        }
+        flat.setRemains(remains);
         return flat;
     }
 
@@ -150,7 +171,6 @@ public class Flat {
                 ", area=" + area +
                 ", price=" + price +
                 ", salePrice=" + salePrice +
-                ", advance=" + advance +
                 ", number=" + number +
                 ", quantityRooms=" + quantityRooms +
                 ", floor=" + floor +

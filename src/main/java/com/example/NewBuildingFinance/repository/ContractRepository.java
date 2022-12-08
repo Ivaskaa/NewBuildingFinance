@@ -21,7 +21,7 @@ public interface ContractRepository extends JpaRepository<Contract, Long>, JpaSp
     Page<Contract> findAllByFlatRealtorAgencyIdAndDeletedFalse(Pageable pageable, Long agencyId);
 
     @Modifying
-    @Query(value = "update newbuildingfinance.contracts set contracts.deleted = true, contracts.status = 'ONREVIEW' where contracts.id = :id", nativeQuery = true)
+    @Query(value = "update newbuildingfinance.contracts set contracts.deleted = true, contracts.flat_id = null where contracts.id = :id", nativeQuery = true)
     @Transactional
     void setDeleted(@Param("id") Long id);
 }

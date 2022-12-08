@@ -8,8 +8,9 @@
 
     <style th:replace="blocks/linkAdminLTE"></style>
     <div th:replace="blocks/links"></div>
-    <script th:src="@{/js/app.js}"></script>
+
     <link rel="stylesheet" th:href="@{/css/popup.css}">
+    <link rel="stylesheet" th:href="@{/css/tableSort.css}">
 </head>
 
 <body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
@@ -40,38 +41,45 @@
                 <thead>
                 <tr>
                     <th scope="col">
-                        <div onclick="sort('id')">
+                        <div onclick="sort(this, 'id')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Id</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
-                        <div onclick="sort('house')">
+                        <div onclick="sort(this, 'house')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">House</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
-                        <div onclick="sort('section')">
+                        <div onclick="sort(this, 'section')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Section</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
-                        <div onclick="sort('address')">
+                        <div onclick="sort(this, 'address')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Address</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
-                        <div onclick="sort('status')">
+                        <div onclick="sort(this, 'status')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Status</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
-                        <div onclick="sort('agency')">
+                        <div onclick="sort(this, 'agency')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">% agency</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
-                        <div onclick="sort('manager')">
+                        <div onclick="sort(this, 'manager')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">% manager</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -102,11 +110,11 @@
     </div>
 </div>
 
-<div th:replace="blocks/scriptAdminLTE"></div>
-<script th:src="@{/js/validation.js}"></script>
-
 <script>
     let modal = document.getElementById("popup");
+
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 1));
+    let url = window.location.protocol + "//" + window.location.host + context;
 
     let currentPage = 1;
     let size = 10;
@@ -117,18 +125,8 @@
     let IdForUpdating;
 
     $(document).ready(function() {
-        updatePage(currentPage, size, sortingField, sortingDirection);
+        updatePage();
     });
-
-    function sort(field){
-        if(sortingDirection === 'ASC'){
-            sortingDirection = 'DESC';
-        } else {
-            sortingDirection = 'ASC';
-        }
-        sortingField = field;
-        updatePage(currentPage, size, sortingField, sortingDirection);
-    }
 
     function openPopup(style){
         modal.style.display = "block";
@@ -199,7 +197,7 @@
     function getStatusObject(){
         $.ajax({
             type: 'get',
-            url: '../objects/getStatusObject',
+            url: url + '/getStatusObject',
             dataType: "json",
             async: false,
             success: function (data){
@@ -236,25 +234,26 @@
         object.manager = manager.value;
         object.active = active.checked;
 
-        console.log(object);
         if(style === 'add') {
             $.ajax({
                 type: 'post',
-                url: '../objects/addObject',
+                url: url + '/addObject',
                 data: JSON.stringify(object),
                 contentType: "application/json; charset=utf-8",
                 success: function (data) {
+                    console.log('success /addObject');
                     let validation = JSON.parse(data);
                     if (validation == null) {
-                        updatePage(currentPage, size, sortingField, sortingDirection)
+                        success();
+                        updatePage()
                         closePopup();
-                        console.log('success /addObject');
                     } else {
                         validationMessage(validation);
                     }
                 },
                 error: function () {
                     console.log('error /addObject');
+                    error();
                 }
             });
         }
@@ -263,21 +262,23 @@
             object.id = IdForUpdating;
             $.ajax({
                 type: 'post',
-                url: '../objects/updateObject',
+                url: url + '/updateObject',
                 data: JSON.stringify(object),
                 contentType: "application/json; charset=utf-8",
                 success: function (data) {
+                    console.log('success /updateObject');
                     let validation = JSON.parse(data);
                     if (validation == null) {
-                        updatePage(currentPage, size, sortingField, sortingDirection)
+                        success();
+                        updatePage()
                         closePopup();
-                        console.log('success /updateObject');
                     } else {
                         validationMessage(validation);
                     }
                 },
                 error: function () {
                     console.log('error /updateObject');
+                    error();
                 }
             });
         }
@@ -329,7 +330,7 @@
     }
 
 
-    function updatePage(currentPage, size, sortingField, sortingDirection){
+    function updatePage(){
         let data = {
             page: currentPage,
             size: size,
@@ -338,14 +339,14 @@
         }
         $.ajax({
             type: 'get',
-            url: '../objects/getObjects',
+            url: url + '/getObjects',
             data: data,
             dataType: "json",
             success: function (data){
                 totalPage = data.totalPages;
-                if(currentPage > totalPage){
-                    currentPage--;
-                    updatePage(currentPage, size, sortingField, sortingDirection);
+                if(currentPage > totalPage && currentPage > 1){
+                    currentPage = totalPage;
+                    updatePage();
                 }
                 updateList(data)
                 console.log('success /getObjects');
@@ -400,7 +401,7 @@
         let data = { id: id };
         $.ajax({
             type: 'get',
-            url: '../objects/getObjectById',
+            url: url + '/getObjectById',
             data: data,
             dataType: "json",
             success: function (object){
@@ -431,26 +432,16 @@
     }
 
     function deleteObject(id){
-        let data = { id: id };
-        $.ajax({
-            type: 'post',
-            url: '../objects/deleteObjectById',
-            data: data,
-            dataType: "json",
-            success: function (success){
-                console.log(success + ' /deleteObjectById');
-                updatePage(currentPage, size, sortingField, sortingDirection)
-            },
-            error: function() {
-                console.log('error /deleteObjectById');
-            }
-        });
+        deleteObjFirst(url, '/deleteObjectById', id)
+    }
+    function afterDeleteObjFirst(){
+        updatePage();
     }
 
     function changeSize(){
         size = $('#sizeSelect').val();
         currentPage = 1;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
 
     function paginationButton(){
@@ -518,27 +509,29 @@
 
     function goFirstPage(){
         currentPage = 1;
-        updatePage(currentPage, size, sortingField, sortingDirection);
+        updatePage();
     }
-
     function goPreviousPage(){
         currentPage--;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
-
     function goToPage(i){
         currentPage = i;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
     function goNextPage(){
         currentPage++;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
     function goLastPage(){
         currentPage = totalPage;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
 </script>
+
+<script th:src="@{/js/app.js}"></script>
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
 </main>
 </body>

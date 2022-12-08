@@ -83,11 +83,13 @@
 </div>
 
 <div th:replace="blocks/scriptAdminLTE"></div>
-<script th:src="@{/js/validation.js}"></script>
 <script th:src="@{/js/app.js}"></script>
 
 <script>
     let modal = document.getElementById("popup");
+
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 1));
+    let url = window.location.protocol + "//" + window.location.host + context;
 
     let IdForUpdating;
 
@@ -140,21 +142,23 @@
             object.id = IdForUpdating;
             $.ajax({
                 type: 'post',
-                url: '../settings/updateCurrency',
+                url: url + '/updateCurrency',
                 data: JSON.stringify(object),
                 contentType: "application/json; charset=utf-8",
                 success: function (data) {
                     let validation = JSON.parse(data);
                     if (validation == null) {
+                        console.log('success /updateCurrency');
+                        success()
                         sendCurrency();
                         updatePage()
                         closePopup();
-                        console.log('success /updateCurrency');
                     } else {
                         validationMessage(validation);
                     }
                 },
                 error: function () {
+                    error();
                     console.log('error /updateCurrency');
                 }
             });
@@ -197,7 +201,7 @@
     function updatePage(){
         $.ajax({
             type: 'get',
-            url: '../settings/getCurrencies',
+            url: url + '/getCurrencies',
             dataType: "json",
             success: function (data){
                 console.log('success /getCurrencies');
@@ -237,15 +241,11 @@
         let data = { id: id };
         $.ajax({
             type: 'get',
-            url: '../settings/getCurrencyById',
+            url: url + '/getCurrencyById',
             data: data,
             dataType: "json",
             success: function (object){
                 console.log('success /getCurrencyById');
-                // object.cashRegister = document.getElementById('cashRegister').value;
-                // object.name = document.getElementById('name').value;
-                // object.price = document.getElementById('price').value;
-
                 let cashRegister = document.getElementById('cashRegister');
                 cashRegister.value = object.cashRegister;
                 let name = document.getElementById('name');
@@ -262,6 +262,8 @@
         });
     }
 </script>
+
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
 </main>
 </body>

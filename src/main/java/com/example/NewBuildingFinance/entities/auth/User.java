@@ -36,7 +36,7 @@ public class User implements UserDetails {
     private String username; // email
     private String password;
     private boolean active;
-    private boolean deleted = true;
+    private boolean deleted = false;
     @JoinColumn(name = "role_id")
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JsonManagedReference

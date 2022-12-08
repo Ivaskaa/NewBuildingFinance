@@ -105,11 +105,11 @@
 </div>
 
 <div th:replace="blocks/scriptAdminLTE"></div>
-<script src="https://unpkg.com/imask"></script>
 
 <script>
-    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",2));
-    let url = window.location.protocol+"//"+ window.location.host +context+"/img/users/";
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 1));
+    let url = window.location.protocol + "//" + window.location.host + context;
+    let imgUrl = url + "/img/users/";
     let User = {};
 
     $(document).ready(function() {
@@ -149,29 +149,30 @@
         formData.append('profile', new Blob([JSON.stringify(profile)], {type : 'application/json'}));
         $.ajax({
             type: 'post',
-            url: '../updateProfile',
+            url: url + '/updateProfile',
             contentType: false,
             processData: false,
             data: formData,
             dataType: "json",
             success: function (validation) {
                 if (validation == null) {
-                    validationMessage(validation);
+                    console.log('success /updateProfile');
+                    success();
+                    validationMessage(null);
                     updatePage(currentPage, size, sortingField, sortingDirection)
                     closePopup();
-                    console.log('success /updateProfile');
                 } else {
                     validationMessage(validation);
                 }
             },
             error: function () {
+                error();
                 console.log('error /updateProfile');
             }
         });
     }
 
     function validationMessage(validation){
-
         if(validation?.name ?? false){
             document.getElementById('nameMessage').innerHTML = validation.name;
             document.getElementById('name').style.border = "1px solid red";
@@ -225,7 +226,7 @@
                 }
             } else {
                 document.getElementById('firstPasswordMessage').innerHTML = "";
-                firstPassword.style.border = "1px solid grey";
+                firstPassword.style.border = "1px solid #ced4da";
             }
             if (firstPassword.value !== ''){
                 if(validation?.secondPassword ?? false){
@@ -237,15 +238,33 @@
                 }
             } else {
                 document.getElementById('secondPasswordMessage').innerHTML = "";
-                secondPassword.style.border = "1px solid grey";
+                secondPassword.style.border = "1px solid #ced4da";
             }
         }
+        setTimeout(function() {
+            document.getElementById('nameMessage').innerHTML = "";
+            document.getElementById('name').style.border = "1px solid #ced4da";
+            document.getElementById('surnameMessage').innerHTML = "";
+            document.getElementById('surname').style.border = "1px solid #ced4da";
+            document.getElementById('viberMessage').innerHTML = "";
+            document.getElementById('viber').style.border = "1px solid #ced4da";
+            document.getElementById('phoneMessage').innerHTML = "";
+            document.getElementById('phone').style.border = "1px solid #ced4da";
+            document.getElementById('usernameMessage').innerHTML = "";
+            document.getElementById('username').style.border = "1px solid #ced4da";
+            document.getElementById('passwordMessage').innerHTML = "";
+            document.getElementById('password').style.border = "1px solid #ced4da";
+            document.getElementById('firstPasswordMessage').innerHTML = "";
+            document.getElementById('firstPassword').style.border = "1px solid #ced4da";
+            document.getElementById('secondPasswordMessage').innerHTML = "";
+            document.getElementById('secondPassword').style.border = "1px solid #ced4da";
+        }, 4000);
     }
 
     function updatePage(){
         $.ajax({
             type: 'get',
-            url: '../getProfile',
+            url: url + '/getProfile',
             dataType: "json",
             success: function (profile) {
                 console.log('success /getProfile');
@@ -269,7 +288,7 @@
                 $("#summernote").summernote("code", profile.aboutMe);
                 if (profile.photo !== null) {
                     let image = document.getElementById("image");
-                    image.src = url + profile.photo;
+                    image.src = imgUrl + profile.photo;
                     image.style.display = "block";
                 }
                 mask();
@@ -305,7 +324,9 @@
 
 </script>
 
+<script src="https://unpkg.com/imask"></script>
 <script th:src="@{/plugins/summernote/summernote-bs4.min.js}"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
 </main>
 </body>

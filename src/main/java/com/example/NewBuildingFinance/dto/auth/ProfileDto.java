@@ -4,15 +4,19 @@ import com.example.NewBuildingFinance.entities.auth.User;
 import lombok.Data;
 
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Pattern;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 @Data
 public class ProfileDto {
     private Long id;
-    @NotEmpty(message = "Must not be empty")
+    @NotBlank(message = "Must not be empty")
+    @Pattern(regexp = "^((?![\\s]).)*$", message = "Must not contain spaces")
     private String name;
-    @NotEmpty(message = "Must not be empty")
+    @NotBlank(message = "Must not be empty")
+    @Pattern(regexp = "^((?![\\s]).)*$", message = "Must not contain spaces")
     private String surname;
     private String lastname;
     private String birthday;
@@ -24,7 +28,7 @@ public class ProfileDto {
     @Email(message = "Email must be valid")
     @NotEmpty(message = "Must not be empty")
     private String username; // email
-    @NotEmpty(message = "Must not be empty")
+    @NotBlank(message = "Must not be empty")
     private String password;
     private String firstPassword;
     private String secondPassword;

@@ -2,25 +2,28 @@ package com.example.NewBuildingFinance.dto;
 
 import com.example.NewBuildingFinance.entities.currency.InternalCurrency;
 import lombok.Data;
+import org.hibernate.validator.constraints.Range;
 
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.*;
 
 @Data
 public class CurrencyDto {
     private Long id;
-    @NotEmpty(message = "Must not be empty")
+    @NotBlank(message = "Must not be empty")
+    @Pattern(regexp = "^((?![\\s]).)*$", message = "Must not contain spaces")
     private String cashRegister;
-    @NotEmpty(message = "Must not be empty")
+    @NotBlank(message = "Must not be empty")
     private String name;
-    @NotEmpty(message = "Must not be empty")
-    private String price;
+    @NotNull(message = "Must not be empty")
+    @Range(min = 0, max = 1000)
+    private Double price;
 
     public InternalCurrency build(){
         InternalCurrency currency = new InternalCurrency();
         currency.setId(id);
         currency.setCashRegister(cashRegister);
         currency.setName(name);
-        currency.setPrice(Double.valueOf(price));
+        currency.setPrice(price);
         return currency;
     }
 

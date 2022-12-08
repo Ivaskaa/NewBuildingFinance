@@ -8,7 +8,7 @@
 
     <style th:replace="blocks/linkAdminLTE"></style>
     <div th:replace="blocks/links"></div>
-    <script th:src="@{/js/app.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/tableSort.css}">
     <link rel="stylesheet" th:href="@{/css/popup.css}">
 </head>
 
@@ -61,23 +61,27 @@
                     <thead>
                     <tr>
                         <th scope="col">
-                            <div onclick="sort('name')">
+                            <div onclick="sortRealtor(this, 'name and surname')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Surname Name</p>
+                                <div></div>
                             </div>
                         </th>
                         <th scope="col">
-                            <div onclick="sort('phone')">
+                            <div onclick="sortRealtor(this, 'phone')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Phone</p>
+                                <div></div>
                             </div>
                         </th>
                         <th scope="col">
-                            <div onclick="sort('email')">
+                            <div onclick="sortRealtor(this, 'email')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Email</p>
+                                <div></div>
                             </div>
                         </th>
                         <th scope="col">
-                            <div onclick="sort('director')">
+                            <div onclick="sortRealtor(this, 'director')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Director</p>
+                                <div></div>
                             </div>
                         </th>
                         <th scope="col">
@@ -100,7 +104,7 @@
                 </nav>
 
                 <button id="save" onclick="save(this)" class="btn btn-success popup-with-form">Save</button>
-                <a th:href="@{/agencies}" class="btn btn-dark popup-with-form">Back</a>
+                <a th:href="@{/agencies/}" class="btn btn-dark popup-with-form">Back</a>
             </div>
 
             <div id="salesPage" style="display: none">
@@ -121,43 +125,51 @@
                     <thead>
                     <tr>
                         <th scope="col">
-                            <div onclick="sortContracts('flat.number')">
+                            <div onclick="sortContracts(this, 'flat.number')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Flat number</p>
+                                <div></div>
                             </div>
                         </th>
                         <th scope="col">
-                            <div onclick="sortContracts('flat.object')">
+                            <div onclick="sortContracts(this, 'flat.object')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Object</p>
+                                <div></div>
                             </div>
                         </th>
                         <th scope="col">
-                            <div onclick="sortContracts('status')">
+                            <div onclick="sortContracts(this, 'status')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Status</p>
+                                <div></div>
                             </div>
                         </th>
                         <th scope="col">
-                            <div onclick="sortContracts('flatArea')">
+                            <div onclick="sortContracts(this, 'flatArea')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Area</p>
+                                <div></div>
                             </div>
                         </th>
                         <th scope="col">
-                            <div onclick="sortContracts('price')">
+                            <div onclick="sortContracts(this, 'price')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Price</p>
+                                <div></div>
                             </div>
                         </th>
                         <th scope="col">
-                            <div onclick="sortContracts('buyer')">
+                            <div onclick="sortContracts(this, 'buyer')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Buyer</p>
+                                <div></div>
                             </div>
                         </th>
                         <th scope="col">
-                            <div onclick="sortContracts('id')">
+                            <div onclick="sortContracts(this, 'id')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Contract number</p>
+                                <div></div>
                             </div>
                         </th>
                         <th scope="col">
-                            <div onclick="sortContracts('date')">
+                            <div onclick="sortContracts(this, 'date')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Date</p>
+                                <div></div>
                             </div>
                         </th>
                     </tr>
@@ -192,43 +204,51 @@
                     <thead>
                     <tr>
                         <th scope="col">
-                            <div onclick="sortCommissions('flat.number')">
+                            <div onclick="sortCommissions(this, 'flat.number')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Flat number</p>
+                                <div></div>
                             </div>
                         </th>
                         <th scope="col">
-                            <div onclick="sortCommissions('flat.object')">
+                            <div onclick="sortCommissions(this, 'flat.object')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Object</p>
+                                <div></div>
                             </div>
                         </th>
                         <th scope="col">
-                            <div onclick="sortCommissions('flatArea')">
+                            <div onclick="sortCommissions(this, 'flatArea')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Area</p>
+                                <div></div>
                             </div>
                         </th>
                         <th scope="col">
-                            <div onclick="sortCommissions('price')">
+                            <div onclick="sortCommissions(this, 'price')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Price</p>
+                                <div></div>
                             </div>
                         </th>
                         <th scope="col">
-                            <div onclick="sortCommissions('status')">
+                            <div onclick="sortCommissions(this, 'status')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Status</p>
+                                <div></div>
                             </div>
                         </th>
                         <th scope="col">
-                            <div onclick="sortCommissions('flat.agency')">
+                            <div onclick="sortCommissions(this, 'flat.agency')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">%</p>
+                                <div></div>
                             </div>
                         </th>
                         <th scope="col">
-                            <div onclick="sortCommissions('price')">
+                            <div onclick="sortCommissions(this, 'price')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Money</p>
+                                <div></div>
                             </div>
                         </th>
                         <th scope="col">
-                            <div onclick="sortCommissions('date')">
+                            <div onclick="sortCommissions(this, 'date')">
                                 <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Date</p>
+                                <div></div>
                             </div>
                         </th>
                     </tr>
@@ -242,7 +262,6 @@
                         <!-- pagination buttons -->
                     </ul>
                 </nav>
-
             </div>
         </section>
     </div>
@@ -251,10 +270,6 @@
     </div>
 </div>
 
-<div th:replace="blocks/scriptAdminLTE"></div>
-<script th:src="@{/js/validation.js}"></script>
-<script src="https://unpkg.com/imask"></script>
-
 <script>
     let AgencyId = "[[${agencyId}]]";
     let Agency = {};
@@ -262,9 +277,8 @@
 
     let UserId = "[[${userId}]]" ;
 
-    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",0));
-    let url = window.location.protocol+"//"+ window.location.host + context;
-    console.log(url)
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 1));
+    let url = window.location.protocol + "//" + window.location.host + context;
     let modal = document.getElementById("popup");
 
     let currentPage = 1;
@@ -275,6 +289,7 @@
     let totalPage;
 
     $(document).ready(function() {
+        console.log('hello');
         getUserPermissions();
         Agency.id = AgencyId;
         if(AgencyId != 0){
@@ -288,7 +303,6 @@
             $("#commissionsPage").hide();
             $("#salesPage").hide();
             $("#descriptionPage").show();
-
         }
         if (element.id === 'salesButton'){
             $("#descriptionPage").hide();
@@ -329,6 +343,21 @@
         }
     }
 
+    function sortRealtor(element, field){
+        $("thead > tr > th > div > div").each(function(i, item){
+            $(item).removeClass("triangle-desc triangle-asc");
+        });
+        let triangle = $(element).children('div');
+        if(sortingDirection === 'ASC'){
+            sortingDirection = 'DESC';
+            $(triangle[0]).addClass("triangle-desc");
+        } else {
+            sortingDirection = 'ASC';
+            $(triangle[0]).addClass("triangle-asc");
+        }
+        sortingField = field;
+        updateRealtors();
+    }
 
     function save(element){
         let agency = {};
@@ -337,7 +366,7 @@
         if (Agency.id == 0) {
             $.ajax({
                 type: 'post',
-                url: url + '/agencies/addAgency',
+                url: url + '/addAgency',
                 data: JSON.stringify(agency),
                 contentType: "application/json; charset=utf-8",
                 success: function (data) {
@@ -357,11 +386,13 @@
                             openPopup("add");
                         }
                         validationMessage(null);
+                        success();
                     } else {
                         validationMessage(validation);
                     }
                 },
                 error: function () {
+                    error();
                     console.log('error /addAgency');
                 }
             });
@@ -369,7 +400,7 @@
             agency.id = Agency.id;
             $.ajax({
                 type: 'post',
-                url: url + '/agencies/updateAgency',
+                url: url + '/updateAgency',
                 data: JSON.stringify(agency),
                 contentType: "application/json; charset=utf-8",
                 success: function (data) {
@@ -377,11 +408,13 @@
                     let validation = JSON.parse(data);
                     if (validation == null) {
                         validationMessage(null);
+                        success();
                     } else {
                         validationMessage(validation);
                     }
                 },
                 error: function () {
+                    error();
                     console.log('error /updateAgency');
                 }
             });
@@ -441,7 +474,7 @@
         let data = { id: AgencyId };
         $.ajax({
             type: 'get',
-            url: url +'/agencies/getAgencyById',
+            url: url +'/getAgencyById',
             data: data,
             dataType: "json",
             success: function (data){
@@ -496,13 +529,13 @@
         }
         $.ajax({
             type: 'get',
-            url: url + '/agencies/realtors/getRealtorsByAgencyId',
+            url: url + '/realtors/getRealtorsByAgencyId',
             data: data,
             dataType: "json",
             success: function (data){
                 totalPage = data.totalPages;
                 if(currentPage > totalPage && currentPage > 1){
-                    currentPage--;
+                    currentPage = totalPage;
                     updateRealtors();
                 }
                 updateList(data)
@@ -522,11 +555,10 @@
         realtor.email = document.getElementById('realtorEmail').value;
         realtor.director = document.getElementById('realtorDirector').checked;
         realtor.agencyId = AgencyId;
-        console.log(style)
         if (style === 'add') {
             $.ajax({
                 type: 'post',
-                url: url + '/agencies/realtors/addRealtor',
+                url: url + '/realtors/addRealtor',
                 data: JSON.stringify(realtor),
                 contentType: "application/json; charset=utf-8",
                 success: function (data) {
@@ -535,11 +567,13 @@
                     if (validation == null) {
                         closePopup();
                         updateRealtors();
+                        success();
                     } else {
                         validationMessageRealtor(validation);
                     }
                 },
                 error: function () {
+                    error();
                     console.log('error /addRealtor');
                 }
             });
@@ -548,7 +582,7 @@
             realtor.id = IdForUpdating;
             $.ajax({
                 type: 'post',
-                url: url + '/agencies/realtors/updateRealtor',
+                url: url + '/realtors/updateRealtor',
                 data: JSON.stringify(realtor),
                 contentType: "application/json; charset=utf-8",
                 success: function (data) {
@@ -557,11 +591,13 @@
                     if (validation == null) {
                         closePopup();
                         updateRealtors();
+                        success();
                     } else {
                         validationMessageRealtor(validation);
                     }
                 },
                 error: function () {
+                    error();
                     console.log('error /updateRealtor');
                 }
             });
@@ -622,7 +658,7 @@
         let data = { id: id };
         $.ajax({
             type: 'get',
-            url: url + '/agencies/realtors/getRealtorById',
+            url: url + '/realtors/getRealtorById',
             data: data,
             dataType: "json",
             success: function (object){
@@ -640,27 +676,18 @@
     }
 
     function deleteObject(id){
-        let data = {id: id};
-        $.ajax({
-            type: 'post',
-            url: url + '/agencies/realtors/deleteRealtorById',
-            data: data,
-            dataType: "json",
-            success: function (data){
-                console.log('success /deleteRealtorById');
-                updateRealtors();
-            },
-            error: function() {
-                console.log('error /deleteRealtorById');
-            }
-        });
+        deleteObjSecond(url, '/realtors/deleteRealtorById', id)
+    }
+    function afterDeleteObjSecond(){
+        console.log('success /deleteRealtorById');
+        updateRealtors();
     }
 
     function getUserPermissions(){
         let data = {id: UserId};
         $.ajax({
             type: 'get',
-            url: url + '/agencies/getUserPermissionsById',
+            url: url + '/getUserPermissionsById',
             data: data,
             dataType: "json",
             success: function (data){
@@ -768,14 +795,19 @@
 
     $(document).ready(function() {
         updateListContracts();
-        getUserPermissions();
     });
 
-    function sortContracts(field){
+    function sortContracts(element, field){
+        $("thead > tr > th > div > div").each(function(i, item){
+            $(item).removeClass("triangle-desc triangle-asc");
+        });
+        let triangle = $(element).children('div');
         if(sortingDirectionContracts === 'ASC'){
             sortingDirectionContracts = 'DESC';
+            $(triangle[0]).addClass("triangle-desc");
         } else {
             sortingDirectionContracts = 'ASC';
+            $(triangle[0]).addClass("triangle-asc");
         }
         sortingFieldContracts = field;
         updateListContracts();
@@ -791,7 +823,7 @@
         }
         $.ajax({
             type: 'get',
-            url: url + '/agencies/getContractsByAgencyId',
+            url: url + '/getContractsByAgencyId',
             data: data,
             dataType: "json",
             success: function (data){
@@ -935,12 +967,10 @@
         currentPageContracts = 1;
         updateListContracts();
     }
-
     function goPreviousPageContracts(){
         currentPageContracts--;
         updateListContracts()
     }
-
     function goToPageContracts(i){
         currentPageContracts = i;
         updateListContracts()
@@ -954,6 +984,7 @@
         updateListContracts()
     }
 
+
     // commissions
 
     let currentPageCommissions = 1;
@@ -966,11 +997,17 @@
         updateListCommissions();
     });
 
-    function sortCommissions(field){
+    function sortCommissions(element, field){
+        $("thead > tr > th > div > div").each(function(i, item){
+            $(item).removeClass("triangle-desc triangle-asc");
+        });
+        let triangle = $(element).children('div');
         if(sortingDirectionCommissions === 'ASC'){
             sortingDirectionCommissions = 'DESC';
+            $(triangle[0]).addClass("triangle-desc");
         } else {
             sortingDirectionCommissions = 'ASC';
+            $(triangle[0]).addClass("triangle-asc");
         }
         sortingFieldCommissions = field;
         updateListCommissions();
@@ -986,7 +1023,7 @@
         }
         $.ajax({
             type: 'get',
-            url: url + '/agencies/getCommissionsByAgencyId',
+            url: url + '/getCommissionsByAgencyId',
             data: data,
             dataType: "json",
             success: function (data){
@@ -1114,12 +1151,10 @@
         currentPageCommissions = 1;
         updateListCommissions();
     }
-
     function goPreviousPageCommissions(){
         currentPageCommissions--;
         updateListCommissions()
     }
-
     function goToPageCommissions(i){
         currentPageCommissions = i;
         updateListCommissions()
@@ -1143,6 +1178,11 @@
         let mask = new IMask(element, maskOptions);
     }
 </script>
+
+<script th:src="@{/js/app.js}"></script>
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script src="https://unpkg.com/imask"></script>
 
 </body>
 </html>

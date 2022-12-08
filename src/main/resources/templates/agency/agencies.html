@@ -8,7 +8,7 @@
 
     <style th:replace="blocks/linkAdminLTE"></style>
     <div th:replace="blocks/links"></div>
-    <script th:src="@{/js/app.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/tableSort.css}">
     <link rel="stylesheet" th:href="@{/css/popup.css}">
 </head>
 
@@ -43,40 +43,45 @@
                         <label>
                             <input id="name" oninput="search()" type="text" class="form-control" style="width: 130px">
                         </label>
-                        <div onclick="sort('name')">
+                        <div onclick="sort(this, 'name')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Name</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
                         <label>
                             <input id="director" oninput="search()" type="text" class="form-control" style="width: 130px">
                         </label>
-                        <div onclick="sort('directorName and directorSurname')">
+                        <div onclick="sort(this, 'directorName and directorSurname')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Director</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
                         <label>
                             <input id="phone" oninput="search()" type="text" class="form-control" style="width: 130px">
                         </label>
-                        <div onclick="sort('directorPhone')">
+                        <div onclick="sort(this, 'directorPhone')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Phone</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
                         <label>
                             <input id="email" oninput="search()" type="text" class="form-control" style="width: 130px">
                         </label>
-                        <div onclick="sort('directorEmail')">
+                        <div onclick="sort(this, 'directorEmail')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Email</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
                         <label>
                             <input id="count" oninput="search()" type="number" class="form-control" style="width: 130px">
                         </label>
-                        <div onclick="sort('countContracts')">
+                        <div onclick="sort(this, 'countContracts')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Sales</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -104,13 +109,10 @@
     </div>
 </div>
 
-<div th:replace="blocks/scriptAdminLTE"></div>
-<script th:src="@{/js/validation.js}"></script>
-
 <script>
 
-    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",2));
-    let url = window.location.protocol+"//"+ window.location.host + context;
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 1));
+    let url = window.location.protocol + "//" + window.location.host + context;
 
     let currentPage = 1;
     let size = 10;
@@ -129,26 +131,16 @@
         search();
     });
 
-    function sort(field){
-        if(sortingDirection === 'ASC'){
-            sortingDirection = 'DESC';
-        } else {
-            sortingDirection = 'ASC';
-        }
-        sortingField = field;
-        updatePage(currentPage, size, sortingField, sortingDirection);
-    }
-
     function search(){
         searchName = document.getElementById('name').value;
         searchDirector = document.getElementById('director').value;
         searchPhone = document.getElementById('phone').value;
         searchEmail = document.getElementById('email').value;
         searchCount = document.getElementById('count').value;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
 
-    function updatePage(currentPage, size, sortingField, sortingDirection){
+    function updatePage(){
         let data = {
             page: currentPage,
             size: size,
@@ -162,20 +154,20 @@
         }
         $.ajax({
             type: 'get',
-            url: '../agencies/getAgencies',
+            url: url + '/getAgencies',
             data: data,
             dataType: "json",
             success: function (data){
                 totalPage = data.totalPages;
-                if(currentPage > totalPage){
-                    currentPage--;
-                    updatePage(currentPage, size, sortingField, sortingDirection);
+                if(currentPage > totalPage && currentPage > 1){
+                    currentPage = totalPage;
+                    updatePage();
                 }
                 updateList(data)
-                console.log('success /getFlats');
+                console.log('success /getAgencies');
             },
             error: function() {
-                console.log('error /getFlats');
+                console.log('error /getAgencies');
             }
         });
     }
@@ -183,7 +175,7 @@
     function updateList(data) {
         $("#list").empty();
         data.content.forEach((object) => {
-            let editUrl = url + '/agencies/agency/' + object.id;
+            let editUrl = url + '/agency/' + object.id;
             let directorName = object?.directorName ?? 'Without director';
             let directorPhone = object?.directorPhone ?? 'Without director';
             let directorEmail = object?.directorEmail ?? 'Without director';
@@ -217,31 +209,20 @@
     }
 
     function deleteObject(id){
-        let data = { id: id };
-        $.ajax({
-            type: 'post',
-            url: '../agencies/deleteAgencyById',
-            data: data,
-            dataType: "json",
-            success: function (success){
-                console.log('success /deleteAgencyById');
-                updatePage(currentPage, size, sortingField, sortingDirection)
-            },
-            error: function() {
-                console.log('error /deleteAgencyById');
-            }
-        });
+        deleteObjSecond(url, '/deleteAgencyById', id)
+    }
+    function afterDeleteObjSecond(){
+        updatePage();
     }
 
     function changeSize(){
         size = $('#sizeSelect').val();
         currentPage = 1;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
 
     function paginationButton(){
         $("#choose-page").empty();
-        console.log(totalPage)
         if(totalPage > 1){
             if(currentPage !== 1){
                 $("#choose-page").append($("" +
@@ -305,27 +286,29 @@
 
     function goFirstPage(){
         currentPage = 1;
-        updatePage(currentPage, size, sortingField, sortingDirection);
+        updatePage();
     }
-
     function goPreviousPage(){
         currentPage--;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
-
     function goToPage(i){
         currentPage = i;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
     function goNextPage(){
         currentPage++;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
     function goLastPage(){
         currentPage = totalPage;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
 </script>
+
+<script th:src="@{/js/app.js}"></script>
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
 </main>
 </body>

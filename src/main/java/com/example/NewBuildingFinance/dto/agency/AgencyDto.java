@@ -3,12 +3,15 @@ package com.example.NewBuildingFinance.dto.agency;
 import com.example.NewBuildingFinance.entities.agency.Agency;
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Pattern;
 
 @Data
 public class AgencyDto {
     private Long id;
-    @NotEmpty(message = "Must not be empty")
+    @NotBlank(message = "Must not be empty")
+    @Pattern(regexp = "^((?![\\s]).)*$", message = "Must not contain spaces")
     private String name;
     private String description;
 

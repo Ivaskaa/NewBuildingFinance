@@ -8,7 +8,8 @@
 
     <style th:replace="blocks/linkAdminLTE"></style>
     <div th:replace="blocks/links"></div>
-    <script th:src="@{/js/app.js}"></script>
+
+    <link rel="stylesheet"  th:href="@{/css/tableSort.css}">
     <link rel="stylesheet" th:href="@{/css/popup.css}">
 </head>
 
@@ -43,8 +44,9 @@
                         <label>
                             <input id="id" oninput="search()" type="number" min="1" max="1000000" class="form-control" style="width: 130px">
                         </label>
-                        <div onclick="sort('id')">
+                        <div onclick="sort(this, 'id')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Number</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -54,16 +56,18 @@
                         <label>
                             <input id="dateFin" oninput="search()" type="date" class="form-control" style="width: 80px">
                         </label>
-                        <div onclick="sort('date')">
+                        <div onclick="sort(this, 'date')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Date</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
                         <label>
                             <input id="flatNumber" oninput="search()" type="number" min="1" max="1000000" class="form-control" style="width: 130px">
                         </label>
-                        <div onclick="sort('flat.number')">
+                        <div onclick="sort(this, 'flat.number')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Flat number</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -73,24 +77,27 @@
                                 <option th:each="el : ${objects}" th:value="${el.id}" th:text="${el.house} + '(' + ${el.section} + ')'"></option>
                             </select>
                         </label>
-                        <div onclick="sort('object')">
+                        <div onclick="sort(this, 'flat.object.house and flat.object.section')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Object</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
                         <label>
                             <input id="buyer" oninput="search()" type="text" class="form-control" style="width: 130px">
                         </label>
-                        <div onclick="sort('buyer')">
+                        <div onclick="sort(this, 'buyer.surname and buyer.name and buyer.lastname')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Buyer</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
                         <label>
                             <input id="comment" oninput="search()" type="text" class="form-control" style="width: 130px">
                         </label>
-                        <div onclick="sort('comment')">
+                        <div onclick="sort(this, 'comment')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Comment</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -106,7 +113,7 @@
                 </tr>
                 </thead>
                 <tbody id="list">
-                <!-- list -->
+                    <!-- list -->
                 </tbody>
             </table>
             <nav>
@@ -119,11 +126,10 @@
 </div>
 
 <div th:replace="blocks/scriptAdminLTE"></div>
-<script th:src="@{/js/validation.js}"></script>
 
 <script>
-    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
-    let url =window.location.protocol+"//"+ window.location.host +context;
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 1));
+    let url = window.location.protocol + "//" + window.location.host + context;
 
     let currentPage = 1;
     let size = $('#sizeSelect').val();
@@ -144,16 +150,6 @@
         search();
     });
 
-    function sort(field){
-        if(sortingDirection === 'ASC'){
-            sortingDirection = 'DESC';
-        } else {
-            sortingDirection = 'ASC';
-        }
-        sortingField = field;
-        updatePage(currentPage, size, sortingField, sortingDirection);
-    }
-
     function search(){
         searchId = document.getElementById('id').value;
         searchDateStart = document.getElementById('dateStart').value;
@@ -162,10 +158,10 @@
         searchFlatNumber = document.getElementById('flatNumber').value;
         searchBuyer = document.getElementById('buyer').value;
         searchComment = document.getElementById('comment').value;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
 
-    function updatePage(currentPage, size, sortingField, sortingDirection){
+    function updatePage(){
         let data = {
             page: currentPage,
             size: size,
@@ -181,16 +177,14 @@
         }
         $.ajax({
             type: 'get',
-            url: url + '/contracts/getContracts',
+            url: url + '/getContracts',
             data: data,
             dataType: "json",
             success: function (data){
                 totalPage = data.totalPages;
-                if(currentPage > totalPage){
-                    if (currentPage !== 1) {
-                        currentPage--;
-                        updatePage(currentPage, size, sortingField, sortingDirection);
-                    }
+                if(currentPage > totalPage && currentPage > 1){
+                    currentPage = totalPage;
+                    updatePage();
                 }
                 updateList(data)
                 console.log('success /getContracts');
@@ -205,7 +199,7 @@
     function updateList(data) {
         $("#list").empty();
         data.content.forEach((object) => {
-            let editUrl = url + '/contracts/contract/' + object.id;
+            let editUrl = url + '/contract/' + object.id;
             $("#list").append($("" +
                 "<tr>" +
                 "<td>" +
@@ -239,26 +233,16 @@
     }
 
     function deleteObject(id){
-        let data = { id: id };
-        $.ajax({
-            type: 'post',
-            url: '../contracts/deleteContractById',
-            data: data,
-            dataType: "json",
-            success: function (success){
-                console.log(success + ' /deleteContractById');
-                updatePage(currentPage, size, sortingField, sortingDirection)
-            },
-            error: function() {
-                console.log('error /deleteContractById');
-            }
-        });
+        deleteObjFirst(url, "/deleteContractById", id)
+    }
+    function afterDeleteObjFirst(){
+        updatePage()
     }
 
     function changeSize(){
         size = $('#sizeSelect').val();
         currentPage = 1;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
 
     function paginationButton(){
@@ -326,27 +310,31 @@
 
     function goFirstPage(){
         currentPage = 1;
-        updatePage(currentPage, size, sortingField, sortingDirection);
+        updatePage();
     }
 
     function goPreviousPage(){
         currentPage--;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
 
     function goToPage(i){
         currentPage = i;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
     function goNextPage(){
         currentPage++;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
     function goLastPage(){
         currentPage = totalPage;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
 </script>
+
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script th:src="@{/js/app.js}"></script>
+<script th:src="@{/js/tableSort.js}"></script>
 
 </main>
 </body>

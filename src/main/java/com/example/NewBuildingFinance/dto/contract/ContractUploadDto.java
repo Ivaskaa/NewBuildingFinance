@@ -1,6 +1,7 @@
 package com.example.NewBuildingFinance.dto.contract;
 
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
+import com.example.NewBuildingFinance.entities.buyer.DocumentStyle;
 import com.example.NewBuildingFinance.entities.contract.ContractStatus;
 import com.example.NewBuildingFinance.entities.contract.ContractTemplate;
 import com.example.NewBuildingFinance.entities.flat.Flat;
@@ -25,9 +26,15 @@ public class ContractUploadDto {
     private String lastname;
     private String buyerAddress;
     private Long idNumber;
+
+    private DocumentStyle documentStyle;
+
     private String passportSeries;
     private Integer passportNumber;
-    private Integer passportWhoIssued;
+    private String passportWhoIssued;
+
+    private Long idCardNumber;
+    private Integer idCardWhoIssued;
     private String phone;
     private String email;
 

@@ -4,6 +4,7 @@ import com.example.NewBuildingFinance.entities.agency.Agency;
 import com.example.NewBuildingFinance.entities.agency.Realtor;
 import com.example.NewBuildingFinance.repository.RealtorRepository;
 import com.example.NewBuildingFinance.service.agency.AgencyServiceImpl;
+import com.example.NewBuildingFinance.service.staticService.StaticServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Service
@@ -19,6 +21,8 @@ import java.util.List;
 @AllArgsConstructor
 public class RealtorServiceImpl implements RealtorService{
     private final RealtorRepository realtorRepository;
+
+    private final StaticServiceImpl staticService;
 
     @Override
     public Page<Realtor> findPageByAgencyId(
@@ -30,7 +34,7 @@ public class RealtorServiceImpl implements RealtorService{
     ) {
         log.info("get realtor page. page: {}, size: {} field: {}, direction: {}",
                 currentPage - 1, size, sortingField, sortingDirection);
-        Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
+        Sort sort = staticService.sort(sortingField, sortingDirection);
         Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
         Page<Realtor> agencies = realtorRepository.findAllByAgencyIdAndDeletedFalse(pageable, id);
         log.info("success");
@@ -38,7 +42,7 @@ public class RealtorServiceImpl implements RealtorService{
     }
 
     @Override
-    public List<Realtor> findAllByAgencyIdOrRealtorId(Long agencyId, Long realtorId) {
+    public List<Realtor> findAllByAgencyIdOrRealtorId(@NotNull Long agencyId, Long realtorId) {
         List<Realtor> realtorList;
         if(realtorId == null){
             log.info("get all not deleted realtors by agencyId: {}", agencyId);

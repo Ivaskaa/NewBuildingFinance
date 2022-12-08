@@ -107,6 +107,7 @@ public class ContractController {
             BindingResult bindingResult
     ) throws IOException, ParseException {
         //validation
+        contractServiceImpl.checkDocument(bindingResult, contractSaveDto);
         if(contractServiceImpl.checkRealtor(contractSaveDto.getFlatId())){
             bindingResult.addError(new FieldError("contractSaveDto", "flatId", "No selected realtor for this flat"));
         }
@@ -132,6 +133,7 @@ public class ContractController {
             BindingResult bindingResult
     ) throws IOException, ParseException {
         //validation
+        contractServiceImpl.checkDocument(bindingResult, contractSaveDto);
         if(contractServiceImpl.checkRealtor(contractSaveDto.getFlatId())){
             bindingResult.addError(new FieldError("contractSaveDto", "flatId", "No selected realtor for this flat"));
         }

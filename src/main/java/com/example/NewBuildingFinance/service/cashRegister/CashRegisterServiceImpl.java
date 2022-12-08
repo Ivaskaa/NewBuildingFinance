@@ -8,6 +8,7 @@ import com.example.NewBuildingFinance.entities.agency.Realtor;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.cashRegister.Article;
 import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
+import com.example.NewBuildingFinance.entities.cashRegister.Economic;
 import com.example.NewBuildingFinance.entities.cashRegister.StatusCashRegister;
 import com.example.NewBuildingFinance.entities.currency.InternalCurrency;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
@@ -21,6 +22,7 @@ import com.example.NewBuildingFinance.repository.auth.UserRepository;
 import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
 import com.example.NewBuildingFinance.service.mail.MailServiceImpl;
 import com.example.NewBuildingFinance.service.setting.SettingServiceImpl;
+import com.example.NewBuildingFinance.service.staticService.StaticServiceImpl;
 import com.itextpdf.html2pdf.HtmlConverter;
 import com.itextpdf.text.*;
 import com.itextpdf.text.html.simpleparser.HTMLWorker;
@@ -66,6 +68,7 @@ public class CashRegisterServiceImpl implements CashRegisterService{
     private final MailServiceImpl mailServiceImpl;
     private final SettingServiceImpl settingService;
     private final InternalCurrencyServiceImpl internalCurrencyService;
+    private final StaticServiceImpl staticService;
 
     @Override
     public Page<CashRegisterTableDto> findSortingAndSpecificationPage(
@@ -97,8 +100,9 @@ public class CashRegisterServiceImpl implements CashRegisterService{
                 .and(CashRegisterSpecification.likeArticle(article))
                 .and(CashRegisterSpecification.likePrice(priceStart, priceFin))
                 .and(CashRegisterSpecification.likeCurrencyId(currencyId))
-                .and(CashRegisterSpecification.likeCounterparty(counterparty));
-        Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
+                .and(CashRegisterSpecification.likeCounterparty(counterparty))
+                .and(CashRegisterSpecification.deletedFalse());;
+        Sort sort = staticService.sort(sortingField, sortingDirection);
         Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
         Page<CashRegisterTableDto> cashRegisterPage = cashRegisterRepository.findAll(specification, pageable).map(CashRegister::build);
         log.info("success get cash register page");
@@ -229,30 +233,27 @@ public class CashRegisterServiceImpl implements CashRegisterService{
         return cashRegister.buildSpendingUploadDto();
     }
 
-    @Override
-    public void deleteSpendingById(Long cashRegisterId) {
-        log.info("set cash_register.delete true for spending by id: {}", cashRegisterId);
-        cashRegisterRepository.setDeleted(cashRegisterId);
-        log.info("success set cash_register.delete true for spending");
-    }
-
-    @Override
-    public void deleteIncomeById(Long cashRegisterId) {
-        log.info("set cash_register.delete true for income by id: {}", cashRegisterId);
-        CashRegister cashRegister = cashRegisterRepository.findById(cashRegisterId).orElseThrow();
-        if (cashRegister.getArticle().equals(Article.FLAT_PAYMENT)){
-            cashRegister.setFlatPayment(null);
-            cashRegister.setObject(null);
-            FlatPayment oldFlatPayment = cashRegister.getFlatPayment();
-            if (oldFlatPayment != null) {
-                oldFlatPayment.setActually(null);
-                oldFlatPayment.setPaid(false);
-                flatPaymentRepository.save(oldFlatPayment);
+    public void deleteCashRegistersById(Long id) {
+        log.info("set cash_register.delete true by id: {}", id);
+        CashRegister cashRegister = cashRegisterRepository.findById(id).orElseThrow();
+        if(cashRegister.getEconomic().equals(Economic.INCOME)){
+            if (cashRegister.getArticle().equals(Article.FLAT_PAYMENT)){
+                cashRegister.setFlatPayment(null);
+                cashRegister.setObject(null);
+                FlatPayment oldFlatPayment = cashRegister.getFlatPayment();
+                if (oldFlatPayment != null) {
+                    oldFlatPayment.setActually(null);
+                    oldFlatPayment.setPaid(false);
+                    flatPaymentRepository.save(oldFlatPayment);
+                }
             }
+            cashRegister.setDeleted(true);
+            log.info("success set cash_register.delete true for income");
+        } else if (cashRegister.getEconomic().equals(Economic.SPENDING)) {
+            cashRegister.setDeleted(true);
+            log.info("success set cash_register.delete true for spending");
         }
-        cashRegister.setDeleted(true);
         cashRegisterRepository.save(cashRegister);
-        log.info("success set cash_register.delete true for income");
     }
 
     @Override

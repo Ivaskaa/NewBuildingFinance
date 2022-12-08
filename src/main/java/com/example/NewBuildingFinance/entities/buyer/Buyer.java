@@ -77,7 +77,9 @@ public class Buyer {
         buyer.setLastname(lastname);
         buyer.setPhone(phone);
         buyer.setEmail(email);
-        buyer.setAgency(realtor.getAgency().getName());
+        if(realtor.getAgency() != null) {
+            buyer.setAgency(realtor.getAgency().getName());
+        }
         buyer.setRealtor(realtor.getName() + " " + realtor.getSurname());
         buyer.setManager(user.getName() + " " + user.getSurname());
         return buyer;
@@ -107,7 +109,9 @@ public class Buyer {
         buyer.setNote(note);
 
         buyer.setRealtorId(realtor.getId());
-        buyer.setAgencyId(realtor.getAgency().getId());
+        if(realtor.getAgency() != null) {
+            buyer.setAgencyId(realtor.getAgency().getId());
+        }
         buyer.setManagerId(user.getId());
         return buyer;
     }

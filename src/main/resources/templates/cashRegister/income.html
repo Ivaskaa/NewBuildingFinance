@@ -118,15 +118,12 @@
 
             <button id="saveButton" onclick="save()" class="btn btn-success popup-with-form">Save</button>
             <button id="deleteButton" onclick="deleteObject()" style="display: none" class="btn btn-danger popup-with-form">Delete</button>
-            <a th:href="@{/cashRegister}" class="btn btn-dark popup-with-form">Back</a>
+            <a th:href="@{/cashRegister/}" class="btn btn-dark popup-with-form">Back</a>
         </section>
     </div>
 </div>
 
 <div th:replace="blocks/scriptAdminLTE"></div>
-<script th:src="@{/js/validation.js}"></script>
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
     let IncomeId = "[[${cashRegisterId}]]";
@@ -141,8 +138,8 @@
     console.log(FlatPaymentId);
 
 
-    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
-    let url = window.location.protocol+"//"+ window.location.host + context;
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 1));
+    let url = window.location.protocol + "//" + window.location.host + context;
 
     $(document).ready(function() {
         Income.id = IncomeId;
@@ -249,6 +246,7 @@
                     }
                 },
                 error: function () {
+                    error();
                     console.log('error /addIncome');
                 }
             });
@@ -264,11 +262,13 @@
                     let validation = JSON.parse(data);
                     if (validation == null) {
                         validationMessage(null)
+                        success();
                     } else {
                         validationMessage(validation);
                     }
                 },
                 error: function () {
+                    error();
                     console.log('error /updateIncome');
                 }
             });
@@ -366,20 +366,13 @@
     }
 
     function deleteObject(){
-        let data = { id: Income.id };
-        $.ajax({
-            type: 'post',
-            url: url + '/deleteIncomeById',
-            data: data,
-            dataType: "json",
-            success: function (data){
-                console.log('success /deleteIncomeById');
-                window.location = '/cashRegister';
-            },
-            error: function() {
-                console.log('error /deleteIncomeById');
-            }
-        });
+        deleteObjFirst(url, "/deleteIncomeById", Income.id)
+    }
+    function afterDeleteObjFirst(){
+        success();
+        setTimeout(function() {
+            window.location = '/cashRegister/';
+        }, 1000);
     }
 
     //upload info
@@ -676,6 +669,10 @@
     }
 
 </script>
+
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 </body>
 </html>

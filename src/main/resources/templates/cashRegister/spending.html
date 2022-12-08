@@ -143,7 +143,7 @@
 
             <button id="saveButton" onclick="save()" class="btn btn-success popup-with-form">Save</button>
             <button id="deleteButton" onclick="deleteObject()" style="display: none" class="btn btn-danger popup-with-form">Delete</button>
-            <a th:href="@{/cashRegister}" class="btn btn-dark popup-with-form">Back</a>
+            <a th:href="@{/cashRegister/}" class="btn btn-dark popup-with-form">Back</a>
         </section>
     </div>
     <div id="popup" class="modal">
@@ -152,8 +152,6 @@
 </div>
 
 <div th:replace="blocks/scriptAdminLTE"></div>
-<script th:src="@{/js/validation.js}"></script>
-<script src="https://unpkg.com/imask"></script>
 
 <script>
     let SpendingId = "[[${cashRegisterId}]]";
@@ -305,6 +303,7 @@
                     }
                 },
                 error: function () {
+                    error();
                     console.log('error /addSpending');
                 }
             });
@@ -320,11 +319,13 @@
                     let validation = JSON.parse(data);
                     if (validation == null) {
                         validationMessage(null);
+                        success();
                     } else {
                         validationMessage(validation);
                     }
                 },
                 error: function () {
+                    error();
                     console.log('error /updateSpending');
                 }
             });
@@ -449,20 +450,13 @@
     }
 
     function deleteObject(){
-        let data = { id: Spending.id};
-        $.ajax({
-            type: 'post',
-            url: url + '/deleteSpendingById',
-            data: data,
-            dataType: "json",
-            success: function (data){
-                console.log('success /deleteSpendingById');
-                window.location = '/cashRegister';
-            },
-            error: function() {
-                console.log('error /deleteSpendingById');
-            }
-        });
+        deleteObjFirst(url, "/deleteSpendingById", Spending.id)
+    }
+    function afterDeleteObjFirst(){
+        success();
+        setTimeout(function() {
+            window.location = '/cashRegister/';
+        }, 1000);
     }
 
 
@@ -984,8 +978,10 @@
         }
         let mask = new IMask(element, maskOptions);
     }
-
 </script>
+
+<script src="https://unpkg.com/imask"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
 </body>
 </html>

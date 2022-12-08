@@ -18,7 +18,7 @@ import java.util.List;
 @Repository
 public interface AgencyRepository extends JpaRepository<Agency, Long>, JpaSpecificationExecutor<Agency> {
     Page<Agency> findAll(Specification<Agency> specification, Pageable pageable);
-    Agency findByName (String name);
+    Agency findByNameAndDeletedFalse(String name);
 
     List<Agency> findAllByDeletedFalse();
 

@@ -1,14 +1,14 @@
 package com.example.NewBuildingFinance.dto.contract;
 
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
+import com.example.NewBuildingFinance.entities.buyer.DocumentStyle;
 import com.example.NewBuildingFinance.entities.contract.Contract;
 import com.example.NewBuildingFinance.entities.contract.ContractStatus;
 import com.example.NewBuildingFinance.entities.contract.ContractTemplate;
+import com.example.NewBuildingFinance.entities.flat.Flat;
 import lombok.Data;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -26,23 +26,31 @@ public class ContractSaveDto {
     private Long contractTemplateId;
     @NotNull(message = "Must not be empty")
     private ContractStatus status;
-    @NotEmpty(message = "Must not be empty")
+    @NotBlank(message = "Must not be empty")
+    @Pattern(regexp = "^((?![\\s]).)*$", message = "Must not contain spaces")
     private String name;
-    @NotEmpty(message = "Must not be empty")
+    @NotBlank(message = "Must not be empty")
+    @Pattern(regexp = "^((?![\\s]).)*$", message = "Must not contain spaces")
     private String surname;
-    @NotEmpty(message = "Must not be empty")
+    @NotBlank(message = "Must not be empty")
+    @Pattern(regexp = "^((?![\\s]).)*$", message = "Must not contain spaces")
     private String lastname;
-    @NotEmpty(message = "Must not be empty")
+    @NotBlank(message = "Must not be empty")
     private String buyerAddress;
     @NotNull(message = "Must not be empty")
     private Long idNumber;
-    @NotEmpty(message = "Must not be empty")
+
+    @NotEmpty(message = "You must choose something")
+    private String documentStyle;
+
     private String passportSeries;
-    @NotNull(message = "Must not be empty")
     private Integer passportNumber;
-    @NotNull(message = "Must not be empty")
-    private Integer passportWhoIssued;
-    @NotEmpty(message = "Must not be empty")
+    private String passportWhoIssued;
+
+    private Long idCardNumber;
+    private Integer idCardWhoIssued;
+
+    @NotBlank(message = "Must not be empty")
     private String phone;
     @NotEmpty(message = "Must not be empty")
     @Email(message = "Must be valid")
@@ -53,7 +61,7 @@ public class ContractSaveDto {
     private Double flatArea;
     @NotNull(message = "Must not be empty")
     private Integer flatFloor;
-    @NotEmpty(message = "Must not be empty")
+    @NotBlank(message = "Must not be empty")
     private String flatAddress;
     @NotNull(message = "Must not be empty")
     private Integer price;
@@ -73,6 +81,11 @@ public class ContractSaveDto {
         Buyer buyer = new Buyer();
         buyer.setId(buyerId);
         contract.setBuyer(buyer);
+
+        Flat flat = new Flat();
+        flat.setId(flatId);
+        contract.setFlat(flat);
+
         contract.setDate(date);
         contract.setStatus(status);
 
@@ -81,9 +94,19 @@ public class ContractSaveDto {
         contract.setSurname(surname);
         contract.setBuyerAddress(buyerAddress);
         contract.setIdNumber(idNumber);
-        contract.setPassportSeries(passportSeries);
-        contract.setPassportNumber(passportNumber);
-        contract.setPassportWhoIssued(passportWhoIssued);
+
+        if(documentStyle != null && !documentStyle.equals("")){
+            DocumentStyle style = DocumentStyle.valueOf(documentStyle);
+            contract.setDocumentStyle(style);
+            if(style.equals(DocumentStyle.ID_CARD)){
+                contract.setIdCardNumber(idCardNumber);
+                contract.setIdCardWhoIssued(idCardWhoIssued);
+            } else if (style.equals(DocumentStyle.PASSPORT)) {
+                contract.setPassportNumber(passportNumber);
+                contract.setPassportSeries(passportSeries);
+                contract.setPassportWhoIssued(passportWhoIssued);
+            }
+        }
         contract.setPhone(phone);
         contract.setEmail(email);
 

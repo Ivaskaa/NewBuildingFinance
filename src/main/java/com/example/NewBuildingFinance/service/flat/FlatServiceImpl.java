@@ -9,6 +9,7 @@ import com.example.NewBuildingFinance.entities.object.Object;
 import com.example.NewBuildingFinance.others.specifications.FlatSpecification;
 import com.example.NewBuildingFinance.repository.FlatRepository;
 import com.example.NewBuildingFinance.repository.ObjectRepository;
+import com.example.NewBuildingFinance.service.staticService.StaticServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.poi.ss.usermodel.*;
@@ -43,6 +44,8 @@ public class FlatServiceImpl implements FlatService{
     private final FlatRepository flatRepository;
     private final ObjectRepository objectRepository;
 
+    private final StaticServiceImpl staticService;
+
     @Override
     public Page<FlatTableDto> findSortingAndSpecificationPage(
             Integer currentPage,
@@ -76,7 +79,7 @@ public class FlatServiceImpl implements FlatService{
                 .and(FlatSpecification.likeEntered(enteredStart, enteredFin))
                 .and(FlatSpecification.likeRemains(remainsStart, remainsFin))
                 .and(FlatSpecification.deletedFalse());
-        Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
+        Sort sort = staticService.sort(sortingField, sortingDirection);
         Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
         Page<FlatTableDto> flats = flatRepository.findAll(specification, pageable).map(Flat::buildTableDto);
         log.info("success");
@@ -100,7 +103,6 @@ public class FlatServiceImpl implements FlatService{
         object.setArea(flatForm.getArea());
         object.setPrice(flatForm.getPrice());
         object.setSalePrice(flatForm.getSalePrice());
-        object.setAdvance(flatForm.getAdvance());
         object.setNumber(flatForm.getNumber());
         object.setQuantityRooms(flatForm.getQuantityRooms());
         object.setFloor(flatForm.getFloor());

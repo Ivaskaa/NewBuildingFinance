@@ -7,7 +7,9 @@ import lombok.Data;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Pattern;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -17,7 +19,7 @@ public class RoleDto {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    @NotEmpty(message = "Must not be empty")
+    @NotBlank(message = "Must not be empty")
     private String name;
     private Set<PermissionDto> permissions;
 

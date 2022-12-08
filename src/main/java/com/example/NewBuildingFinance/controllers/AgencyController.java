@@ -59,7 +59,7 @@ public class AgencyController {
             Integer count
     ) throws JsonProcessingException {
         if (page == 0){
-            return null;
+            return mapper.writeValueAsString(null);
         }
         return mapper.writeValueAsString(agencyServiceImpl.findSortingAndSpecificationPage(
                 page, size, field, direction,
@@ -117,7 +117,6 @@ public class AgencyController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        System.out.println(agencyDto);
         if(agencyServiceImpl.checkAgencyName(agencyDto.getName())){
             bindingResult.addError(new FieldError("agencyDto", "name", "We already have agency with that name"));
         }
@@ -141,7 +140,6 @@ public class AgencyController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        System.out.println(agencyDto);
         Agency agency = agencyServiceImpl.findById(agencyDto.getId());
         if(!agency.getName().equals(agencyDto.getName())){
             if(agencyServiceImpl.checkAgencyName(agencyDto.getName())){

@@ -121,7 +121,7 @@ public class AgencyServiceImpl implements AgencyService{
     @Override
     public boolean checkAgencyName(String name) {
         Agency agency;
-        agency = agencyRepository.findByName(name);
+        agency = agencyRepository.findByNameAndDeletedFalse(name);
         return agency != null;
     }
 }

@@ -8,8 +8,8 @@
 
     <style th:replace="blocks/linkAdminLTE"></style>
     <div th:replace="blocks/links"></div>
-    <script th:src="@{/js/app.js}"></script>
     <link rel="stylesheet" th:href="@{/css/popup.css}">
+    <link rel="stylesheet" th:href="@{/css/tableSort.css}">
 </head>
 
 <body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
@@ -114,8 +114,9 @@
                         <label>
                             <input id="number" oninput="search()" type="number" min="1" max="100000000" class="form-control" style="width: 130px">
                         </label>
-                        <div onclick="sort('number')">
+                        <div onclick="sort(this, 'number')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Number</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -125,8 +126,9 @@
                         <label>
                             <input id="dateFin" oninput="search()" type="date" class="form-control" style="width: 80px">
                         </label>
-                        <div onclick="sort('date')">
+                        <div onclick="sort(this, 'date')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Date</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -136,8 +138,9 @@
                                 <option th:each="el : ${economics}" th:value="${el.first}" th:text="${el.second}"></option>
                             </select>
                         </label>
-                        <div onclick="sort('economic')">
+                        <div onclick="sort(this, 'economic')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Economic</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -147,8 +150,9 @@
                                 <option th:each="el : ${statuses}" th:value="${el.first}" th:text="${el.second}"></option>
                             </select>
                         </label>
-                        <div onclick="sort('status')">
+                        <div onclick="sort(this, 'status')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Status</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -158,8 +162,9 @@
                                 <option th:each="el : ${objects}" th:value="${el.id}" th:text="${el.house} + '(' + ${el.section} + ')'"></option>
                             </select>
                         </label>
-                        <div onclick="sort('object')">
+                        <div onclick="sort(this, 'object.house and object.section')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Object</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -169,8 +174,9 @@
                                 <option th:each="el : ${articles}" th:value="${el.first}" th:text="${el.second}"></option>
                             </select>
                         </label>
-                        <div onclick="sort('article')">
+                        <div onclick="sort(this, 'article')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Article</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -180,8 +186,9 @@
                         <label>
                             <input id="priceFin" oninput="search()" type="number" min="1" max="100000000" class="form-control" style="width: 70px">
                         </label>
-                        <div onclick="sort('price')">
+                        <div onclick="sort(this, 'price')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Money</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -191,16 +198,18 @@
                                 <option th:each="el : ${currencies}" th:value="${el.id}" th:text="${el.name}"></option>
                             </select>
                         </label>
-                        <div onclick="sort('currency')">
+                        <div onclick="sort(this, 'currency')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Currency</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
                         <label>
                             <input id="counterparty" oninput="search()" type="text" class="form-control" style="width: 80px">
                         </label>
-                        <div onclick="sort('counterparty')">
+                        <div onclick="sort(this, 'counterparty')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Counterparty</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -228,12 +237,9 @@
     </div>
 </div>
 
-<div th:replace="blocks/scriptAdminLTE"></div>
-<script th:src="@{/js/validation.js}"></script>
-
 <script>
-    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
-    let url =window.location.protocol+"//"+ window.location.host +context;
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 1));
+    let url =window.location.protocol + "//" + window.location.host +context;
 
     let currentPage = 1;
     let size = $('#sizeSelect').val();
@@ -258,16 +264,6 @@
     $(document).ready(function() {
         search();
     });
-
-    function sort(field){
-        if(sortingDirection === 'ASC'){
-            sortingDirection = 'DESC';
-        } else {
-            sortingDirection = 'ASC';
-        }
-        sortingField = field;
-        updatePage();
-    }
 
     function search(){
         searchNumber = document.getElementById('number').value;
@@ -305,16 +301,14 @@
         }
         $.ajax({
             type: 'get',
-            url: url + '/cashRegister/getCashRegisters',
+            url: url + '/getCashRegisters',
             data: data,
             dataType: "json",
             success: function (data){
                 totalPage = data.totalPages;
-                if(currentPage > totalPage){
-                    if (currentPage !== 1) {
-                        currentPage = totalPage;
-                        updatePage();
-                    }
+                if(currentPage > totalPage && currentPage > 1){
+                    currentPage = totalPage;
+                    updatePage();
                 }
                 updateList(data)
                 console.log('success /getCashRegisters');
@@ -331,9 +325,9 @@
             let editUrl;
             console.log(object.economic);
             if (object.economic === 'Income'){
-                editUrl = url + '/cashRegister/income/' + object.id;
+                editUrl = url + '/income/' + object.id;
             } else {
-                editUrl = url + '/cashRegister/spending/' + object.id;
+                editUrl = url + '/spending/' + object.id;
             }
             let houseObject = object?.object ?? "";
             let counterparty = object?.counterparty ?? "";
@@ -379,20 +373,10 @@
     }
 
     function deleteObject(id){
-        let data = { id: id };
-        $.ajax({
-            type: 'post',
-            url: url + '/cashRegisters/deleteCashRegistersById',
-            data: data,
-            dataType: "json",
-            success: function (success){
-                console.log(success + ' /deleteContractById');
-                updatePage()
-            },
-            error: function() {
-                console.log('error /deleteContractById');
-            }
-        });
+        deleteObjFirst(url, "/deleteCashRegistersById", id)
+    }
+    function afterDeleteObjFirst(){
+        updatePage()
     }
 
     function changeSize(){
@@ -466,25 +450,29 @@
 
     function goFirstPage() {
         currentPage = 1;
-        updatePage(currentPage, size, sortingField, sortingDirection);
+        updatePage();
     }
     function goPreviousPage(){
         currentPage--;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
     function goToPage(i){
         currentPage = i;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
     function goNextPage(){
         currentPage++;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
     function goLastPage(){
         currentPage = totalPage;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
 </script>
+
+<script th:src="@{/js/app.js}"></script>
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
 </main>
 </body>

@@ -106,6 +106,10 @@
 
 <script>
     let modal = document.getElementById("popup");
+
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 1));
+    let url = window.location.protocol + "//" + window.location.host + context;
+
     let roles;
     $(document).ready(function() {
         updatePage();
@@ -142,20 +146,22 @@
         if(style === 'add') {
             $.ajax({
                 type: 'post',
-                url: '../settings/addRole',
+                url: url + '/addRole',
                 data: JSON.stringify(object),
                 contentType: "application/json; charset=utf-8",
                 success: function (data) {
                     let validation = JSON.parse(data);
                     if (validation == null) {
+                        console.log('success /addRole');
+                        success();
                         updatePage();
                         closePopup();
-                        console.log('success /addRole');
                     } else {
                         validationMessage(validation);
                     }
                 },
                 error: function () {
+                    error();
                     console.log('error /addRole');
                 }
             });
@@ -170,16 +176,21 @@
             document.getElementById('nameMessage').innerHTML = "";
             document.getElementById('name').style.border = "1px solid green";
         }
+        setTimeout(function() {
+            document.getElementById('nameMessage').innerHTML = "";
+            document.getElementById('name').style.border = "1px solid #ced4da";
+        }, 4000);
     }
 
     function updatePage(){
         $.ajax({
             type: 'get',
-            url: '../settings/getRoles',
+            url: url + '/getRoles',
             dataType: "json",
             success: function (data){
-                updateList(data)
                 console.log('success /getRoles');
+                updateList(data)
+
             },
             error: function() {
                 console.log('error /getRoles');
@@ -335,47 +346,32 @@
             object.permissions = myPermissions;
         })
 
-        console.log(roles);
-
         $.ajax({
             type: 'post',
-            url: '../settings/updateRole',
+            url: url + '/updateRole',
             data: JSON.stringify(roles),
             contentType: "application/json; charset=utf-8",
-            success: function (success){
+            success: function (){
                 console.log('success /updateRole');
+                success();
                 updatePage()
             },
             error: function() {
+                error();
                 console.log('error /updateRole');
             }
         });
-
     }
-
-    $("#name").keyup(function(event) {
-        if (event.keyCode === 13) {
-            save('add');
-        }
-    });
 
     function deleteObject(id){
-        let data = { id: id };
-        $.ajax({
-            type: 'post',
-            url: '../settings/deleteRoleById',
-            data: data,
-            dataType: "json",
-            success: function (success){
-                console.log(success + ' /deleteRoleById');
-                updatePage()
-            },
-            error: function() {
-                console.log('error /deleteRoleById');
-            }
-        });
+        deleteObjFirst(url, '/deleteRoleById', id)
+    }
+    function afterDeleteObjFirst(){
+        updatePage()
     }
 </script>
+
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
 </main>
 </body>

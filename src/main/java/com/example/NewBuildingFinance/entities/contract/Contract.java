@@ -6,6 +6,7 @@ import com.example.NewBuildingFinance.dto.contract.ContractTableDtoForBuyers;
 import com.example.NewBuildingFinance.dto.contract.ContractUploadDto;
 import com.example.NewBuildingFinance.entities.agency.Agency;
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
+import com.example.NewBuildingFinance.entities.buyer.DocumentStyle;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -43,9 +44,17 @@ public class Contract {
     private String lastname;
     private String buyerAddress;
     private Long idNumber;
+
+    @Enumerated(EnumType.STRING)
+    private DocumentStyle documentStyle;
+
     private String passportSeries;
     private Integer passportNumber;
-    private Integer passportWhoIssued;
+    private String passportWhoIssued;
+
+    private Long idCardNumber;
+    private Integer idCardWhoIssued;
+
     private String phone;
     private String email;
 
@@ -58,14 +67,17 @@ public class Contract {
     private Date date;
     private String comment;
 
-    private String object;
-
     private boolean deleted = false;
 
     public ContractUploadDto buildUploadDto(){
         ContractUploadDto contract = new ContractUploadDto();
         contract.setId(id);
         contract.setBuyer(buyer);
+        contract.setFlat(flat);
+        if(flat != null) {
+            contract.setObject(flat.getObject());
+        }
+
         contract.setContractTemplate(contractTemplate);
 
         contract.setStatus(status);
@@ -75,9 +87,17 @@ public class Contract {
         contract.setLastname(lastname);
         contract.setBuyerAddress(buyerAddress);
         contract.setIdNumber(idNumber);
-        contract.setPassportSeries(passportSeries);
-        contract.setPassportNumber(passportNumber);
-        contract.setPassportWhoIssued(passportWhoIssued);
+
+        contract.setDocumentStyle(documentStyle);
+        if(documentStyle.equals(DocumentStyle.PASSPORT)){
+            contract.setPassportSeries(passportSeries);
+            contract.setPassportNumber(passportNumber);
+            contract.setPassportWhoIssued(passportWhoIssued);
+        } else if(documentStyle.equals(DocumentStyle.ID_CARD)){
+            contract.setIdCardNumber(idCardNumber);
+            contract.setIdCardWhoIssued(idCardWhoIssued);
+        }
+
         contract.setPhone(phone);
         contract.setEmail(email);
 
@@ -99,7 +119,11 @@ public class Contract {
                 buyer.getName() + " " +
                 buyer.getLastname());
         contract.setFlatNumber(flatNumber);
-        contract.setObject(object);
+        if(flat != null) {
+            contract.setObject(
+                    flat.getObject().getHouse() + "(" +
+                            flat.getObject().getSection() + ")");
+        }
         contract.setDate(date);
         contract.setComment(comment);
         return contract;
@@ -114,7 +138,9 @@ public class Contract {
         contract.setFlatArea(flatArea);
         contract.setStatus(status.getValue());
         contract.setPrice(price);
-        contract.setObject(object);
+        contract.setObject(
+                flat.getObject().getHouse() + "(" +
+                flat.getObject().getSection() + ")");
         contract.setDate(date);
         contract.setAgency(buyer.getRealtor().getAgency().getName());
         contract.setRealtor(buyer.getRealtor().getSurname() + " " + buyer.getRealtor().getName());
@@ -130,7 +156,9 @@ public class Contract {
         contract.setFlatArea(flatArea);
         contract.setStatus(status.getValue());
         contract.setPrice(price);
-        contract.setObject(object);
+        contract.setObject(
+                flat.getObject().getHouse() + "(" +
+                flat.getObject().getSection() + ")");
         contract.setDate(date);
         if (buyer != null) {
             contract.setBuyer(buyer.getSurname() + " " + buyer.getName() + " " + buyer.getLastname());

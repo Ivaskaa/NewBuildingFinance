@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Formula;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -29,6 +30,9 @@ public class FlatPayment {
     @JsonManagedReference
     private Flat flat;
     private boolean deleted = false;
+
+    @Formula("(select flat_payments.planned - flat_payments.actually from flat_payments where flat_payments.id = id)")
+    private Double remains;
 
     public FlatPaymentTableDto build(){
         FlatPaymentTableDto flat = new FlatPaymentTableDto();

@@ -302,7 +302,7 @@ public class StatisticServiceImpl {
         boxCountFlats = flats.size();
 
         for(Flat flat : flats){
-            if(flat.getStatus().equals(StatusFlat.ACTIVE)){
+            if(flat.getStatus().equals(StatusFlat.SOLD)){
                 boxCountFlatsSales++;
             } else {
                 boxCountFlatsOnSale++;

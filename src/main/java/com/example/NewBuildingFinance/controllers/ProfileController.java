@@ -24,12 +24,13 @@ import java.util.Map;
 
 @Controller
 @AllArgsConstructor
+@RequestMapping("/profile")
 public class ProfileController {
     private final InternalCurrencyServiceImpl currencyService;
     private final ProfileServiceImpl profileServiceImpl;
     private final ObjectMapper mapper;
 
-    @GetMapping( "/profile" )
+    @GetMapping()
     public String profile(
             Model model
     ){
@@ -82,7 +83,7 @@ public class ProfileController {
         return mapper.writeValueAsString(null);
     }
 
-    @GetMapping("getProfile")
+    @GetMapping("/getProfile")
     @ResponseBody
     public String getProfile() throws JsonProcessingException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

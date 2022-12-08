@@ -56,9 +56,6 @@ public class CurrencyController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        if (internalCurrencyServiceImpl.checkPrice(currencyDto.getPrice())){
-            bindingResult.addError(new FieldError("currencyDto", "price", "Must be double in format xx.xx"));
-        }
         if(bindingResult.hasErrors()){
             Map<String, String> errors = new HashMap<>();
             for (FieldError error : bindingResult.getFieldErrors()) {

@@ -8,8 +8,9 @@
 
   <style th:replace="blocks/linkAdminLTE"></style>
   <div th:replace="blocks/links"></div>
-  <script th:src="@{/js/app.js}"></script>
+
   <link rel="stylesheet" th:href="@{/css/popup.css}">
+  <link rel="stylesheet" th:href="@{/css/tableSort.css}">
 </head>
 
 <body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
@@ -40,38 +41,45 @@
         <thead>
         <tr>
           <th scope="col">
-            <div onclick="sort('name and surname and lastname')">
+            <div onclick="sort(this, 'name and surname and lastname')">
               <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Buyer</p>
+              <div></div>
             </div>
           </th>
           <th scope="col">
-            <div onclick="sort('contractSize')">
+            <div onclick="sort(this, 'contractSize')">
               <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Sales</p>
+              <div></div>
             </div>
           </th>
           <th scope="col">
-            <div onclick="sort('phone')">
+            <div onclick="sort(this, 'phone')">
               <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Phone</p>
+              <div></div>
             </div>
           </th>
           <th scope="col">
-            <div onclick="sort('email')">
+            <div onclick="sort(this, 'email')">
               <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Email</p>
+              <div></div>
             </div>
           </th>
           <th scope="col">
-            <div onclick="sort('realtor.agency.name')">
+            <div onclick="sort(this, 'realtor.agency.name')">
               <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Agency</p>
+              <div></div>
             </div>
           </th>
           <th scope="col">
-            <div onclick="sort('realtor.name and realtor.surname')">
+            <div onclick="sort(this, 'realtor.name and realtor.surname')">
               <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Realtor</p>
+              <div></div>
             </div>
           </th>
           <th scope="col">
-            <div onclick="sort('user.name and user.surname')">
+            <div onclick="sort(this, 'user.name and user.surname')">
               <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Manager</p>
+              <div></div>
             </div>
           </th>
           <th scope="col">
@@ -107,15 +115,11 @@
   </div>
 </div>
 
-<div th:replace="blocks/scriptAdminLTE"></div>
-<script th:src="@{/js/validation.js}"></script>
-<script src="https://unpkg.com/imask"></script>
-
 <script>
   let modal = document.getElementById("popup");
 
-  let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
-  let url = window.location.protocol+"//"+ window.location.host + context;
+  let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 1));
+  let url = window.location.protocol + "//" + window.location.host + context;
 
   let currentPage = 1;
   let size = 10;
@@ -128,18 +132,8 @@
   let Buyer = {};
 
   $(document).ready(function() {
-    updatePage(currentPage, size, sortingField, sortingDirection);
+    updatePage();
   });
-
-  function sort(field){
-    if(sortingDirection === 'ASC'){
-      sortingDirection = 'DESC';
-    } else {
-      sortingDirection = 'ASC';
-    }
-    sortingField = field;
-    updatePage(currentPage, size, sortingField, sortingDirection);
-  }
 
   function openPopup(style) {
     modal.style.display = "block";
@@ -319,17 +313,6 @@
     $("#popup").empty();
   }
 
-  function changeDocument(){
-    if(document.getElementById('passportButton').checked){
-      $("#passport").show();
-      $("#idcard").hide();
-    }
-    if(document.getElementById('idCardButton').checked){
-      $("#idcard").show();
-      $("#passport").hide();
-    }
-  }
-
   function save(style){
     let object = {};
     object.name = document.getElementById('name').value;
@@ -358,21 +341,23 @@
     if(style === 'add') {
       $.ajax({
         type: 'post',
-        url: url + '/buyers/addBuyer',
+        url: url + '/addBuyer',
         data: JSON.stringify(object),
         contentType: "application/json; charset=utf-8",
         success: function (data) {
           let validation = JSON.parse(data);
+          console.log('success /addBuyer');
           if (validation == null) {
-            updatePage(currentPage, size, sortingField, sortingDirection)
+            success();
+            updatePage()
             closePopup();
-            console.log('success /addBuyer');
           } else {
             validationMessage(validation);
           }
         },
         error: function () {
           console.log('error /addBuyer');
+          error();
         }
       });
     }
@@ -381,21 +366,23 @@
       object.id = IdForUpdating;
       $.ajax({
         type: 'post',
-        url: url + '/buyers/updateBuyer',
+        url: url + '/updateBuyer',
         data: JSON.stringify(object),
         contentType: "application/json; charset=utf-8",
         success: function (data) {
+          console.log('success /updateBuyer');
           let validation = JSON.parse(data);
           if (validation == null) {
-            updatePage(currentPage, size, sortingField, sortingDirection)
+            success();
+            updatePage()
             closePopup();
-            console.log('success /updateBuyer');
           } else {
             validationMessage(validation);
           }
         },
         error: function () {
           console.log('error /updateBuyer');
+          error();
         }
       });
     }
@@ -407,7 +394,7 @@
     let data = { id: id };
     $.ajax({
       type: 'get',
-      url: url + '/buyers/getBuyerById',
+      url: url + '/getBuyerById',
       data: data,
       dataType: "json",
       success: function (object){
@@ -447,20 +434,10 @@
   }
 
   function deleteObject(id){
-    let data = { id: id };
-    $.ajax({
-      type: 'post',
-      url: '../buyers/deleteBuyerById',
-      data: data,
-      dataType: "json",
-      success: function (success){
-        console.log(success + ' /deleteBuyerById');
-        updatePage(currentPage, size, sortingField, sortingDirection)
-      },
-      error: function() {
-        console.log('error /deleteBuyerById');
-      }
-    });
+    deleteObjFirst(url, '/deleteBuyerById', id)
+  }
+  function afterDeleteObjFirst(){
+    updatePage();
   }
 
   function validationMessage(validation){
@@ -606,7 +583,7 @@
     let data = {agencyId: Buyer?.agencyId ?? null}
     $.ajax({
       type: 'get',
-      url: url + '/buyers/getAllAgencies',
+      url: url + '/getAllAgencies',
       dataType: "json",
       async: false,
       data: data,
@@ -638,7 +615,7 @@
     let data = {managerId: Buyer?.managerId ?? null}
     $.ajax({
       type: 'get',
-      url: url + '/buyers/getAllManagers',
+      url: url + '/getAllManagers',
       dataType: "json",
       async: false,
       data: data,
@@ -672,7 +649,7 @@
     }
     $.ajax({
       type: 'get',
-      url: '../buyers/getRealtorsByAgenciesId',
+      url: url + '/getRealtorsByAgenciesId',
       dataType: "json",
       data: data,
       async: false,
@@ -700,7 +677,7 @@
     });
   }
 
-  function updatePage(currentPage, size, sortingField, sortingDirection){
+  function updatePage(){
     let data = {
       page: currentPage,
       size: size,
@@ -709,14 +686,14 @@
     }
     $.ajax({
       type: 'get',
-      url: '../buyers/getBuyers',
+      url: url + '/getBuyers',
       data: data,
       dataType: "json",
       success: function (data){
         totalPage = data.totalPages;
-        if(currentPage > totalPage){
-          currentPage--;
-          updatePage(currentPage, size, sortingField, sortingDirection);
+        if(currentPage > totalPage && currentPage > 1){
+          currentPage = totalPage;
+          updatePage();
         }
         updateList(data)
         console.log('success /getBuyers');
@@ -754,7 +731,7 @@
               "<p>" + object.manager + "</p>" +
               "</td>" +
               "<td>" +
-              "<a href='" + url +"/buyers/contracts/" + object.id + "' class=\"btn btn-warning\" type=\"button\">Contracts</a>" +
+              "<a href='" + url +"/contracts/" + object.id + "' class=\"btn btn-warning\" type=\"button\">Contracts</a>" +
               "</td>" +
               "<td>" +
               "<button onclick='editForm(" + object.id + ")' class=\"btn btn-warning\" type=\"button\">Edit</button>" +
@@ -771,7 +748,7 @@
   function changeSize(){
     size = $('#sizeSelect').val();
     currentPage = 1;
-    updatePage(currentPage, size, sortingField, sortingDirection)
+    updatePage()
   }
 
   function paginationButton(){
@@ -839,25 +816,23 @@
 
   function goFirstPage(){
     currentPage = 1;
-    updatePage(currentPage, size, sortingField, sortingDirection);
+    updatePage();
   }
-
   function goPreviousPage(){
     currentPage--;
-    updatePage(currentPage, size, sortingField, sortingDirection)
+    updatePage()
   }
-
   function goToPage(i){
     currentPage = i;
-    updatePage(currentPage, size, sortingField, sortingDirection)
+    updatePage()
   }
   function goNextPage(){
     currentPage++;
-    updatePage(currentPage, size, sortingField, sortingDirection)
+    updatePage()
   }
   function goLastPage(){
     currentPage = totalPage;
-    updatePage(currentPage, size, sortingField, sortingDirection)
+    updatePage()
   }
 
   function mask(){
@@ -869,6 +844,11 @@
     let mask = new IMask(element, maskOptions);
   }
 </script>
+
+<script th:src="@{/js/app.js}"></script>
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script src="https://unpkg.com/imask"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
 </main>
 </body>

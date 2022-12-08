@@ -47,14 +47,4 @@ public class InternalCurrencyServiceImpl implements InternalCurrencyService{
         log.info("success");
         return object;
     }
-
-    @Override
-    public boolean checkPrice(String price) {
-        try{
-            Double.parseDouble(price);
-            return false;
-        } catch (Exception e){
-            return true;
-        }
-    }
 }

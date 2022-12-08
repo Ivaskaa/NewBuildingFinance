@@ -48,7 +48,6 @@ public class CashRegisterController {
     private final InternalCurrencyServiceImpl internalCurrencyServiceImpl;
     private final UserServiceImpl userServiceImpl;
     private final StatisticServiceImpl statisticService;
-
     private final ObjectServiceImpl objectServiceImpl;
     private final FlatServiceImpl flatServiceImpl;
     private final FlatPaymentServiceImpl flatPaymentServiceImpl;
@@ -386,21 +385,12 @@ public class CashRegisterController {
         return cashRegisterServiceImpl.getPdfSpending(id);
     }
 
-    @PostMapping("/deleteIncomeById")
+    @PostMapping("/deleteCashRegistersById")
     @ResponseBody
-    public String deleteIncomeById(
+    public String deleteCashRegistersById(
             Long id
     ) throws JsonProcessingException {
-        cashRegisterServiceImpl.deleteIncomeById(id);
-        return mapper.writeValueAsString(null);
-    }
-
-    @PostMapping("/deleteSpendingById")
-    @ResponseBody
-    public String deleteSpendingById(
-            Long id
-    ) throws JsonProcessingException {
-        cashRegisterServiceImpl.deleteSpendingById(id);
+        cashRegisterServiceImpl.deleteCashRegistersById(id);
         return mapper.writeValueAsString(null);
     }
 

@@ -80,7 +80,7 @@
 
 <script>
     let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
-    let url = window.location.protocol+"//"+ window.location.host + context;
+    let url = window.location.protocol + "//" + window.location.host + context;
 
     $(document).ready(function() {
         summernote();
@@ -104,6 +104,7 @@
                 console.log('success /updateSettings');
                 let validation = JSON.parse(data);
                 if (validation == null) {
+                    success();
                     updatePage();
                     closePopup();
                 } else {
@@ -111,6 +112,7 @@
                 }
             },
             error: function () {
+                error()
                 console.log('error /updateSettings');
             }
         });
@@ -151,6 +153,7 @@
 </script>
 
 <script th:src="@{/plugins/summernote/summernote-bs4.min.js}"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
 </main>
 </body>

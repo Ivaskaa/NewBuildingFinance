@@ -8,8 +8,9 @@
 
     <style th:replace="blocks/linkAdminLTE"></style>
     <div th:replace="blocks/links"></div>
-    <script th:src="@{/js/app.js}"></script>
+
     <link rel="stylesheet" th:href="@{/css/popup.css}">
+    <link rel="stylesheet" th:href="@{/css/tableSort.css}">
 </head>
 
 <body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
@@ -116,8 +117,9 @@
                         <label>
                             <input id="number" oninput="search()" type="number" min="1" max="1000000" class="form-control" style="width: 130px">
                         </label>
-                        <div onclick="sort('number')">
+                        <div onclick="sort(this, 'number')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Number</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -127,8 +129,9 @@
                                 <option th:each="el : ${objects}" th:value="${el.id}" th:text="${el.house} + '(' + ${el.section} + ')'"></option>
                             </select>
                         </label>
-                        <div onclick="sort('object')">
+                        <div onclick="sort(this, 'object.house and object.section')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Object</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -138,8 +141,9 @@
                                 <option th:each="el : ${statuses}" th:value="${el.first}" th:text="${el.second}"></option>
                             </select>
                         </label>
-                        <div onclick="sort('status')">
+                        <div onclick="sort(this, 'status')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Status</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -149,8 +153,9 @@
                         <label>
                             <input id="areaFin" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 80px">
                         </label>
-                        <div onclick="sort('area')">
+                        <div onclick="sort(this, 'area')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Area</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -160,8 +165,9 @@
                         <label>
                             <input id="priceFin" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 80px">
                         </label>
-                        <div onclick="sort('price')">
+                        <div onclick="sort(this, 'price')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Price</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -171,8 +177,9 @@
                         <label>
                             <input id="advanceFin" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 80px">
                         </label>
-                        <div onclick="sort('advance')">
+                        <div onclick="sort(this, 'advance')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Advance</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -182,8 +189,9 @@
                         <label>
                             <input id="enteredFin" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 80px">
                         </label>
-                        <div>
+                        <div onclick="sort(this, 'entered')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Entered</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -193,8 +201,9 @@
                         <label>
                             <input id="remainsFin" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 80px">
                         </label>
-                        <div>
+                        <div onclick="sort(this, 'remains')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Remains</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -226,13 +235,12 @@
 </div>
 
 <div th:replace="blocks/scriptAdminLTE"></div>
-<script th:src="@{/js/validation.js}"></script>
 
 <script>
     let modal = document.getElementById("popup");
 
-    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
-    let url =window.location.protocol+"//"+ window.location.host +context;
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 1));
+    let url = window.location.protocol + "//" + window.location.host + context;
 
     let currentPage = 1;
     let size = $('#sizeSelect').val();
@@ -259,16 +267,6 @@
         search();
     });
 
-    function sort(field){
-        if(sortingDirection === 'ASC'){
-            sortingDirection = 'DESC';
-        } else {
-            sortingDirection = 'ASC';
-        }
-        sortingField = field;
-        updatePage(currentPage, size, sortingField, sortingDirection);
-    }
-
     function search(){
         let number = document.getElementById('number');
         searchNumber = number.value;
@@ -284,10 +282,10 @@
         searchEnteredFin = document.getElementById('enteredFin').value;
         searchRemainsStart = document.getElementById('remainsStart').value;
         searchRemainsFin = document.getElementById('remainsFin').value;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
 
-    function updatePage(currentPage, size, sortingField, sortingDirection){
+    function updatePage(){
         let data = {
             page: currentPage,
             size: size,
@@ -309,16 +307,14 @@
         }
         $.ajax({
             type: 'get',
-            url: '../flats/getFlats',
+            url: url + '/getFlats',
             data: data,
             dataType: "json",
             success: function (data){
                 totalPage = data.totalPages;
-                if(currentPage > totalPage){
-                    if (currentPage !== 1) {
-                        currentPage--;
-                        updatePage(currentPage, size, sortingField, sortingDirection);
-                    }
+                if(currentPage > totalPage && currentPage > 1){
+                    currentPage = totalPage;
+                    updatePage();
                 }
                 updateList(data)
                 console.log('success /getFlats');
@@ -333,8 +329,7 @@
     function updateList(data) {
         $("#list").empty();
         data.content.forEach((object) => {
-            let editUrl = url + '/flats/flat/' + object.id;
-            console.log(editUrl);
+            let editUrl = url + '/flat/' + object.id;
             $("#list").append($("" +
                 "<tr>" +
                 "<td>" +
@@ -374,16 +369,15 @@
     }
 
     function getXlsx(){
-        window.location = url + "/flats/getXlsx";
+        window.location = url + "/getXlsx";
     }
 
     function getXlsxExample(){
-        window.location = url + "/flats/getXlsxExample";
+        window.location = url + "/getXlsxExample";
     }
 
     function getXlsxErrors(){
-        console.log('hello');
-        window.location = url + "/flats/getXlsxErrors";
+        window.location = url + "/getXlsxErrors";
     }
 
     function openPopup(){
@@ -415,15 +409,16 @@
         formData.append('file', file.files[0]);
         $.ajax({
             type: 'post',
-            url: url + '/flats/setXlsx',
+            url: url + '/setXlsx',
             contentType: false,
             processData: false,
             data: formData,
             dataType: "json",
             success: function (validation) {
                 if (validation == null){
+                    success();
                     closePopup();
-                    updatePage(currentPage, size, sortingField, sortingDirection);
+                    updatePage();
                 } else if (validation.file !== undefined){
                     validationMessage(validation);
                 } else if (validation.fileErrors !== undefined){
@@ -449,26 +444,16 @@
     }
 
     function deleteObject(id){
-        let data = { id: id };
-        $.ajax({
-            type: 'post',
-            url: url + '/flats/deleteFlatById',
-            data: data,
-            dataType: "json",
-            success: function (success){
-                console.log(success + ' /deleteFlatById');
-                updatePage(currentPage, size, sortingField, sortingDirection)
-            },
-            error: function() {
-                console.log('error /deleteFlatById');
-            }
-        });
+        deleteObjSecond(url, '/deleteFlatById', id)
+    }
+    function afterDeleteObjSecond(){
+        updatePage();
     }
 
     function changeSize(){
         size = $('#sizeSelect').val();
         currentPage = 1;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
 
     function paginationButton(){
@@ -536,27 +521,29 @@
 
     function goFirstPage(){
         currentPage = 1;
-        updatePage(currentPage, size, sortingField, sortingDirection);
+        updatePage();
     }
-
     function goPreviousPage(){
         currentPage--;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
-
     function goToPage(i){
         currentPage = i;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
     function goNextPage(){
         currentPage++;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
     function goLastPage(){
         currentPage = totalPage;
-        updatePage(currentPage, size, sortingField, sortingDirection)
+        updatePage()
     }
 </script>
+
+<script th:src="@{/js/app.js}"></script>
+<div th:replace="blocks/scriptAdminLTE"></div>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
 </main>
 </body>

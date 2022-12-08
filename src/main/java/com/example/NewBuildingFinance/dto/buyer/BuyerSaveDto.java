@@ -6,21 +6,21 @@ import com.example.NewBuildingFinance.entities.buyer.Buyer;
 import com.example.NewBuildingFinance.entities.buyer.DocumentStyle;
 import lombok.Data;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 
 @Data
 public class BuyerSaveDto {
     private Long id;
-    @NotEmpty(message = "Must not be empty")
+    @NotBlank(message = "Must not be empty")
+    @Pattern(regexp = "^((?![\\s]).)*$", message = "Must not contain spaces")
     private String name;
-    @NotEmpty(message = "Must not be empty")
+    @NotBlank(message = "Must not be empty")
+    @Pattern(regexp = "^((?![\\s]).)*$", message = "Must not contain spaces")
     private String surname;
-    @NotEmpty(message = "Must not be empty")
+    @NotBlank(message = "Must not be empty")
+    @Pattern(regexp = "^((?![\\s]).)*$", message = "Must not contain spaces")
     private String lastname;
-    @NotEmpty(message = "Must not be empty")
+    @NotBlank(message = "Must not be empty")
     private String address;
     @NotNull(message = "Must not be empty")
     private Long idNumber;

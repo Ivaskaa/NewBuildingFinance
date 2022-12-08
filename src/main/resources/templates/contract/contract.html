@@ -8,9 +8,13 @@
 
     <style th:replace="blocks/linkAdminLTE"></style>
     <div th:replace="blocks/links"></div>
-    <script th:src="@{/js/app.js}"></script>
+
+    <link rel="stylesheet"  th:href="@{/css/tableSort.css}">
     <link rel="stylesheet" th:href="@{/css/popup.css}">
 </head>
+
+<script th:src="@{/js/app.js}"></script>
+<script th:src="@{/js/tableSort.js}"></script>
 
 <body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
 <div class="wrapper">
@@ -99,28 +103,66 @@
                         <input id="buyerIdNumber" type="number" placeholder='Enter ID number' class="form-control" min="1" max="1000000000" maxlength="50">
                         <p id='buyerIdNumberMessage' style="color: red"></p>
                     </div>
-                    <h3>Buyer passport data:</h3>
-                    <div class='row'>
-                        <div class='col'>
-                            <div class='form-group mt-2'>
-                                <label>Series:</label>
-                                <input id='passportSeries' type='text'  maxlength='50' placeholder='Enter passport series' class='form-control'>
-                                <p id='passportSeriesMessage' style='color: red'></p>
+                    <div class="form-check">
+                      <input class="form-check-input" onchange='changeDocument()' type="radio" name="flexRadioDefault" id="passportButton">
+                      <label class="form-check-label" for="passportButton">
+                            Passport
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" onchange='changeDocument()' type="radio" name="flexRadioDefault" id="idCardButton">
+                      <label class="form-check-label" for="idCardButton">
+                            Id card
+                      </label>
+                    </div>
+                    <p id='documentStyleMessage' style="color: red"></p>
+                    <div id='passport'>
+                        <h3>Passport data</h3>
+                        <div class='row'>
+                            <div class='col'>
+                                <div class="form-group mt-2">
+                                    <label>Series:</label>
+                                    <input id="passportSeries" type="text"
+                                           placeholder="Enter passport series" class="form-control">
+                                    <p id='passportSeriesMessage' style="color: red"></p>
+                                </div>
+                            </div>
+                            <div class='col'>
+                                <div class="form-group mt-2">
+                                    <label>Number:</label>
+                                    <input id="passportNumber" type="number" min='0' maxlength="6"
+                                        placeholder="Enter passport number" class="form-control">
+                                    <p id='passportNumberMessage' style="color: red"></p>
+                                </div>
+                            </div>
+                            <div class='col'>
+                                <div class="form-group mt-2">
+                                    <label>Who issued:</label>
+                                    <input id="passportWhoIssued" type="text"
+                                       placeholder="Enter who issued" class="form-control">
+                                    <p id='passportWhoIssuedMessage' style="color: red"></p>
+                                </div>
                             </div>
                         </div>
-                        <div class='col'>
-                            <div class='form-group mt-2'>
-                                <label>Number:</label>
-                                <input id='passportNumber' type='number' min='0' maxlength='50'
-                                placeholder='Enter passport number' class='form-control'>
-                                <p id='passportNumberMessage' style='color: red'></p>
+                    </div>
+                    <div id='idcard'>
+                        <h3>Id card data</h3>
+                        <div class='row'>
+                            <div class='col'>
+                                  <div class="form-group mt-2">
+                                    <label>Number:</label>
+                                    <input id="idCardNumber" type="number" min='0' maxlength="13"
+                                           placeholder="Enter passport number" class="form-control">
+                                    <p id='idCardNumberMessage' style="color: red"></p>
+                                  </div>
                             </div>
-                        </div>
-                        <div class='col'>
-                            <div class='form-group mt-2'>
-                                <label>Who issued:</label>
-                                <input id='passportWhoIssued' type='text' placeholder='Enter who issued' class='form-control'>
-                                <p id='passportWhoIssuedMessage' style='color: red'></p>
+                            <div class='col'>
+                                  <div class='form-group mt-2'>
+                                    <label>Who issued:</label>
+                                    <input id="idCardWhoIssued" type="number" min='0' maxlength="4"
+                                           placeholder='Enter who issued' class="form-control">
+                                    <p id='idCardWhoIssuedMessage' style='color: red'></p>
+                                  </div>
                             </div>
                         </div>
                     </div>
@@ -179,15 +221,12 @@
 
             <button id="saveButton" onclick="save()" class="btn btn-success popup-with-form">Save</button>
             <button id="deleteButton" onclick="deleteObject()" style="display: none" class="btn btn-danger popup-with-form">Delete</button>
-            <a th:href="@{/contracts}" class="btn btn-dark popup-with-form">Back</a>
+            <a th:href="@{/contracts/}" class="btn btn-dark popup-with-form">Back</a>
         </section>
     </div>
 </div>
 
 <div th:replace="blocks/scriptAdminLTE"></div>
-<script th:src="@{/js/validation.js}"></script>
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
     let ContractId = "[[${contractId}]]";
@@ -195,10 +234,12 @@
     let Contract = {};
     let Flat = {};
 
-    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/",1));
-    let url = window.location.protocol+"//"+ window.location.host + context;
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 1));
+    let url = window.location.protocol + "//" + window.location.host + context;
 
     $(document).ready(function() {
+        $("#idcard").hide();
+        $("#passport").hide();
         Contract.id = ContractId;
         if(ContractId != 0){
             getContractById();
@@ -244,9 +285,18 @@
         contract.lastname = document.getElementById('buyerLastname').value;
         contract.buyerAddress = document.getElementById('buyerAddress').value;
         contract.idNumber = document.getElementById('buyerIdNumber').value;
-        contract.passportSeries = document.getElementById('passportSeries').value;
-        contract.passportNumber = document.getElementById('passportNumber').value;
-        contract.passportWhoIssued = document.getElementById('passportWhoIssued').value;
+
+        if(document.getElementById('passportButton').checked){
+            contract.documentStyle = 'PASSPORT';
+            contract.passportSeries = document.getElementById('passportSeries').value;
+            contract.passportNumber = document.getElementById('passportNumber').value;
+            contract.passportWhoIssued = document.getElementById('passportWhoIssued').value;
+        } else if(document.getElementById('idCardButton').checked){
+            contract.documentStyle = 'ID_CARD';
+            contract.idCardNumber = document.getElementById('idCardNumber').value;
+            contract.idCardWhoIssued = document.getElementById('idCardWhoIssued').value;
+        }
+
         contract.phone = document.getElementById('phone').value;
         contract.email = document.getElementById('email').value;
         contract.flatNumber = document.getElementById('flatNumber').value;
@@ -274,6 +324,7 @@
                 },
                 error: function () {
                     console.log('error /addContract');
+                    error();
                 }
             });
         } else {
@@ -289,63 +340,32 @@
                     if (validation == null) {
                         validationMessage(null);
                         sendNotifications();
+                        success();
                     } else {
                         validationMessage(validation);
                     }
                 },
                 error: function () {
                     console.log('error /updateContract');
+                    error();
                 }
             });
         }
     }
 
-    function validationMessage(validation){
-        if(validation === 1){
-            document.getElementById('flatMessage').innerHTML = "";
-            document.getElementById('flat').style.border = "1px solid #ced4da";
-            document.getElementById('objectMessage').innerHTML = "";
-            document.getElementById('object').style.border = "1px solid #ced4da";
-            document.getElementById('templateMessage').innerHTML = "";
-            document.getElementById('template').style.border = "1px solid #ced4da";
-            document.getElementById('statusMessage').innerHTML = "";
-            document.getElementById('status').style.border = "1px solid #ced4da";
-            document.getElementById('buyerMessage').innerHTML = "";
-            document.getElementById('buyer').style.border = "1px solid #ced4da";
-            document.getElementById('buyerNameMessage').innerHTML = "";
-            document.getElementById('buyerName').style.border = "1px solid #ced4da";
-            document.getElementById('buyerSurnameMessage').innerHTML = "";
-            document.getElementById('buyerSurname').style.border = "1px solid #ced4da";
-            document.getElementById('buyerLastnameMessage').innerHTML = "";
-            document.getElementById('buyerLastname').style.border = "1px solid #ced4da";
-            document.getElementById('buyerAddressMessage').innerHTML = "";
-            document.getElementById('buyerAddress').style.border = "1px solid #ced4da";
-            document.getElementById('buyerIdNumberMessage').innerHTML = "";
-            document.getElementById('buyerIdNumber').style.border = "1px solid #ced4da";
-            document.getElementById('passportSeriesMessage').innerHTML = "";
-            document.getElementById('passportSeries').style.border = "1px solid #ced4da";
-            document.getElementById('passportNumberMessage').innerHTML = "";
-            document.getElementById('passportNumber').style.border = "1px solid #ced4da";
-            document.getElementById('passportWhoIssuedMessage').innerHTML = "";
-            document.getElementById('passportWhoIssued').style.border = "1px solid #ced4da";
-            document.getElementById('phoneMessage').innerHTML = "";
-            document.getElementById('phone').style.border = "1px solid #ced4da";
-            document.getElementById('emailMessage').innerHTML = "";
-            document.getElementById('email').style.border = "1px solid #ced4da";
-            document.getElementById('flatNumberMessage').innerHTML = "";
-            document.getElementById('flatNumber').style.border = "1px solid #ced4da";
-            document.getElementById('flatAreaMessage').innerHTML = "";
-            document.getElementById('flatArea').style.border = "1px solid #ced4da";
-            document.getElementById('flatFloorMessage').innerHTML = "";
-            document.getElementById('flatFloor').style.border = "1px solid #ced4da";
-            document.getElementById('flatAddressMessage').innerHTML = "";
-            document.getElementById('flatAddress').style.border = "1px solid #ced4da";
-            document.getElementById('priceMessage').innerHTML = "";
-            document.getElementById('price').style.border = "1px solid #ced4da";
-            document.getElementById('dateMessage').innerHTML = "";
-            document.getElementById('date').style.border = "1px solid #ced4da";
-            return;
+    function changeDocument(){
+        console.log(document.getElementById('passportButton'));
+        if(document.getElementById('passportButton').checked){
+            $("#passport").show();
+            $("#idcard").hide();
         }
+        if(document.getElementById('idCardButton').checked){
+            $("#idcard").show();
+            $("#passport").hide();
+        }
+    }
+
+    function validationMessage(validation){
         if(validation?.flatId ?? false){
             document.getElementById('flatMessage').innerHTML = validation.flatId;
             document.getElementById('flat').style.border = "1px solid red";
@@ -416,26 +436,47 @@
             document.getElementById('buyerIdNumberMessage').innerHTML = "";
             document.getElementById('buyerIdNumber').style.border = "1px solid green";
         }
-        if(validation?.passportSeries ?? false){
-            document.getElementById('passportSeriesMessage').innerHTML = validation.passportSeries;
-            document.getElementById('passportSeries').style.border = "1px solid red";
-        }else {
-            document.getElementById('passportSeriesMessage').innerHTML = "";
-            document.getElementById('passportSeries').style.border = "1px solid green";
-        }
-        if(validation?.passportNumber ?? false){
-            document.getElementById('passportNumberMessage').innerHTML = validation.passportNumber;
-            document.getElementById('passportNumber').style.border = "1px solid red";
-        }else {
-            document.getElementById('passportNumberMessage').innerHTML = "";
-            document.getElementById('passportNumber').style.border = "1px solid green";
-        }
-        if(validation?.passportWhoIssued ?? false){
-            document.getElementById('passportWhoIssuedMessage').innerHTML = validation.passportWhoIssued;
-            document.getElementById('passportWhoIssued').style.border = "1px solid red";
-        }else {
-            document.getElementById('passportWhoIssuedMessage').innerHTML = "";
-            document.getElementById('passportWhoIssued').style.border = "1px solid green";
+        if(validation?.documentStyle ?? false){
+            document.getElementById('documentStyleMessage').innerHTML = validation.documentStyle;
+        } else {
+            document.getElementById('documentStyleMessage').innerHTML = "";
+
+            if(validation?.idCardNumber ?? false){
+                document.getElementById('idCardNumberMessage').innerHTML = validation.idCardNumber;
+                document.getElementById('idCardNumber').style.border = "1px solid red";
+            } else {
+                document.getElementById('idCardNumberMessage').innerHTML = "";
+                document.getElementById('idCardNumber').style.border = "1px solid green";
+            }
+            if(validation?.idCardWhoIssued ?? false){
+                document.getElementById('idCardWhoIssuedMessage').innerHTML = validation.idCardWhoIssued;
+                document.getElementById('idCardWhoIssued').style.border = "1px solid red";
+            } else {
+                document.getElementById('idCardWhoIssuedMessage').innerHTML = "";
+                document.getElementById('idCardWhoIssued').style.border = "1px solid green";
+            }
+
+            if(validation?.passportSeries ?? false){
+                document.getElementById('passportSeriesMessage').innerHTML = validation.passportSeries;
+                document.getElementById('passportSeries').style.border = "1px solid red";
+            } else {
+                document.getElementById('passportSeriesMessage').innerHTML = "";
+                document.getElementById('passportSeries').style.border = "1px solid green";
+            }
+            if(validation?.passportNumber ?? false){
+                document.getElementById('passportNumberMessage').innerHTML = validation.passportNumber;
+                document.getElementById('passportNumber').style.border = "1px solid red";
+            } else {
+                document.getElementById('passportNumberMessage').innerHTML = "";
+                document.getElementById('passportNumber').style.border = "1px solid green";
+            }
+            if(validation?.passportWhoIssued ?? false){
+                document.getElementById('passportWhoIssuedMessage').innerHTML = validation.passportWhoIssued;
+                document.getElementById('passportWhoIssued').style.border = "1px solid red";
+            } else {
+                document.getElementById('passportWhoIssuedMessage').innerHTML = "";
+                document.getElementById('passportWhoIssued').style.border = "1px solid green";
+            }
         }
         if(validation?.phone ?? false){
             document.getElementById('phoneMessage').innerHTML = validation.phone;
@@ -494,7 +535,53 @@
             document.getElementById('date').style.border = "1px solid green";
         }
         setTimeout(function() {
-            validationMessage(1)
+            document.getElementById('flatMessage').innerHTML = "";
+            document.getElementById('flat').style.border = "1px solid #ced4da";
+            document.getElementById('objectMessage').innerHTML = "";
+            document.getElementById('object').style.border = "1px solid #ced4da";
+            document.getElementById('templateMessage').innerHTML = "";
+            document.getElementById('template').style.border = "1px solid #ced4da";
+            document.getElementById('statusMessage').innerHTML = "";
+            document.getElementById('status').style.border = "1px solid #ced4da";
+            document.getElementById('buyerMessage').innerHTML = "";
+            document.getElementById('buyer').style.border = "1px solid #ced4da";
+            document.getElementById('buyerNameMessage').innerHTML = "";
+            document.getElementById('buyerName').style.border = "1px solid #ced4da";
+            document.getElementById('buyerSurnameMessage').innerHTML = "";
+            document.getElementById('buyerSurname').style.border = "1px solid #ced4da";
+            document.getElementById('buyerLastnameMessage').innerHTML = "";
+            document.getElementById('buyerLastname').style.border = "1px solid #ced4da";
+            document.getElementById('buyerAddressMessage').innerHTML = "";
+            document.getElementById('buyerAddress').style.border = "1px solid #ced4da";
+            document.getElementById('buyerIdNumberMessage').innerHTML = "";
+            document.getElementById('buyerIdNumber').style.border = "1px solid #ced4da";
+            document.getElementById('documentStyleMessage').innerHTML = "";
+            document.getElementById('idCardNumberMessage').innerHTML = "";
+            document.getElementById('idCardNumber').style.border = "1px solid #ced4da";
+            document.getElementById('idCardWhoIssuedMessage').innerHTML = "";
+            document.getElementById('idCardWhoIssued').style.border = "1px solid #ced4da";
+            document.getElementById('passportSeriesMessage').innerHTML = "";
+            document.getElementById('passportSeries').style.border = "1px solid #ced4da";
+            document.getElementById('passportNumberMessage').innerHTML = "";
+            document.getElementById('passportNumber').style.border = "1px solid #ced4da";
+            document.getElementById('passportWhoIssuedMessage').innerHTML = "";
+            document.getElementById('passportWhoIssued').style.border = "1px solid #ced4da";
+            document.getElementById('phoneMessage').innerHTML = "";
+            document.getElementById('phone').style.border = "1px solid #ced4da";
+            document.getElementById('emailMessage').innerHTML = "";
+            document.getElementById('email').style.border = "1px solid #ced4da";
+            document.getElementById('flatNumberMessage').innerHTML = "";
+            document.getElementById('flatNumber').style.border = "1px solid #ced4da";
+            document.getElementById('flatAreaMessage').innerHTML = "";
+            document.getElementById('flatArea').style.border = "1px solid #ced4da";
+            document.getElementById('flatFloorMessage').innerHTML = "";
+            document.getElementById('flatFloor').style.border = "1px solid #ced4da";
+            document.getElementById('flatAddressMessage').innerHTML = "";
+            document.getElementById('flatAddress').style.border = "1px solid #ced4da";
+            document.getElementById('priceMessage').innerHTML = "";
+            document.getElementById('price').style.border = "1px solid #ced4da";
+            document.getElementById('dateMessage').innerHTML = "";
+            document.getElementById('date').style.border = "1px solid #ced4da";
         }, 4000);
     }
 
@@ -502,10 +589,11 @@
         let data = { id: ContractId };
         $.ajax({
             type: 'get',
-            url: url +'/getContractById',
+            url: url + '/getContractById',
             data: data,
             dataType: "json",
             success: function (data){
+                console.log(data)
                 console.log('success /getContractById');
                 Contract = data;
                 document.getElementById('buyerName').value = data.name;
@@ -513,9 +601,22 @@
                 document.getElementById('buyerLastname').value = data.lastname
                 document.getElementById('buyerAddress').value = data.buyerAddress;
                 document.getElementById('buyerIdNumber').value = data.idNumber;
-                document.getElementById('passportSeries').value = data.passportSeries;
-                document.getElementById('passportNumber').value = data.passportNumber;
-                document.getElementById('passportWhoIssued').value= data.passportWhoIssued;
+
+                if(data.documentStyle === 'ID_CARD'){
+                    $("#passport").hide();
+                    $("#idcard").show();
+                    document.getElementById('idCardButton').checked = true;
+                    document.getElementById('idCardNumber').value = data.idCardNumber;
+                    document.getElementById('idCardWhoIssued').value = data.idCardWhoIssued;
+                } else if(data.documentStyle === 'PASSPORT'){
+                    $("#idcard").hide();
+                    $("#passport").show();
+                    document.getElementById('passportButton').checked = true;
+                    document.getElementById('passportSeries').value = data.passportSeries;
+                    document.getElementById('passportNumber').value = data.passportNumber;
+                    document.getElementById('passportWhoIssued').value = data.passportWhoIssued;
+                }
+
                 document.getElementById('phone').value = data.phone;
                 document.getElementById('email').value = data.email;
                 document.getElementById('flatNumber').value = data.flatNumber;
@@ -542,21 +643,11 @@
         });
     }
 
-    function deleteObject(){
-        let data = { id: Contract.id };
-        $.ajax({
-            type: 'post',
-            url: '../deleteContractById',
-            data: data,
-            dataType: "json",
-            success: function (data){
-                console.log('success /deleteContractById');
-                window.location = '/contracts';
-            },
-            error: function() {
-                console.log('error /deleteContractById');
-            }
-        });
+    function deleteObject(id){
+        deleteObjFirst(url, '/deleteContractById', id)
+    }
+    function afterDeleteObjFirst(){
+        updatePagePayment();
     }
 
 
@@ -597,18 +688,29 @@
             url: url +'/getBuyerById',
             data: data,
             dataType: "json",
-            success: function (data){
-                let Buyer = data;
-                document.getElementById('buyerName').value = Buyer.name;
-                document.getElementById('buyerSurname').value = Buyer.surname;
-                document.getElementById('buyerLastname').value = Buyer.lastname;
-                document.getElementById('buyerAddress').value = Buyer.address;
-                document.getElementById('buyerIdNumber').value = Buyer.idNumber;
-                document.getElementById('passportSeries').value = Buyer.passportSeries;
-                document.getElementById('passportNumber').value = Buyer.passportNumber;
-                document.getElementById('passportWhoIssued').value = Buyer.passportWhoIssued;
-                document.getElementById('phone').value = Buyer.phone;
-                document.getElementById('email').value = Buyer.email;
+            success: function (object){
+                document.getElementById('buyerName').value = object.name;
+                document.getElementById('buyerSurname').value = object.surname;
+                document.getElementById('buyerLastname').value = object.lastname;
+                document.getElementById('buyerAddress').value = object.address;
+                document.getElementById('buyerIdNumber').value = object.idNumber;
+
+                if(object.documentStyle === 'ID_CARD'){
+                    $("#passport").hide();
+                    $("#idcard").show();
+                    document.getElementById('idCardButton').checked = true;
+                    document.getElementById('idCardNumber').value = object.idCardNumber;
+                    document.getElementById('idCardWhoIssued').value = object.idCardWhoIssued;
+                } else if(object.documentStyle === 'PASSPORT'){
+                    $("#idcard").hide();
+                    $("#passport").show();
+                    document.getElementById('passportButton').checked = true;
+                    document.getElementById('passportSeries').value = object.passportSeries;
+                    document.getElementById('passportNumber').value = object.passportNumber;
+                    document.getElementById('passportWhoIssued').value = object.passportWhoIssued;
+                }
+                document.getElementById('phone').value = object.phone;
+                document.getElementById('email').value = object.email;
             },
             error: function() {
                 console.log('error /getContractById');
@@ -712,7 +814,7 @@
     function getStatuses(){
         $.ajax({
             type: 'get',
-            url: url +'/getStatuses',
+            url: url + '/getStatuses',
             dataType: "json",
             success: function (data){
                 console.log('success /getStatuses');
@@ -785,6 +887,10 @@
         }
     }
 </script>
+
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 </body>
 </html>

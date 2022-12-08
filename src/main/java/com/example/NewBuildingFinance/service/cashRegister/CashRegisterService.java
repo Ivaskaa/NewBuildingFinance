@@ -90,18 +90,6 @@ public interface CashRegisterService {
     SpendingUploadDto updateSpending(CashRegister spending);
 
     /**
-     * delete income(cash register) by id
-     * @param id id for delete
-     */
-    void deleteIncomeById(Long id);
-
-    /**
-     * delete spending(cash register) by id
-     * @param id id for delete
-     */
-    void deleteSpendingById(Long id);
-
-    /**
      * find income(cash register) by id
      * @param id id for find
      * @return income object
