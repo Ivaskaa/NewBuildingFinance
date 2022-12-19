@@ -2,7 +2,7 @@ package com.example.NewBuildingFinance.service.auth.user;
 
 import com.example.NewBuildingFinance.entities.auth.Permission;
 import com.example.NewBuildingFinance.others.mail.MailThread;
-import com.example.NewBuildingFinance.others.mail.context.AbstractEmailContextUserRegistration;
+import com.example.NewBuildingFinance.others.mail.context.EmailContextUserRegistration;
 import com.example.NewBuildingFinance.entities.auth.SecureToken;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.repository.auth.UserRepository;
@@ -160,7 +160,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
         SecureToken secureToken = secureTokenServiceImpl.createSecureToken();
         secureToken.setUser(user);
         secureTokenServiceImpl.save(secureToken);
-        AbstractEmailContextUserRegistration emailContext = new AbstractEmailContextUserRegistration();
+        EmailContextUserRegistration emailContext = new EmailContextUserRegistration();
         emailContext.setToken(secureToken.getToken());
         emailContext.buildVerificationUrl(baseURL, secureToken.getToken());
         emailContext.setTemplateLocation("email/email-registration");

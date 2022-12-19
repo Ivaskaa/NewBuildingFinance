@@ -184,15 +184,16 @@ public class StatisticServiceImpl {
                 .and(FlatStatisticSpecification.likeObjectId(searchDto.getObjectId()))
                 .and(FlatStatisticSpecification.likePrice(searchDto.getPriceStart(), searchDto.getPriceFin()))
                 .and(FlatStatisticSpecification.likeSalePrice(searchDto.getSalePriceStart(), searchDto.getSalePriceFin()))
-//                .and(FlatStatisticSpecification.likeFact(searchDto.getFactStart(), searchDto.getFactFin()))
-//                .and(FlatStatisticSpecification.likeRemains(searchDto.getRemainsStart(), searchDto.getRemainsFin()))
-//                .and(FlatStatisticSpecification.likeDebt(searchDto.getDebtStart(), searchDto.getDebtFin()))
+                .and(FlatStatisticSpecification.betweenFact(searchDto.getFactStart(), searchDto.getFactFin()))
+                .and(FlatStatisticSpecification.betweenRemains(searchDto.getRemainsStart(), searchDto.getRemainsFin()))
+                .and(FlatStatisticSpecification.betweenDebt(searchDto.getDebtStart(), searchDto.getDebtFin()))
                 .and(FlatStatisticSpecification.likeStatus(searchDto.getStatus()))
                 .and(FlatStatisticSpecification.likeContractId(searchDto.getContractId()))
                 .and(FlatStatisticSpecification.likeBuyer(searchDto.getBuyer()))
                 .and(FlatStatisticSpecification.likeRealtor(searchDto.getRealtor()))
+                .and(FlatStatisticSpecification.likeSale(searchDto.getSale()))
                 .and(FlatStatisticSpecification.deletedFalse());
-//                .and(FlatStatisticSpecification.likeSale(searchDto.getSale()));
+
         Sort sort = staticService.sort(searchDto.getSortingField(), searchDto.getSortingDirection());
         Pageable pageable = PageRequest.of(searchDto.getPage() - 1, searchDto.getSize(), sort);
         Page<StatisticFlatsTableDto> statisticFlatPayments = flatRepository.findAll(specification, pageable).map(Flat::buildStatisticTableDto);

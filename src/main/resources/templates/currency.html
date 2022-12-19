@@ -64,8 +64,8 @@
                 <div class="col">
                     <div class="container">
                         <div th:each="el : ${currency}">
-                            <p th:if="${el.name.equals('USD')}" th:text="'1 UAH = ' + ${el.price} + ' USD'"></p>
-                            <p th:if="${el.name.equals('EUR')}" th:text="'1 UAH = ' + ${el.price} + ' EUR'"></p>
+                            <p th:if="${el.name.equals('UAH')}" th:text="'1 USD = ' + ${el.price} + ' UAH'"></p>
+                            <p th:if="${el.name.equals('EUR')}" th:text="'1 USD = ' + ${el.price} + ' EUR'"></p>
                         </div>
                     </div>
                 </div>
@@ -117,7 +117,7 @@
             "               </div>\n" +
             "               <div class=\"form-group mt-2\">\n" +
             "                   <label>Rate in relation to UAH:</label>\n" +
-            "                   <input id=\"price\" oninput='checkDouble(this)' type='text' maxlength=\"10\" name=\"price\"\n" +
+            "                   <input id=\"price\" type='number' name=\"price\"\n" +
             "                              placeholder=\"Enter relation\" class=\"form-control\">\n" +
             "                   <p id='priceMessage' style=\"color: red\"></p>" +
             "               </div>\n" +
@@ -162,15 +162,6 @@
                     console.log('error /updateCurrency');
                 }
             });
-        }
-    }
-
-    function checkDouble(input) {
-        input.value = input.value.replace(/[^\.\d]/g, '');
-        if (input.value.includes('.')) {
-            if (input.value.indexOf(".") !== '-1') {
-                input.value = input.value.substring(0, input.value.indexOf(".") + 3);
-            }
         }
     }
 
@@ -252,7 +243,7 @@
                 name.value = object.name;
                 let price = document.getElementById('price');
                 price.value = object.price;
-                if (object.name === 'UAH'){
+                if (object.name === 'USD'){
                     price.disabled = true;
                 }
             },

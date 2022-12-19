@@ -19,7 +19,11 @@ public class ScheduleServiceImpl implements ScheduleService {
     private final NotificationServiceImpl notificationServiceImpl;
     private final CurrencyServiceImpl currencyServiceImpl;
 
-    private final StatisticServiceImpl statisticService;
+//    @Override
+//    @Scheduled(cron = "1/12 * * * * *") // https://spring.io/blog/2020/11/10/new-in-spring-5-3-improved-cron-expressions
+//    public void getCurrencyFromApi() throws Exception {
+//        currencyServiceImpl.saveCurrency(restTemplateServiceImpl.getCurrency());
+//    }
 
     @Override
     @Scheduled(cron = "0 0 8 * * *") // https://spring.io/blog/2020/11/10/new-in-spring-5-3-improved-cron-expressions

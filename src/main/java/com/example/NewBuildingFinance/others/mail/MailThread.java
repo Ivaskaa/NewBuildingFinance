@@ -12,6 +12,7 @@ import javax.mail.MessagingException;
 public class MailThread extends Thread{
     private final MailServiceImpl mailServiceImpl;
     private final AbstractEmailContext abstractEmailContext;
+
     public void run() {
         try{
             mailServiceImpl.send(abstractEmailContext);

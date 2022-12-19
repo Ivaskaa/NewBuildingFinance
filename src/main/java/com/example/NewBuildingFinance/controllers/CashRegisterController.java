@@ -266,11 +266,17 @@ public class CashRegisterController {
                     bindingResult.addError(new FieldError("spendingSaveDto", "realtor", "Must not be empty"));
                 }
             } else if (spendingSaveDto.getArticle().equals(Article.CONSTRUCTION_COSTS)) {
-                if (spendingSaveDto.getCounterparty() == null || spendingSaveDto.getCounterparty().equals("")) {
+                if (spendingSaveDto.getCounterpartyName() == null || spendingSaveDto.getCounterpartyName().equals("")) {
+                    bindingResult.addError(new FieldError("spendingSaveDto", "counterparty", "Must not be empty"));
+                }
+                if (spendingSaveDto.getCounterpartySurname() == null || spendingSaveDto.getCounterpartySurname().equals("")) {
                     bindingResult.addError(new FieldError("spendingSaveDto", "counterparty", "Must not be empty"));
                 }
             } else if (spendingSaveDto.getArticle().equals(Article.MONEY_FOR_DIRECTOR)) {
-                if (spendingSaveDto.getCounterparty() == null || spendingSaveDto.getCounterparty().equals("")) {
+                if (spendingSaveDto.getCounterpartyName() == null || spendingSaveDto.getCounterpartyName().equals("")) {
+                    bindingResult.addError(new FieldError("spendingSaveDto", "director", "Must not be empty"));
+                }
+                if (spendingSaveDto.getCounterpartySurname() == null || spendingSaveDto.getCounterpartySurname().equals("")) {
                     bindingResult.addError(new FieldError("spendingSaveDto", "director", "Must not be empty"));
                 }
             }
@@ -322,11 +328,17 @@ public class CashRegisterController {
                     bindingResult.addError(new FieldError("spendingSaveDto", "realtor", "Must not be empty"));
                 }
             } else if (spendingSaveDto.getArticle().equals(Article.CONSTRUCTION_COSTS)) {
-                if (spendingSaveDto.getCounterparty() == null || spendingSaveDto.getCounterparty().equals("")) {
+                if (spendingSaveDto.getCounterpartyName() == null || spendingSaveDto.getCounterpartyName().equals("")) {
+                    bindingResult.addError(new FieldError("spendingSaveDto", "counterparty", "Must not be empty"));
+                }
+                if (spendingSaveDto.getCounterpartySurname() == null || spendingSaveDto.getCounterpartySurname().equals("")) {
                     bindingResult.addError(new FieldError("spendingSaveDto", "counterparty", "Must not be empty"));
                 }
             } else if (spendingSaveDto.getArticle().equals(Article.MONEY_FOR_DIRECTOR)) {
-                if (spendingSaveDto.getCounterparty() == null || spendingSaveDto.getCounterparty().equals("")) {
+                if (spendingSaveDto.getCounterpartyName() == null || spendingSaveDto.getCounterpartyName().equals("")) {
+                    bindingResult.addError(new FieldError("spendingSaveDto", "director", "Must not be empty"));
+                }
+                if (spendingSaveDto.getCounterpartySurname() == null || spendingSaveDto.getCounterpartySurname().equals("")) {
                     bindingResult.addError(new FieldError("spendingSaveDto", "director", "Must not be empty"));
                 }
             }

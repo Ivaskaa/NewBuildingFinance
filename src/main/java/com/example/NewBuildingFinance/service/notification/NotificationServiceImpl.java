@@ -1,5 +1,6 @@
 package com.example.NewBuildingFinance.service.notification;
 
+import com.example.NewBuildingFinance.entities.agency.Agency;
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
 import com.example.NewBuildingFinance.entities.contract.Contract;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
@@ -68,17 +69,27 @@ public class NotificationServiceImpl implements NotificationService{
         log.info("success delete notification from contract");
     }
 
-    @Override
-    public void createNotificationFromAgency(Long agencyId) {
+    public void createNotificationFromAgency(Agency agency) {
         if(settingService.getSettings().isNotificationAgency()) {
             log.info("create notification from agency");
             Notification notification = new Notification();
             notification.setName("New agency");
-            notification.setUrl("/agencies/agency/" + agencyId);
+            notification.setAgency(agency);
+            notification.setUrl("/agencies/agency/" + agency.getId());
             save(notification);
             template.convertAndSend("/topic/notifications", "Hello");
             log.info("success create notification from agency");
         }
+    }
+
+    public void deleteNotificationByAgencyId(Long agencyId) {
+        log.info("delete notification by agency id: {}", agencyId);
+        Notification notification = notificationRepository.findByAgencyId(agencyId);
+        if(notification != null){
+            notificationRepository.deleteById(notification.getId());
+        }
+        template.convertAndSend("/topic/notifications", "Hello");
+        log.info("success delete notification from contract");
     }
 
     @Override

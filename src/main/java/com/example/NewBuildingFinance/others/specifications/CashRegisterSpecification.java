@@ -105,7 +105,7 @@ public class CashRegisterSpecification {
             return null;
         }
         return (root, query, cb) -> {
-            return cb.like(root.get(CashRegister_.COUNTERPARTY), "%" + counterparty.toLowerCase(Locale.ROOT) + "%");
+            return null;
         };
     }
 

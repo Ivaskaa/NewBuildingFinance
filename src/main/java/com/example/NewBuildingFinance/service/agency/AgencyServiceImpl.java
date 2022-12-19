@@ -83,7 +83,7 @@ public class AgencyServiceImpl implements AgencyService{
     public Agency save(Agency agency) {
         log.info("save agency: {}", agency);
         Agency agencyAfterSave = agencyRepository.save(agency);
-        notificationServiceImpl.createNotificationFromAgency(agencyAfterSave.getId());
+        notificationServiceImpl.createNotificationFromAgency(agencyAfterSave);
         log.info("success");
         return agencyAfterSave;
     }
@@ -102,11 +102,8 @@ public class AgencyServiceImpl implements AgencyService{
     @Override
     public void deleteById(Long agencyId) {
         log.info("set agency.delete true by id: {}", agencyId);
-//        Agency agency = agencyRepository.findById(agencyId).orElseThrow();
-//        agency.setDeleted(true);
-//        agencyRepository.save(agency);
-        
         agencyRepository.setDeleted(agencyId);
+        notificationServiceImpl.deleteNotificationByAgencyId(agencyId);
         log.info("success set agency.delete true");
     }
 

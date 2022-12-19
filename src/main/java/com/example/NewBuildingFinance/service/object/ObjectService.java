@@ -17,8 +17,6 @@ public interface ObjectService {
 
     List<Object> findAll();
 
-    List<Object> findAllByDeletedFalse();
-
     Object save(Object object);
 
     Object update(Object objectForm);

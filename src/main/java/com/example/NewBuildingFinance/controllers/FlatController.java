@@ -136,9 +136,10 @@ public class FlatController {
         }
 
         if(bindingResult.hasErrors()){
-            Map<String, String> errors = bindingResult.getFieldErrors()
-                    .stream()
-                    .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage));
+            Map<String, String> errors = new HashMap<>();
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                errors.put(error.getField(), error.getDefaultMessage());
+            }
             return mapper.writeValueAsString(errors);
         }
 
@@ -160,9 +161,10 @@ public class FlatController {
         }
 
         if(bindingResult.hasErrors()){
-            Map<String, String> errors = bindingResult.getFieldErrors()
-                    .stream()
-                    .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage));
+            Map<String, String> errors = new HashMap<>();
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                errors.put(error.getField(), error.getDefaultMessage());
+            }
             return mapper.writeValueAsString(errors);
         }
 
@@ -230,6 +232,8 @@ public class FlatController {
     public ResponseEntity<byte[]> getXlsxExample() throws IOException {
         return flatServiceImpl.getXlsxExample();
     }
+
+    // кастомний клас масив байтів, стрінг
 
     @GetMapping("/getXlsxErrors")
     public ResponseEntity<byte[]> getXlsxErrors() throws IOException {

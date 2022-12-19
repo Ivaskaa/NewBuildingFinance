@@ -4,6 +4,7 @@ import com.example.NewBuildingFinance.dto.agency.AgencyTableDto;
 import com.example.NewBuildingFinance.entities.contract.Contract;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Formula;
@@ -15,6 +16,29 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "agencies")
+
+@NamedEntityGraph(
+        name = "agency-entity-graph",
+        attributeNodes = {
+                @NamedAttributeNode("id"),
+                @NamedAttributeNode("name"),
+                @NamedAttributeNode(value = "realtors", subgraph = "realtors-subgraph"),
+        },
+        subgraphs = {
+                @NamedSubgraph(
+                        name = "realtors-subgraph",
+                        attributeNodes = {
+                                @NamedAttributeNode("id"),
+                                @NamedAttributeNode("name"),
+                                @NamedAttributeNode("surname"),
+                                @NamedAttributeNode("phone"),
+                                @NamedAttributeNode("email"),
+                                @NamedAttributeNode("director"),
+                        }
+                )
+        }
+)
+
 public class Agency {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

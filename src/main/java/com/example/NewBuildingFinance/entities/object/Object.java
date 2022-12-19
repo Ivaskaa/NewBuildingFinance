@@ -32,7 +32,6 @@ public class Object {
     private StatusObject status;
     private Integer agency;
     private Integer manager;
-    private boolean active;
     private boolean deleted;
 
     public ObjectTableDto build(){
@@ -44,7 +43,6 @@ public class Object {
         object.setStatus(status.getValue());
         object.setAgency(agency);
         object.setManager(manager);
-        object.setActive(active);
         return object;
     }
 
@@ -57,8 +55,7 @@ public class Object {
                 ", address='" + address + '\'' +
                 ", status=" + status +
                 ", agency='" + agency + '\'' +
-                ", manager='" + manager + '\'' +
-                ", active=" + active +
+                ", manager='" + manager +
                 '}';
     }
 }

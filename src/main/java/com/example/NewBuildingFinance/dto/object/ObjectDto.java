@@ -22,7 +22,6 @@ public class ObjectDto {
     private Integer agency;
     @NotNull(message = "Must not be empty")
     private Integer manager;
-    private boolean active;
 
     public Object build(){
         Object object = new Object();
@@ -33,7 +32,6 @@ public class ObjectDto {
         object.setStatus(status);
         object.setAgency(agency);
         object.setManager(manager);
-        object.setActive(active);
         return object;
     }
 }

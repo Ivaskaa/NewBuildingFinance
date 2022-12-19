@@ -2,7 +2,7 @@ package com.example.NewBuildingFinance.others.mail.context;
 
 import org.springframework.web.util.UriComponentsBuilder;
 
-public class AbstractEmailContextUserRegistration extends AbstractEmailContext {
+public class EmailContextUserRegistration extends AbstractEmailContext {
     private String user;
     private String token;
 
@@ -22,7 +22,7 @@ public class AbstractEmailContextUserRegistration extends AbstractEmailContext {
         put("verificationURL", url);
     }
 
-    public AbstractEmailContextUserRegistration() {
+    public EmailContextUserRegistration() {
         setContext();
     }
 

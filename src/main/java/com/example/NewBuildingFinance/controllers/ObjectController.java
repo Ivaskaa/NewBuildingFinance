@@ -69,7 +69,7 @@ public class ObjectController {
             bindingResult.addError(new FieldError("objectDto", "agency", "The sum of percentages must be less than 100"));
             bindingResult.addError(new FieldError("objectDto", "manager", "The sum of percentages must be less than 100"));
         }
-        System.out.println(objectDto);
+        objectServiceImpl.validationCreateWithDatabase(bindingResult, objectDto);
         if(bindingResult.hasErrors()){
             Map<String, String> errors = new HashMap<>();
             for (FieldError error : bindingResult.getFieldErrors()) {
@@ -94,7 +94,7 @@ public class ObjectController {
             bindingResult.addError(new FieldError("objectDto", "agency", "The sum of percentages must be less than 100"));
             bindingResult.addError(new FieldError("objectDto", "manager", "The sum of percentages must be less than 100"));
         }
-        System.out.println(objectDto);
+        objectServiceImpl.validationUpdateWithDatabase(bindingResult, objectDto);
         if(bindingResult.hasErrors()){
             Map<String, String> errors = new HashMap<>();
             for (FieldError error : bindingResult.getFieldErrors()) {

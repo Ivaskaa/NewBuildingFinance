@@ -422,11 +422,6 @@
     }
 
     function validationMessage(validation){
-        if(validation === 1){
-            document.getElementById('nameMessage').innerHTML = "";
-            document.getElementById('name').style.border = "1px solid #ced4da";
-            return;
-        }
         if(validation?.name ?? false){
             document.getElementById('nameMessage').innerHTML = validation.name;
             document.getElementById('name').style.border = "1px solid red";
@@ -435,8 +430,9 @@
             document.getElementById('name').style.border = "1px solid green";
         }
         setTimeout(function() {
-            validationMessage(1)
-        }, 5000);
+            document.getElementById('nameMessage').innerHTML = "";
+            document.getElementById('name').style.border = "1px solid #ced4da";
+        }, 4000);
     }
 
     function validationMessageRealtor(validation){
@@ -468,6 +464,16 @@
             document.getElementById('realtorEmailMessage').innerHTML = "";
             document.getElementById('realtorEmail').style.border = "1px solid green";
         }
+        setTimeout(function() {
+            document.getElementById('realtorNameMessage').innerHTML = "";
+            document.getElementById('realtorName').style.border = "1px solid #ced4da";
+            document.getElementById('realtorSurnameMessage').innerHTML = "";
+            document.getElementById('realtorSurname').style.border = "1px solid #ced4da";
+            document.getElementById('realtorPhoneMessage').innerHTML = "";
+            document.getElementById('realtorPhone').style.border = "1px solid #ced4da";
+            document.getElementById('realtorEmailMessage').innerHTML = "";
+            document.getElementById('realtorEmail').style.border = "1px solid #ced4da";
+        }, 4000);
     }
 
     function getAgencyById(){

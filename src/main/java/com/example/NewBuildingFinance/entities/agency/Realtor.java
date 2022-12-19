@@ -23,7 +23,7 @@ public class Realtor {
     private String phone;
     private String email;
     @JoinColumn(name = "agency_id")
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JsonManagedReference
     private Agency agency;
     @JoinColumn(name = "realtor_id")

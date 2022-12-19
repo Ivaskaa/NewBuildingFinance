@@ -11,8 +11,6 @@ public interface NotificationService {
 
     void updateNotificationFromContract(Contract contract);
 
-    void createNotificationFromAgency(Long agencyId);
-
     List<Notification> findAll();
 
     Notification save(Notification object);

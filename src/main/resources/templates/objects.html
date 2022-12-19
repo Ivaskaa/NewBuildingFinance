@@ -176,12 +176,12 @@
             "                       </div>\n" +
             "                   </div>\n" +
             "               </div>\n" +
-            "               <div class=\"d-flex flex-nowrap mt-2\">\n" +
-            "                   <label class=\"m-1\">Active:</label>\n" +
-            "                   <div class=\"form-check form-switch m-1\">\n" +
-            "                       <input id=\"active\" type=\"checkbox\" name=\"active\" class=\"form-check-input\" checked=\"checked\" role=\"switch\">\n" +
-            "                   </div>\n" +
-            "               </div>\n" +
+            // "               <div class=\"d-flex flex-nowrap mt-2\">\n" +
+            // "                   <label class=\"m-1\">Active:</label>\n" +
+            // "                   <div class=\"form-check form-switch m-1\">\n" +
+            // "                       <input id=\"active\" type=\"checkbox\" name=\"active\" class=\"form-check-input\" checked=\"checked\" role=\"switch\">\n" +
+            // "                   </div>\n" +
+            // "               </div>\n" +
             "               <button onclick=\"save('"  + style + "')\" type=\"button\" class=\"btn btn-success mt-2\">Save</button>\n" +
             "           </form>\n" +
             "       </div>"
@@ -224,7 +224,6 @@
         let status = $('#status').val();
         let agency = document.getElementById('agency');
         let manager = document.getElementById('manager');
-        let active = document.getElementById('active');
         let object = {};
         object.house = house.value;
         object.section = section.value;
@@ -232,7 +231,6 @@
         object.status = status;
         object.agency = agency.value;
         object.manager = manager.value;
-        object.active = active.checked;
 
         if(style === 'add') {
             $.ajax({
@@ -327,6 +325,20 @@
             document.getElementById('managerMessage').innerHTML = "";
             document.getElementById('manager').style.border = "1px solid green";
         }
+        setTimeout(function() {
+            document.getElementById('houseMessage').innerHTML = "";
+            document.getElementById('house').style.border = "1px solid #ced4da";
+            document.getElementById('sectionMessage').innerHTML = "";
+            document.getElementById('section').style.border = "1px solid #ced4da";
+            document.getElementById('addressMessage').innerHTML = "";
+            document.getElementById('address').style.border = "1px solid #ced4da";
+            document.getElementById('statusMessage').innerHTML = "";
+            document.getElementById('status').style.border = "1px solid #ced4da";
+            document.getElementById('agencyMessage').innerHTML = "";
+            document.getElementById('agency').style.border = "1px solid #ced4da";
+            document.getElementById('managerMessage').innerHTML = "";
+            document.getElementById('manager').style.border = "1px solid #ced4da";
+        }, 4000);
     }
 
 

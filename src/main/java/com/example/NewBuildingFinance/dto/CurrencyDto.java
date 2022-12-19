@@ -5,6 +5,7 @@ import lombok.Data;
 import org.hibernate.validator.constraints.Range;
 
 import javax.validation.constraints.*;
+import java.math.BigDecimal;
 
 @Data
 public class CurrencyDto {
@@ -15,15 +16,17 @@ public class CurrencyDto {
     @NotBlank(message = "Must not be empty")
     private String name;
     @NotNull(message = "Must not be empty")
-    @Range(min = 0, max = 1000)
-    private Double price;
+    @Digits(integer=3, fraction=4, message = "Must be in ####.#### format")
+    @DecimalMin(value = "0.0001", message = "Must be greater then 0.0001")
+    @DecimalMax(value = "1000.0", message = "Must be less then 1000")
+    private BigDecimal price;
 
     public InternalCurrency build(){
         InternalCurrency currency = new InternalCurrency();
         currency.setId(id);
         currency.setCashRegister(cashRegister);
         currency.setName(name);
-        currency.setPrice(price);
+        currency.setPrice(price.doubleValue());
         return currency;
     }
 

@@ -2,13 +2,13 @@ package com.example.NewBuildingFinance.others.mail.context;
 
 import java.util.Date;
 
-public class AbstractEmailContextBuyerFlatPayment extends AbstractEmailContext {
+public class EmailContextBuyerFlatPayment extends AbstractEmailContext {
     private Date todayDate;
     private Date date;
     private Double planned;
     private Double actually;
 
-    public AbstractEmailContextBuyerFlatPayment() {
+    public EmailContextBuyerFlatPayment() {
         setContext();
     }
 

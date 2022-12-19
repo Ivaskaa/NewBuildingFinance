@@ -276,27 +276,6 @@
     }
 
     function validationMessage(validation){
-        if(validation === 1){
-            document.getElementById('numberMessage').innerHTML = "";
-            document.getElementById('number').style.border = "1px solid #ced4da";
-            document.getElementById('dateMessage').innerHTML = "";
-            document.getElementById('date').style.border = "1px solid #ced4da";
-            document.getElementById('flatMessage').innerHTML = "";
-            document.getElementById('flat').style.border = "1px solid #ced4da";
-            document.getElementById('objectMessage').innerHTML = "";
-            document.getElementById('object').style.border = "1px solid #ced4da";
-            document.getElementById('flatPaymentMessage').innerHTML = "";
-            document.getElementById('flatPayment').style.border = "1px solid #ced4da";
-            document.getElementById('articleMessage').innerHTML = "";
-            document.getElementById('article').style.border = "1px solid #ced4da";
-            document.getElementById('priceMessage').innerHTML = "";
-            document.getElementById('price').style.border = "1px solid #ced4da";
-            document.getElementById('currencyMessage').innerHTML = "";
-            document.getElementById('currency').style.border = "1px solid #ced4da";
-            document.getElementById('admissionCourseMessage').innerHTML = "";
-            document.getElementById('admissionCourse').style.border = "1px solid #ced4da";
-            return;
-        }
         if(validation?.number ?? false){
             document.getElementById('numberMessage').innerHTML = validation.number;
             document.getElementById('number').style.border = "1px solid red";
@@ -361,7 +340,24 @@
             document.getElementById('admissionCourse').style.border = "1px solid green";
         }
         setTimeout(function() {
-            validationMessage(1)
+            document.getElementById('numberMessage').innerHTML = "";
+            document.getElementById('number').style.border = "1px solid #ced4da";
+            document.getElementById('dateMessage').innerHTML = "";
+            document.getElementById('date').style.border = "1px solid #ced4da";
+            document.getElementById('flatMessage').innerHTML = "";
+            document.getElementById('flat').style.border = "1px solid #ced4da";
+            document.getElementById('objectMessage').innerHTML = "";
+            document.getElementById('object').style.border = "1px solid #ced4da";
+            document.getElementById('flatPaymentMessage').innerHTML = "";
+            document.getElementById('flatPayment').style.border = "1px solid #ced4da";
+            document.getElementById('articleMessage').innerHTML = "";
+            document.getElementById('article').style.border = "1px solid #ced4da";
+            document.getElementById('priceMessage').innerHTML = "";
+            document.getElementById('price').style.border = "1px solid #ced4da";
+            document.getElementById('currencyMessage').innerHTML = "";
+            document.getElementById('currency').style.border = "1px solid #ced4da";
+            document.getElementById('admissionCourseMessage').innerHTML = "";
+            document.getElementById('admissionCourse').style.border = "1px solid #ced4da";
         }, 4000);
     }
 
@@ -369,27 +365,16 @@
         deleteObjFirst(url, "/deleteIncomeById", Income.id)
     }
     function afterDeleteObjFirst(){
-        success();
-        setTimeout(function() {
-            window.location = '/cashRegister/';
-        }, 1000);
+        window.location = '/cashRegister/';
     }
 
     //upload info
 
     function uploadPriceInput(){
         if (Planned !== undefined){
-            Currencies.forEach((element) => {
-                if(element.name === 'USD'){
-                    document.getElementById('price').value = roundPlus(Planned * element.price / document.getElementById('admissionCourse').value, 2);
-                }
-            })
+            document.getElementById('price').value = roundPlus(Planned / document.getElementById('admissionCourse').value, 2);
         } else {
-            Currencies.forEach((element) => {
-                if(element.name === 'USD'){
-                    document.getElementById('price').value = roundPlus(document.getElementById('price').value * element.price / document.getElementById('admissionCourse').value, 2);
-                }
-            })
+            document.getElementById('price').value = roundPlus(document.getElementById('price').value / document.getElementById('admissionCourse').value, 2);
         }
     }
 
@@ -397,11 +382,7 @@
         if(Currency.name !== undefined){
             if(Planned !== undefined) {
                 // all not undefined
-                Currencies.forEach((element) => {
-                    if (element.name === 'USD') {
-                        document.getElementById('price').value = roundPlus(Planned * element.price / Currency.price, 2);
-                    }
-                })
+                document.getElementById('price').value = roundPlus(Planned / Currency.price, 2);
             }
         } else if(Planned !== undefined) {
             // currency undefined
@@ -446,7 +427,7 @@
                         Currency.name = element.name;
                         Currency.price = element.price;
                         document.getElementById('admissionCourse').value = element.price;
-                        document.getElementById('admissionCourse').disabled = element.name === 'UAH';
+                        document.getElementById('admissionCourse').disabled = element.name === 'USD';
                         uploadPriceCurrency();
                     }
                 })
@@ -515,7 +496,7 @@
                         $("#currency").append($("" +
                             "<option selected value='" + element.id + "'> " + element.name + " (" + element.price + ")</option>"
                         ));
-                        document.getElementById('admissionCourse').disabled = element.name === 'UAH';
+                        document.getElementById('admissionCourse').disabled = element.name === 'USD';
                     } else {
                         $("#currency").append($("" +
                             "<option value='" + element.id + "'> " + element.name + " (" + element.price + ")</option>"
