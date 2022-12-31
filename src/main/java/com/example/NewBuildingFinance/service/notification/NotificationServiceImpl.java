@@ -1,13 +1,14 @@
 package com.example.NewBuildingFinance.service.notification;
 
+import com.example.NewBuildingFinance.entities.agency.Agency;
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
 import com.example.NewBuildingFinance.entities.contract.Contract;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
 import com.example.NewBuildingFinance.entities.notification.Notification;
 import com.example.NewBuildingFinance.repository.FlatPaymentRepository;
 import com.example.NewBuildingFinance.repository.NotificationRepository;
-import com.example.NewBuildingFinance.service.buyer.BuyerServiceImpl;
-import com.example.NewBuildingFinance.service.setting.SettingServiceImpl;
+import com.example.NewBuildingFinance.service.buyer.BuyerService;
+import com.example.NewBuildingFinance.service.setting.SettingService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -23,15 +24,16 @@ public class NotificationServiceImpl implements NotificationService{
     private final SimpMessagingTemplate template;
     private final NotificationRepository notificationRepository;
     private final FlatPaymentRepository flatPaymentRepository;
-    private final SettingServiceImpl settingService;
-    private final BuyerServiceImpl buyerServiceImpl;
+
+    private final SettingService settingService;
+    private final BuyerService buyerService;
 
     @Override
     public void createNotificationFromContract(Contract contract) {
         if(settingService.getSettings().isNotificationContract()) {
             log.info("create notification from contract");
             Notification notification = new Notification();
-            Buyer buyer = buyerServiceImpl.findById(contract.getBuyer().getId());
+            Buyer buyer = buyerService.findById(contract.getBuyer().getId());
             notification.setName("New contract. buyer: " + buyer.getSurname() + " " + buyer.getName());
             notification.setContract(contract);
             notification.setUrl("/contracts/contract/" + contract.getId());
@@ -46,7 +48,7 @@ public class NotificationServiceImpl implements NotificationService{
         if(settingService.getSettings().isNotificationContract()) {
             log.info("update notification from contract");
             Notification notification = findByContractId(contract.getId());
-            Buyer buyer = buyerServiceImpl.findById(contract.getBuyer().getId());
+            Buyer buyer = buyerService.findById(contract.getBuyer().getId());
             notification.setName("Update contract. buyer: " + buyer.getSurname() + " " + buyer.getName());
             notification.setContract(contract);
             notification.setUrl("/contracts/contract/" + contract.getId());
@@ -68,17 +70,27 @@ public class NotificationServiceImpl implements NotificationService{
         log.info("success delete notification from contract");
     }
 
-    @Override
-    public void createNotificationFromAgency(Long agencyId) {
+    public void createNotificationFromAgency(Agency agency) {
         if(settingService.getSettings().isNotificationAgency()) {
             log.info("create notification from agency");
             Notification notification = new Notification();
             notification.setName("New agency");
-            notification.setUrl("/agencies/agency/" + agencyId);
+            notification.setAgency(agency);
+            notification.setUrl("/agencies/agency/" + agency.getId());
             save(notification);
             template.convertAndSend("/topic/notifications", "Hello");
             log.info("success create notification from agency");
         }
+    }
+
+    public void deleteNotificationByAgencyId(Long agencyId) {
+        log.info("delete notification by agency id: {}", agencyId);
+        Notification notification = notificationRepository.findByAgencyId(agencyId);
+        if(notification != null){
+            notificationRepository.deleteById(notification.getId());
+        }
+        template.convertAndSend("/topic/notifications", "Hello");
+        log.info("success delete notification from contract");
     }
 
     @Override

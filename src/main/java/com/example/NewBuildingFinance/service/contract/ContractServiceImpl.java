@@ -12,9 +12,9 @@ import com.example.NewBuildingFinance.others.specifications.ContractSpecificatio
 import com.example.NewBuildingFinance.repository.CashRegisterRepository;
 import com.example.NewBuildingFinance.repository.ContractRepository;
 import com.example.NewBuildingFinance.repository.FlatRepository;
-import com.example.NewBuildingFinance.service.notification.NotificationServiceImpl;
-import com.example.NewBuildingFinance.service.setting.SettingServiceImpl;
-import com.example.NewBuildingFinance.service.staticService.StaticServiceImpl;
+import com.example.NewBuildingFinance.service.notification.NotificationService;
+import com.example.NewBuildingFinance.service.setting.SettingService;
+import com.example.NewBuildingFinance.service.staticService.StaticService;
 import com.itextpdf.html2pdf.HtmlConverter;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import lombok.AllArgsConstructor;
@@ -45,9 +45,9 @@ public class ContractServiceImpl implements ContractService {
     private final FlatRepository flatRepository;
     private final CashRegisterRepository cashRegisterRepository;
 
-    private final NotificationServiceImpl notificationServiceImpl;
-    private final SettingServiceImpl settingService;
-    private final StaticServiceImpl staticService;
+    private final NotificationService notificationService;
+    private final SettingService settingService;
+    private final StaticService staticService;
 
     @Override
     public Page<ContractTableDto> findSortingAndSpecificationPage(
@@ -116,10 +116,14 @@ public class ContractServiceImpl implements ContractService {
         log.info("success get contract page for agency");
         return contracts;
     }
-
+    @Override
     public Page<CommissionTableDtoForAgency> findSortingCommissionsPageByAgencyId(
-            Integer page, Integer size, String field, String direction,
-            Long agencyId) {
+            Integer page,
+            Integer size,
+            String field,
+            String direction,
+            Long agencyId
+    ) {
         log.info("get commission page for agency id: {} page: {}, size: {} field: {}, direction: {}",
                 agencyId, page - 1, size, field, direction);
         Sort sort = Sort.by(Sort.Direction.valueOf(direction), field);
@@ -147,7 +151,7 @@ public class ContractServiceImpl implements ContractService {
         flatRepository.save(flat);
         ContractUploadDto contractUploadDto = contractAfterSave.buildUploadDto();
 
-        notificationServiceImpl.createNotificationFromContract(contractAfterSave);
+        notificationService.createNotificationFromContract(contractAfterSave);
 
         log.info("success save contract");
         return contractUploadDto;
@@ -172,7 +176,7 @@ public class ContractServiceImpl implements ContractService {
         flatRepository.save(flat);
         ContractUploadDto contractUploadDto = contractAfterSave.buildUploadDto();
 
-        notificationServiceImpl.updateNotificationFromContract(contractAfterSave);
+        notificationService.updateNotificationFromContract(contractAfterSave);
 
         log.info("success update contract");
         return contractUploadDto;
@@ -188,7 +192,7 @@ public class ContractServiceImpl implements ContractService {
             flatRepository.save(flat);
         }
         contractRepository.setDeleted(contractId);
-        notificationServiceImpl.deleteNotificationByContractId(contractId);
+        notificationService.deleteNotificationByContractId(contractId);
         log.info("success delete contract by id");
     }
 
@@ -276,7 +280,8 @@ public class ContractServiceImpl implements ContractService {
         return contract == null;
     }
 
-    public void checkDocument(BindingResult bindingResult, ContractSaveDto contractSaveDto) {
+    @Override
+    public void documentValidation(BindingResult bindingResult, ContractSaveDto contractSaveDto) {
         if(contractSaveDto.getDocumentStyle() == null || contractSaveDto.getDocumentStyle().equals("")){
             return;
         }

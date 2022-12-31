@@ -16,4 +16,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     List<Notification> findAllByInListTrue();
     Optional<Notification> findByContractId(Long contract_id);
     List<Notification> findAllByInListTrueAndReviewedTrue();
+
+    Notification findByAgencyId(Long agencyId);
 }

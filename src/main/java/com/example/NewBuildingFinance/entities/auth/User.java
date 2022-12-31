@@ -36,6 +36,7 @@ public class User implements UserDetails {
     private String username; // email
     private String password;
     private boolean active;
+    private boolean mainAdmin = false;
     private boolean deleted = false;
     @JoinColumn(name = "role_id")
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
@@ -99,29 +100,4 @@ public class User implements UserDetails {
                 ", role=" + role +
                 '}';
     }
-
-//    public ProfileDto buildProfile() throws ParseException {
-//        ProfileDto profile = new ProfileDto();
-//        profile.setId(id);
-//        profile.setName(name);
-//        profile.setSurname(surname);
-//        if(!lastname.equals("")) {
-//            profile.setLastname(lastname);
-//        }
-//        if(birthday!= null) {
-//            profile.setBirthday(birthday.toString());
-//        }
-//        profile.setPhone(phone);
-//        if(viber != null && !viber.equals("")){
-//            profile.setViber(viber);
-//        }
-//        if(telegram != null && !telegram.equals("")) {
-//            profile.setTelegram(telegram);
-//        }
-//        if(aboutMe != null && !aboutMe.equals("")) {
-//            profile.setAboutMe(aboutMe);
-//        }
-//        profile.setUsername(username);
-//        return profile;
-//    }
 }

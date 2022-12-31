@@ -4,6 +4,7 @@ package com.example.NewBuildingFinance.entities.buyer;
 import com.example.NewBuildingFinance.dto.buyer.BuyerTableDto;
 import com.example.NewBuildingFinance.dto.buyer.BuyerUploadDto;
 import com.example.NewBuildingFinance.entities.agency.Realtor;
+import com.example.NewBuildingFinance.entities.auth.Permission;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.flat.StatusFlat;
@@ -14,6 +15,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Formula;
 
 import javax.persistence.*;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -39,10 +41,11 @@ public class Buyer {
 
     private Long idCardNumber;
     private Integer idCardWhoIssued;
-
     private String phone;
     private String email;
     private String note;
+
+    private String password;
     @JoinColumn(name = "buyer_id")
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JsonBackReference
@@ -55,6 +58,10 @@ public class Buyer {
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JsonManagedReference
     private User user;
+    @JoinColumn(name = "permission_id")
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
+    private Permission permission;
+    private boolean active = true;
     private boolean deleted = false;
 
     @Formula("(select count(*) from flats where flats.buyer_id = id and flats.contract_id IS NOT NULL)")

@@ -1,12 +1,16 @@
 package com.example.NewBuildingFinance.service.flat;
 
+import com.example.NewBuildingFinance.dto.flat.FlatSaveDto;
 import com.example.NewBuildingFinance.dto.flat.FlatTableDto;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.flat.StatusFlat;
 import org.springframework.data.domain.Page;
+import org.springframework.data.util.Pair;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.List;
 
@@ -111,6 +115,13 @@ public interface FlatService {
     ResponseEntity<byte[]> getXlsxErrors() throws IOException;
 
     /**
+     * flat statuses for individual flat
+     * @param flatId flat id
+     * @return list a pair of status and status value
+     */
+    List<Pair<StatusFlat, String>> getStatusesByFlatId(@NotNull Long flatId);
+
+    /**
      * get flat list with contract with flat payments and by object id or flat id
      * @param id object id
      * @param flatId flat id (can be null)
@@ -127,9 +138,34 @@ public interface FlatService {
     List<Flat> getFlatsWithoutContractByObjectId(Long id, Long flatId);
 
     /**
+     * price and sale price validation
+     * @param bindingResult binding result for exceptions
+     * @param flatSaveDto flat dto
+     * @return false if we have exceptions
+     */
+    boolean validationWithoutDatabase(@NotNull BindingResult bindingResult, @NotNull FlatSaveDto flatSaveDto);
+
+    /**
+     * validation for create flat
+     * @param bindingResult binding result for exceptions
+     * @param flatSaveDto flat dto
+     * @return false if we have exceptions
+     */
+    boolean validationCreateWithDatabase(@NotNull BindingResult bindingResult, @NotNull FlatSaveDto flatSaveDto);
+
+    /**
+     * validation for update flat
+     * @param bindingResult binding result for exceptions
+     * @param flatSaveDto flat dto
+     * @return false if we have exceptions
+     */
+    boolean validationUpdateWithDatabase(@NotNull BindingResult bindingResult, @NotNull FlatSaveDto flatSaveDto);
+
+    /**
      * check status (without database)
      * @param status flat status
      * @return if status equals active return false
      */
     boolean validationCheckStatus(StatusFlat status);
+
 }

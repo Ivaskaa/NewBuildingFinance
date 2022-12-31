@@ -1,5 +1,6 @@
 package com.example.NewBuildingFinance.entities.notification;
 
+import com.example.NewBuildingFinance.entities.agency.Agency;
 import com.example.NewBuildingFinance.entities.contract.Contract;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -25,6 +26,10 @@ public class Notification {
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JsonBackReference
     private FlatPayment flatPayment;
+    @JoinColumn(name = "agency_id")
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @JsonBackReference
+    private Agency agency;
     @NotEmpty
     private String name;
     @NotEmpty

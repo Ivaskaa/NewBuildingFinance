@@ -15,7 +15,8 @@ import java.util.List;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>{
     User findByUsername(String username);
-    Page<User> findAllByDeletedFalse(Pageable pageable);
+    User findByMainAdminTrue();
+    Page<User> findAllByDeletedFalseAndMainAdminFalse(Pageable pageable);
     @Query("SELECT u from User u JOIN u.role.permissions p where p.name = 'BUYERS' and u.active = true and u.deleted = false or u.id = :id group by u.id")
     List<User> findManagers(@Param("id") Long userId);
 

@@ -2,6 +2,9 @@ package com.example.NewBuildingFinance.controllers.settings;
 
 import com.example.NewBuildingFinance.dto.auth.RoleDto;
 import com.example.NewBuildingFinance.entities.auth.User;
+import com.example.NewBuildingFinance.service.auth.role.RoleService;
+import com.example.NewBuildingFinance.service.auth.user.UserService;
+import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyService;
 import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
 import com.example.NewBuildingFinance.service.auth.role.RoleServiceImpl;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
@@ -26,9 +29,9 @@ import java.util.Map;
 @AllArgsConstructor
 @RequestMapping("/settings")
 public class RoleController {
-    private final InternalCurrencyServiceImpl currencyService;
-    private final RoleServiceImpl roleServiceImpl;
-    private final UserServiceImpl userServiceImpl;
+    private final InternalCurrencyService internalCurrencyService;
+    private final RoleService roleService;
+    private final UserService userService;
     private final ObjectMapper mapper;
 
     @GetMapping( "/roles" )
@@ -36,8 +39,8 @@ public class RoleController {
             Model model
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", currencyService.findAll());
+        User user = userService.loadUserByUsername(authentication.getName());
+        model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("user", user);
         return "roles";
     }
@@ -49,7 +52,7 @@ public class RoleController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        if (roleServiceImpl.checkName(roleDto.getName())){
+        if (roleService.checkName(roleDto.getName())){
             bindingResult.addError(new FieldError("roleDto", "name", "Role has already been created"));
         }
         if(bindingResult.hasErrors()){
@@ -61,7 +64,7 @@ public class RoleController {
         }
 
         //action
-        roleServiceImpl.save(roleDto.build());
+        roleService.save(roleDto.build());
         return mapper.writeValueAsString(null);
     }
 
@@ -71,14 +74,14 @@ public class RoleController {
             @RequestBody List<RoleDto> roleDtoList
     ) throws IOException {
         //action
-        roleServiceImpl.updateRoles(roleDtoList);
+        roleService.updateRoles(roleDtoList);
         return mapper.writeValueAsString(null);
     }
 
     @GetMapping("/getRoles")
     @ResponseBody
     public String getRoles() throws JsonProcessingException {
-        return mapper.writeValueAsString(roleServiceImpl.findAll());
+        return mapper.writeValueAsString(roleService.findAll());
     }
 
     @PostMapping("/deleteRoleById")
@@ -86,7 +89,7 @@ public class RoleController {
     public String deleteRoleById(
             Long id
     ) throws JsonProcessingException {
-        roleServiceImpl.deleteById(id);
+        roleService.deleteById(id);
         return mapper.writeValueAsString("success");
     }
 }

@@ -35,10 +35,12 @@ public interface AgencyService {
     );
 
     /**
-     * find all agencies
-     * @return list of agency
+     * find all not deleted agencies
+     * if we put deleted agency id agency will return
+     * @param agencyId agency id
+     * @return list agency
      */
-    List<Agency> findAllByDeletedFalseOrId(Long agencyId);
+    List<Agency> findAllByDeletedFalse(Long agencyId);
 
     /**
      * save new agency
@@ -69,6 +71,8 @@ public interface AgencyService {
 
     /**
      * in database check unique agency name
+     * with database requests:
+     * agencyRepository - findByNameAndDeletedFalse
      * @param name agency name
      * @return if name is exist return true
      */

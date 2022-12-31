@@ -45,7 +45,7 @@ public class StaticServiceImpl implements StaticService{
         log.info("delete photo in " + directory + " directory");
     }
 
-
+    @Override
     public Sort sort(String sortingField, String sortingDirection) {
         Sort sort;
         if(sortingField.contains(" and ")){

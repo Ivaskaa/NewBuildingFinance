@@ -9,10 +9,7 @@ import com.example.NewBuildingFinance.entities.flat.*;
 import com.example.NewBuildingFinance.entities.object.Object_;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -64,6 +61,96 @@ public class FlatStatisticSpecification {
         Double finalPriceFin = priceFin;
         return (root, query, cb) -> {
             return cb.between(root.get(Flat_.SALE_PRICE), finalPriceStart, finalPriceFin);
+        };
+    }
+    public static Specification<Flat> betweenFact(Double factStart, Double factFin) {
+        if (factStart == null && factFin == null) {
+            return null;
+        }
+        if (factStart == null){
+            factStart = Double.MIN_VALUE;
+        }
+        if (factFin == null){
+            factFin = Double.MAX_VALUE;
+        }
+        Double finalFactStart = factStart;
+        Double finalFactFin = factFin;
+
+
+        return (root, query, cb) -> {
+            Subquery<Double> subFlatPayment = query.subquery(Double.class);
+            Root<FlatPayment> subRoot = subFlatPayment.from(FlatPayment.class);
+
+            subFlatPayment.select(cb.sum(subRoot.get(FlatPayment_.ACTUALLY)));
+            subFlatPayment.where(cb.equal(subRoot.get(FlatPayment_.FLAT).get(Flat_.ID), root.get(Flat_.ID)));
+            subFlatPayment.groupBy(subRoot.get(FlatPayment_.FLAT).get(Flat_.ID));
+
+            return cb.between(subFlatPayment, finalFactStart, finalFactFin);
+        };
+    }
+    public static Specification<Flat> betweenRemains(Double remainsStart, Double remainsFin) {
+        if (remainsStart == null && remainsFin == null) {
+            return null;
+        }
+        if (remainsStart == null){
+            remainsStart = Double.MIN_VALUE;
+        }
+        if (remainsFin == null){
+            remainsFin = Double.MAX_VALUE;
+        }
+        Integer finalAdvanceStart = remainsStart.intValue();
+        Integer finalAdvanceFin = remainsFin.intValue();
+
+
+        return (root, query, cb) -> {
+            Subquery<Integer> subFlatPayment = query.subquery(Integer.class);
+            Root<FlatPayment> subRoot = subFlatPayment.from(FlatPayment.class);
+
+            subFlatPayment.select(
+                    cb.sum(
+                            cb.diff(
+                                    subRoot.get(FlatPayment_.PLANNED),
+                                    cb.coalesce(subRoot.get(FlatPayment_.ACTUALLY), 0))));
+            subFlatPayment.where(cb.and(
+                    cb.equal(subRoot.get(FlatPayment_.FLAT).get(Flat_.ID), root.get(Flat_.ID)),
+                    cb.isFalse(subRoot.get(FlatPayment_.DELETED))
+            ));
+            subFlatPayment.groupBy(subRoot.get(FlatPayment_.FLAT).get(Flat_.ID));
+
+            return cb.between(subFlatPayment, finalAdvanceStart, finalAdvanceFin);
+        };
+    }
+    public static Specification<Flat> betweenDebt(Double debtStart, Double debtFin) {
+        if (debtStart == null && debtFin == null) {
+            return null;
+        }
+        if (debtStart == null){
+            debtStart = Double.MIN_VALUE;
+        }
+        if (debtFin == null){
+            debtFin = Double.MAX_VALUE;
+        }
+        Double finalDebtStart = debtStart;
+        Double finalDebtFin = debtFin;
+
+
+        return (root, query, cb) -> {
+            Subquery<Double> subFlatPayment = query.subquery(Double.class);
+            Root<FlatPayment> subRoot = subFlatPayment.from(FlatPayment.class);
+
+            subFlatPayment.select(
+                    cb.sum(
+                            cb.diff(
+                                    subRoot.get(FlatPayment_.PLANNED),
+                                    subRoot.get(FlatPayment_.ACTUALLY))));
+            subFlatPayment.where(cb.and(
+                    cb.equal(subRoot.get(FlatPayment_.FLAT).get(Flat_.ID), root.get(Flat_.ID)),
+                    cb.isNotNull(subRoot.get(FlatPayment_.ACTUALLY)),
+                    cb.isFalse(subRoot.get(FlatPayment_.DELETED))
+            ));
+            subFlatPayment.groupBy(subRoot.get(FlatPayment_.FLAT).get(Flat_.ID));
+
+            return cb.between(subFlatPayment, finalDebtStart, finalDebtFin);
         };
     }
     public static Specification<Flat> likeStatus(String status) {
@@ -146,6 +233,15 @@ public class FlatStatisticSpecification {
     public static Specification<Flat> deletedFalse() {
         return (root, query, cb) -> {
             return cb.isFalse(root.get(Flat_.DELETED));
+        };
+    }
+
+    public static Specification<Flat> likeSale(Double sale) {
+        if (sale == null){
+            return null;
+        }
+        return (root, query, cb) -> {
+            return cb.equal(cb.diff(root.get(Flat_.PRICE), root.get(Flat_.SALE_PRICE)), sale);
         };
     }
 }

@@ -7,5 +7,10 @@ import java.util.List;
 
 public interface RestTemplateService {
 
+    /**
+     * request on national Ukrainian bank for currencies
+     * @return list of currency json
+     * @throws JsonProcessingException
+     */
     List<CurrencyJson> getCurrency() throws JsonProcessingException;
 }

@@ -2,6 +2,8 @@ package com.example.NewBuildingFinance.controllers;
 
 import com.example.NewBuildingFinance.dto.auth.ProfileDto;
 import com.example.NewBuildingFinance.entities.auth.User;
+import com.example.NewBuildingFinance.service.auth.profile.ProfileService;
+import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyService;
 import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
 import com.example.NewBuildingFinance.service.auth.profile.ProfileServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,8 +28,8 @@ import java.util.Map;
 @AllArgsConstructor
 @RequestMapping("/profile")
 public class ProfileController {
-    private final InternalCurrencyServiceImpl currencyService;
-    private final ProfileServiceImpl profileServiceImpl;
+    private final InternalCurrencyService internalCurrencyService;
+    private final ProfileService profileService;
     private final ObjectMapper mapper;
 
     @GetMapping()
@@ -35,8 +37,8 @@ public class ProfileController {
             Model model
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = profileServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", currencyService.findAll());
+        User user = profileService.loadUserByUsername(authentication.getName());
+        model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("user", user);
         return "profile";
     }
@@ -50,22 +52,22 @@ public class ProfileController {
     ) throws IOException, ParseException {
         //validation
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = profileServiceImpl.loadUserByUsername(authentication.getName());
-        if (profileServiceImpl.checkPhone(profile.getPhone())) {
+        User user = profileService.loadUserByUsername(authentication.getName());
+        if (profileService.checkPhone(profile.getPhone())) {
             bindingResult.addError(new FieldError("profileDto", "phone", "Phone must be valid"));
         }
-        if (profileServiceImpl.checkViber(profile.getViber())) {
+        if (profileService.checkViber(profile.getViber())) {
             bindingResult.addError(new FieldError("profileDto", "viber", "Viber must be valid"));
         }
         if (!user.getUsername().equals(profile.getUsername())) {
-            if (profileServiceImpl.checkEmail(profile.getUsername())) {
+            if (profileService.checkEmail(profile.getUsername())) {
                 bindingResult.addError(new FieldError("profileDto", "username", "Email is already registered"));
             }
         }
-        if (profileServiceImpl.checkRightPassword(user.getPassword(), profile.getPassword())) {
+        if (profileService.checkRightPassword(user.getPassword(), profile.getPassword())) {
             bindingResult.addError(new FieldError("profileDto", "password", "Wrong password"));
         } else {
-            if (profileServiceImpl.checkRepeatPassword(profile.getFirstPassword(), profile.getSecondPassword())) {
+            if (profileService.checkRepeatPassword(profile.getFirstPassword(), profile.getSecondPassword())) {
                 bindingResult.addError(new FieldError("profileDto", "firstPassword", "Passwords must be equals"));
                 bindingResult.addError(new FieldError("profileDto", "secondPassword", "Passwords must be equals"));
             }
@@ -79,7 +81,7 @@ public class ProfileController {
         }
 
         //action
-        profileServiceImpl.update(profile.build(), file);
+        profileService.update(profile.build(), file);
         return mapper.writeValueAsString(null);
     }
 
@@ -87,7 +89,7 @@ public class ProfileController {
     @ResponseBody
     public String getProfile() throws JsonProcessingException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = profileServiceImpl.loadUserByUsername(authentication.getName());
+        User user = profileService.loadUserByUsername(authentication.getName());
         return mapper.writeValueAsString(user);
     }
 }

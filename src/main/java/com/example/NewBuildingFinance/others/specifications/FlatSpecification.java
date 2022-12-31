@@ -1,6 +1,7 @@
 package com.example.NewBuildingFinance.others.specifications;
 
 import com.example.NewBuildingFinance.entities.agency.Agency_;
+import com.example.NewBuildingFinance.entities.agency.Realtor;
 import com.example.NewBuildingFinance.entities.agency.Realtor_;
 import com.example.NewBuildingFinance.entities.buyer.Buyer_;
 import com.example.NewBuildingFinance.entities.contract.Contract_;
@@ -77,7 +78,7 @@ public class FlatSpecification {
             return null;
         }
         if (advanceStart == null){
-            advanceStart = Integer.MIN_VALUE;
+            advanceStart = 0;
         }
         if (advanceFin == null){
             advanceFin = Integer.MAX_VALUE;
@@ -87,20 +88,21 @@ public class FlatSpecification {
 
 
         return (root, query, cb) -> {
-            Join<Flat, FlatPayment> bListJoin = root.join(Flat_.FLAT_PAYMENTS, JoinType.INNER);
+            Subquery<Long> subFlatPaymentForDate = query.subquery(Long.class);
+            Root<FlatPayment> subRootForDate = subFlatPaymentForDate.from(FlatPayment.class);
 
-//            Subquery<Date> sq = query.subquery(Date.class);
-//
-//            sq.select(cb.least(bListJoin.<Date>get(FlatPayment_.DATE)));
-//
-//            List<Predicate> predicates = new ArrayList<>();
-//            predicates.add(cb.equal(bListJoin.get(FlatPayment_.PLANNED), sq));
-//            predicates.add(cb.between())
-//            cb.least(bListJoin.<String>get(FlatPayment_.DATE));
-//            Predicate p = cb.equal(c.get("date"), sq);
-//            return cb.between(root.get(FlatPayment_.PLANNED), finalAdvanceStart, finalAdvanceFin);
-//            return cb.and(predicates.toArray(new Predicate[0]));
-            return null;
+            subFlatPaymentForDate.select(cb.min(subRootForDate.get(FlatPayment_.DATE)));
+            subFlatPaymentForDate.where(cb.equal(subRootForDate.get(FlatPayment_.FLAT).get(Flat_.ID), root.get(Flat_.ID)));
+            subFlatPaymentForDate.groupBy(subRootForDate.get(FlatPayment_.FLAT).get(Flat_.ID));
+
+            SetJoin<Flat, FlatPayment> subJoin = root.joinSet(Flat_.FLAT_PAYMENTS, JoinType.INNER);
+
+            query.groupBy(subJoin.get(FlatPayment_.FLAT).get(Flat_.ID));
+
+            return cb.and(
+                    cb.between(subJoin.get(FlatPayment_.PLANNED), finalAdvanceStart, finalAdvanceFin),
+                    cb.equal(subJoin.get(FlatPayment_.DATE), subFlatPaymentForDate)
+            );
         };
     }
 
@@ -114,19 +116,19 @@ public class FlatSpecification {
         if (enteredFin == null){
             enteredFin = Integer.MAX_VALUE;
         }
-        Integer finalAdvanceStart = enteredStart;
-        Integer finalAdvanceFin = enteredFin;
+        Integer finalEnteredStart = enteredStart;
+        Integer finalEnteredFin = enteredFin;
 
 
         return (root, query, cb) -> {
+            Subquery<Integer> subFlatPayment = query.subquery(Integer.class);
+            Root<FlatPayment> subRoot = subFlatPayment.from(FlatPayment.class);
 
-//            Join<Flat, FlatPayment> bListJoin = root.join(Flat_.FLAT_PAYMENTS, JoinType.INNER);
-//            List<Predicate> predicates = new ArrayList<>();
-//            predicates.add(cb.like(bListJoin.get(Realtor_.PHONE), "%" + phone.toLowerCase(Locale.ROOT) + "%"));
-//            return cb.and(predicates.toArray(new Predicate[0]));
-//            return cb.equal(cb.sum(root.get(Flat_.PRICE)));
+            subFlatPayment.select(cb.sum(subRoot.get(FlatPayment_.ACTUALLY)));
+            subFlatPayment.where(cb.equal(subRoot.get(FlatPayment_.FLAT).get(Flat_.ID), root.get(Flat_.ID)));
+            subFlatPayment.groupBy(subRoot.get(FlatPayment_.FLAT).get(Flat_.ID));
 
-            return null;
+            return cb.between(subFlatPayment, finalEnteredStart, finalEnteredFin);
         };
     }
 
@@ -144,28 +146,22 @@ public class FlatSpecification {
         Integer finalAdvanceFin = remainsFin;
 
 
-        return (root, query, builder) -> {
-//            CriteriaBuilder builder = manager.getCriteriaBuilder();
-//            CriteriaQuery<OfferEntity> query = builder.createQuery(OfferEntity.class);
-//            Root<OfferEntity> root = query.from(OfferEntity.class);
+        return (root, query, cb) -> {
+            Subquery<Integer> subFlatPayment = query.subquery(Integer.class);
+            Root<FlatPayment> subRoot = subFlatPayment.from(FlatPayment.class);
 
-            Join<Flat, FlatPayment> join = root.join(Flat_.FLAT_PAYMENTS, JoinType.INNER);
-            query.groupBy(join.get(FlatPayment_.FLAT));
+            subFlatPayment.select(
+                    cb.sum(
+                            cb.diff(
+                                    subRoot.get(FlatPayment_.PLANNED),
+                                    cb.coalesce(subRoot.get(FlatPayment_.ACTUALLY), 0))));
+            subFlatPayment.where(cb.and(
+                    cb.equal(subRoot.get(FlatPayment_.FLAT).get(Flat_.ID), root.get(Flat_.ID)),
+                    cb.isFalse(subRoot.get(FlatPayment_.DELETED))
+            ));
+            subFlatPayment.groupBy(subRoot.get(FlatPayment_.FLAT).get(Flat_.ID));
 
-            Root<FlatPayment> rootFlatPayment = query.from(FlatPayment.class);
-
-//            List<Predicate> predicates = new ArrayList<>();
-//            predicates.add(cb.like(bListJoin.get(Realtor_.PHONE), "%" + phone.toLowerCase(Locale.ROOT) + "%"));
-//            return cb.and(predicates.toArray(new Predicate[0]));
-//            return cb.equal(cb.sum(root.get(Flat_.PRICE)));
-
-//            return builder.between(
-//                    builder.sum(
-//                            query.subquery()
-//                    ),
-//                    finalAdvanceStart, finalAdvanceFin
-//            );
-            return null;
+            return cb.between(subFlatPayment, finalAdvanceStart, finalAdvanceFin);
         };
     }
 

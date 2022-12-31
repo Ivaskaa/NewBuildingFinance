@@ -23,4 +23,15 @@ public class ContractTemplate {
     private String text;
     private boolean main = false;
     private boolean deleted = false;
+
+    @Override
+    public String toString() {
+        return "ContractTemplate{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", text='" + text + '\'' +
+                ", main=" + main +
+                ", deleted=" + deleted +
+                '}';
+    }
 }

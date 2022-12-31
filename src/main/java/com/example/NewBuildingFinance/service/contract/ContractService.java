@@ -1,9 +1,11 @@
 package com.example.NewBuildingFinance.service.contract;
 
+import com.example.NewBuildingFinance.dto.cashRegister.CommissionTableDtoForAgency;
 import com.example.NewBuildingFinance.dto.contract.*;
 import com.example.NewBuildingFinance.entities.contract.Contract;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -74,6 +76,14 @@ public interface ContractService {
             Long agencyId
     );
 
+    Page<CommissionTableDtoForAgency> findSortingCommissionsPageByAgencyId(
+            Integer page,
+            Integer size,
+            String field,
+            String direction,
+            Long agencyId
+    );
+
     /**
      * save new contract
      * @param contractSaveDto contract save dto
@@ -131,4 +141,12 @@ public interface ContractService {
      * @return if contract exist return false
      */
     boolean checkContract(Long id);
+
+    /**
+     * buyer document validation (id card, passport)
+     * without database request
+     * @param bindingResult binding result for exeption
+     * @param contractSaveDto contract dto
+     */
+    void documentValidation(BindingResult bindingResult, ContractSaveDto contractSaveDto);
 }

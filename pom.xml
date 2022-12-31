@@ -104,6 +104,20 @@
 			</exclusions>
 		</dependency>
 
+		<!-- stripe for banking card -->
+		<dependency>
+			<groupId>com.stripe</groupId>
+			<artifactId>stripe-java</artifactId>
+			<version>22.4.0</version>
+		</dependency>
+
+		<!-- password generator-->
+		<dependency>
+			<groupId>org.passay</groupId>
+			<artifactId>passay</artifactId>
+			<version>1.6.2</version>
+		</dependency>
+
 		<!-- tests -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -117,7 +131,6 @@
 		</dependency>
 
 		<!-- html to pdf -->
-
 		<dependency>
 			<groupId>com.itextpdf</groupId>
 			<artifactId>itextpdf</artifactId>
@@ -134,7 +147,7 @@
 			<version>4.0.3</version>
 		</dependency>
 
-		<!-- /pdfbox -->
+		<!-- pdfbox -->
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>pdfbox</artifactId>
@@ -142,7 +155,6 @@
 		</dependency>
 
 		<!-- exel -->
-
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi</artifactId>
@@ -155,7 +167,6 @@
 		</dependency>
 
 		<!-- web sockets -->
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-websocket</artifactId>

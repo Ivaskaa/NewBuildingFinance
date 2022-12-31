@@ -2,11 +2,10 @@ package com.example.NewBuildingFinance.service.agency;
 
 import com.example.NewBuildingFinance.dto.agency.AgencyTableDto;
 import com.example.NewBuildingFinance.entities.agency.Agency;
-import com.example.NewBuildingFinance.entities.object.Object;
 import com.example.NewBuildingFinance.others.specifications.AgencySpecification;
 import com.example.NewBuildingFinance.repository.AgencyRepository;
-import com.example.NewBuildingFinance.service.notification.NotificationServiceImpl;
-import com.example.NewBuildingFinance.service.staticService.StaticServiceImpl;
+import com.example.NewBuildingFinance.service.notification.NotificationService;
+import com.example.NewBuildingFinance.service.staticService.StaticService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -17,15 +16,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Log4j2
 @AllArgsConstructor
 public class AgencyServiceImpl implements AgencyService{
     private final AgencyRepository agencyRepository;
-    private final NotificationServiceImpl notificationServiceImpl;
-    private final StaticServiceImpl staticService;
+    private final NotificationService notificationService;
+    private final StaticService staticService;
 
     @Override
     public Page<AgencyTableDto> findSortingAndSpecificationPage(
@@ -54,18 +52,11 @@ public class AgencyServiceImpl implements AgencyService{
         Page<AgencyTableDto> agencies =
                 agencyRepository.findAll(specification, pageable)
                         .map(Agency::build);
-        log.info("success");
+
+        log.info("success get agency page");
         return agencies;
     }
-
     @Override
-    public List<Agency> findAllByDeletedFalseOrId(Long agencyId) {
-        log.info("get all agency");
-        List<Agency> agencyList = agencyRepository.findAllByDeletedFalseOrId(agencyId);
-        log.info("success");
-        return agencyList;
-    }
-
     public List<Agency> findAllByDeletedFalse(Long agencyId) {
         List<Agency> agencies;
         if(agencyId != null){
@@ -83,7 +74,7 @@ public class AgencyServiceImpl implements AgencyService{
     public Agency save(Agency agency) {
         log.info("save agency: {}", agency);
         Agency agencyAfterSave = agencyRepository.save(agency);
-        notificationServiceImpl.createNotificationFromAgency(agencyAfterSave.getId());
+        notificationService.createNotificationFromAgency(agencyAfterSave);
         log.info("success");
         return agencyAfterSave;
     }
@@ -102,11 +93,8 @@ public class AgencyServiceImpl implements AgencyService{
     @Override
     public void deleteById(Long agencyId) {
         log.info("set agency.delete true by id: {}", agencyId);
-//        Agency agency = agencyRepository.findById(agencyId).orElseThrow();
-//        agency.setDeleted(true);
-//        agencyRepository.save(agency);
-        
         agencyRepository.setDeleted(agencyId);
+        notificationService.deleteNotificationByAgencyId(agencyId);
         log.info("success set agency.delete true");
     }
 

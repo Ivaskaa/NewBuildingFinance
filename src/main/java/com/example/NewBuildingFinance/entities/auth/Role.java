@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -18,8 +19,8 @@ public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-
     private String name;
+    private boolean mainRole = false;
 
     @JoinColumn(name = "role_id")
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
@@ -32,7 +33,7 @@ public class Role {
             joinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "permission_id", referencedColumnName = "id"))
     @JsonManagedReference
-    private Set<Permission> permissions;
+    private List<Permission> permissions;
 
     @Override
     public String toString() {

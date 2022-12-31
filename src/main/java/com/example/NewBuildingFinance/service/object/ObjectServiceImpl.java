@@ -1,5 +1,6 @@
 package com.example.NewBuildingFinance.service.object;
 
+import com.example.NewBuildingFinance.dto.object.ObjectDto;
 import com.example.NewBuildingFinance.dto.object.ObjectTableDto;
 import com.example.NewBuildingFinance.entities.object.Object;
 import com.example.NewBuildingFinance.repository.ObjectRepository;
@@ -10,6 +11,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 
 import java.util.List;
 
@@ -42,6 +45,7 @@ public class ObjectServiceImpl implements ObjectService{
         return objectPage;
     }
 
+    @Override
     public List<Object> findAllOnSaleOrObjectId(Long objectId) {
         List<Object> objects;
         if(objectId != null){
@@ -52,6 +56,7 @@ public class ObjectServiceImpl implements ObjectService{
         return objects;
     }
 
+    @Override
     public List<Object> findAllDeletedFalseOrObjectId(Long objectId) {
         List<Object> objects;
         if(objectId != null){
@@ -60,14 +65,6 @@ public class ObjectServiceImpl implements ObjectService{
             objects = objectRepository.findAllByDeletedFalse();
         }
         return objects;
-    }
-
-    @Override
-    public List<Object> findAllByDeletedFalse() {
-        log.info("find all objects");
-        List<Object> objectPage = objectRepository.findAll();
-        log.info("success find all objects");
-        return objectPage;
     }
 
     @Override
@@ -88,16 +85,15 @@ public class ObjectServiceImpl implements ObjectService{
         object.setStatus(objectForm.getStatus());
         object.setAgency(objectForm.getAgency());
         object.setManager(objectForm.getManager());
-        object.setActive(objectForm.isActive());
         objectRepository.save(object);
         log.info("success update object");
         return object;
     }
 
     @Override
-    public void deleteById(Long id) {
-        log.info("set object.deleted true by id: {}", id);
-        objectRepository.setDeleted(id);
+    public void deleteById(Long objectId) {
+        log.info("set object.deleted true by id: {}", objectId);
+        objectRepository.setDeleted(objectId);
         log.info("success set object.deleted true");
     }
 
@@ -115,5 +111,54 @@ public class ObjectServiceImpl implements ObjectService{
             return agency + manager > 100;
         }
         return false;
+    }
+
+    @Override
+    public boolean validationCreateWithDatabase(BindingResult bindingResult, ObjectDto objectDto) {
+        if(objectDto.getHouse() != null && !objectDto.getHouse().equals("")){
+            if(objectDto.getSection() != null && !objectDto.getSection().equals("")){
+                Object object = objectRepository.findByHouseAndSection(objectDto.getHouse(), objectDto.getSection());
+                if (object != null){
+                    bindingResult.addError(new FieldError("objectDto", "house", "House with such section already exists"));
+                    bindingResult.addError(new FieldError("objectDto", "section", "House with such section already exists"));
+                    return false;
+                }else {
+                    return true;
+                }
+            } else {
+                return true;
+            }
+        }else {
+            return true;
+        }
+    }
+
+    @Override
+    public boolean validationUpdateWithDatabase(BindingResult bindingResult, ObjectDto objectDto) {
+        Object objectFirst = objectRepository.findById(objectDto.getId()).orElse(null);
+        if(objectFirst == null){
+            return true;
+        } else {
+            if (objectDto.getHouse() != null && !objectDto.getHouse().equals("")) {
+                if (objectDto.getSection() != null && !objectDto.getSection().equals("")) {
+                    if (!objectFirst.getHouse().equals(objectDto.getHouse()) || !objectFirst.getSection().equals(objectDto.getSection())) {
+                        Object object = objectRepository.findByHouseAndSection(objectDto.getHouse(), objectDto.getSection());
+                        if (object != null) {
+                            bindingResult.addError(new FieldError("objectDto", "house", "House with such section already exists"));
+                            bindingResult.addError(new FieldError("objectDto", "section", "House with such section already exists"));
+                            return false;
+                        } else {
+                            return true;
+                        }
+                    } else {
+                        return true;
+                    }
+                } else {
+                    return true;
+                }
+            } else {
+                return true;
+            }
+        }
     }
 }

@@ -8,7 +8,6 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Log4j2
@@ -19,8 +18,7 @@ public class RoleServiceImpl implements RoleService{
     @Override
     public List<Role> findAll() {
         log.info("get roles");
-        List<Role> roles = roleRepository.findAll();
-        roles.removeIf(role -> role.getId().equals(1L));
+        List<Role> roles = roleRepository.findAllByMainRoleFalse();
         log.info("success");
         return roles;
     }
@@ -46,7 +44,7 @@ public class RoleServiceImpl implements RoleService{
 
     @Override
     public void deleteById(Long id) {
-        if(id != 1) {
+        if(id != 11) {
             log.info("delete role by id: {}", id);
             roleRepository.deleteById(id);
             log.info("success");

@@ -28,7 +28,7 @@ public interface CashRegisterRepository extends JpaRepository<CashRegister, Long
 
     Optional<CashRegister> findByFlatId(Long flatId);
 
-    List<CashRegister> findAllByFlatId(Long id);
+    List<CashRegister> findAllByFlatIdAndDeletedFalse(Long id);
 
     Page<CashRegister> findAllByFlatRealtorAgencyIdAndDeletedFalse(Pageable pageable, Long agencyId);
 

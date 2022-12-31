@@ -1,13 +1,13 @@
 package com.example.NewBuildingFinance.service.auth.user;
 
 import com.example.NewBuildingFinance.entities.auth.Permission;
-import com.example.NewBuildingFinance.others.mail.MailThread;
-import com.example.NewBuildingFinance.others.mail.context.AbstractEmailContextUserRegistration;
 import com.example.NewBuildingFinance.entities.auth.SecureToken;
 import com.example.NewBuildingFinance.entities.auth.User;
+import com.example.NewBuildingFinance.others.mail.MailThread;
+import com.example.NewBuildingFinance.others.mail.context.EmailContextUserRegistration;
 import com.example.NewBuildingFinance.repository.auth.UserRepository;
-import com.example.NewBuildingFinance.service.mail.MailServiceImpl;
-import com.example.NewBuildingFinance.service.secureToken.SecureTokenServiceImpl;
+import com.example.NewBuildingFinance.service.mail.MailService;
+import com.example.NewBuildingFinance.service.secureToken.SecureTokenService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,11 +31,11 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private SecureTokenServiceImpl secureTokenServiceImpl;
+    private SecureTokenService secureTokenService;
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
     @Autowired
-    private MailServiceImpl mailServiceImpl;
+    private MailService mailService;
 
     @Value("${site.base.url.http}")
     private String baseURL;
@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
         log.info("get users page: {}, field: {}, direction: {}", currentPage - 1, sortingField, sortingDirection);
         Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
         Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
-        Page<User> userPage = userRepository.findAllByDeletedFalse(pageable);
+        Page<User> userPage = userRepository.findAllByDeletedFalseAndMainAdminFalse(pageable);
         log.info("success");
         return userPage;
     }
@@ -57,7 +57,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     @Override
     public User findDirector() {
         log.info("get director");
-        User user = userRepository.findById(1L).orElseThrow();
+        User user = userRepository.findByMainAdminTrue();
         log.info("success get director");
         return user;
     }
@@ -66,7 +66,6 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     public List<User> findManagers(Long userId) {
         log.info("get users where role permission buyers");
         List<User> userPage = userRepository.findManagers(userId);
-        System.out.println(userPage);
         log.info("success");
         return userPage;
     }
@@ -157,10 +156,10 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     // registration from the user side
     @Override
     public void sendRegistrationEmail(User user){
-        SecureToken secureToken = secureTokenServiceImpl.createSecureToken();
+        SecureToken secureToken = secureTokenService.createSecureToken();
         secureToken.setUser(user);
-        secureTokenServiceImpl.save(secureToken);
-        AbstractEmailContextUserRegistration emailContext = new AbstractEmailContextUserRegistration();
+        secureTokenService.saveSecureToken(secureToken);
+        EmailContextUserRegistration emailContext = new EmailContextUserRegistration();
         emailContext.setToken(secureToken.getToken());
         emailContext.buildVerificationUrl(baseURL, secureToken.getToken());
         emailContext.setTemplateLocation("email/email-registration");
@@ -168,12 +167,12 @@ public class UserServiceImpl implements UserDetailsService, UserService {
         emailContext.setFrom("no-reply@javadevjournal.com");
         emailContext.setTo(user.getUsername());
         emailContext.setUser(user.getSurname() + " " + user.getName());
-        new MailThread(mailServiceImpl, emailContext).start();
+        new MailThread(mailService, emailContext).start();
     }
 
     @Override
     public User findUserByToken(String token) {
-        SecureToken secureToken = secureTokenServiceImpl.findByToken(token);
+        SecureToken secureToken = secureTokenService.findByToken(token);
         if(secureToken != null) {
             Date out = Date.from(secureToken.getExpireAt().atZone(ZoneId.systemDefault()).toInstant());
             if (new Date().after(out)){
@@ -194,7 +193,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 
     @Override
     public void deleteToken(String token) {
-        SecureToken secureToken = secureTokenServiceImpl.findByToken(token);
-        secureTokenServiceImpl.delete(secureToken);
+        SecureToken secureToken = secureTokenService.findByToken(token);
+        secureTokenService.delete(secureToken);
     }
 }

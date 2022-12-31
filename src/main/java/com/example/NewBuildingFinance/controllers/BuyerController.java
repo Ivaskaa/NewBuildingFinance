@@ -4,14 +4,21 @@ import com.example.NewBuildingFinance.dto.buyer.BuyerSaveDto;
 import com.example.NewBuildingFinance.dto.buyer.BuyerUploadDto;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.buyer.Buyer;
+import com.example.NewBuildingFinance.service.agency.AgencyService;
 import com.example.NewBuildingFinance.service.agency.AgencyServiceImpl;
+import com.example.NewBuildingFinance.service.auth.user.UserService;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
+import com.example.NewBuildingFinance.service.buyer.BuyerService;
 import com.example.NewBuildingFinance.service.buyer.BuyerServiceImpl;
+import com.example.NewBuildingFinance.service.contract.ContractService;
 import com.example.NewBuildingFinance.service.contract.ContractServiceImpl;
+import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyService;
 import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
+import com.example.NewBuildingFinance.service.realtor.RealtorService;
 import com.example.NewBuildingFinance.service.realtor.RealtorServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stripe.exception.StripeException;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,12 +38,12 @@ import java.util.Map;
 @AllArgsConstructor
 @RequestMapping("/buyers")
 public class BuyerController {
-    private final InternalCurrencyServiceImpl internalCurrencyServiceImpl;
-    private final BuyerServiceImpl buyerServiceImpl;
-    private final ContractServiceImpl contractServiceImpl;
-    private final RealtorServiceImpl realtorServiceImpl;
-    private final AgencyServiceImpl agencyServiceImpl;
-    private final UserServiceImpl userServiceImpl;
+    private final InternalCurrencyService internalCurrencyService;
+    private final BuyerService buyerService;
+    private final ContractService contractService;
+    private final RealtorService realtorService;
+    private final AgencyService agencyService;
+    private final UserService userService;
     private final ObjectMapper mapper;
 
     @GetMapping()
@@ -44,8 +51,8 @@ public class BuyerController {
             Model model
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", internalCurrencyServiceImpl.findAll());
+        User user = userService.loadUserByUsername(authentication.getName());
+        model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("user", user);
         return "buyer/buyers";
     }
@@ -56,8 +63,8 @@ public class BuyerController {
             Model model
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", internalCurrencyServiceImpl.findAll());
+        User user = userService.loadUserByUsername(authentication.getName());
+        model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("userId", user.getId());
         model.addAttribute("buyerId", buyerId);
         model.addAttribute("user", user);
@@ -73,7 +80,7 @@ public class BuyerController {
             String direction,
             Long buyerId
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(contractServiceImpl.findSortingPageByBuyerId(
+        return mapper.writeValueAsString(contractService.findSortingPageByBuyerId(
                 page, size, field, direction, buyerId));
     }
 
@@ -85,7 +92,7 @@ public class BuyerController {
             String field,
             String direction
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(buyerServiceImpl.findSortingPage(
+        return mapper.writeValueAsString(buyerService.findSortingPage(
                 page, size, field, direction));
     }
 
@@ -94,10 +101,13 @@ public class BuyerController {
     public String addBuyer(
             @Valid @RequestBody BuyerSaveDto buyerSaveDto,
             BindingResult bindingResult
-    ) throws IOException {
+    ) throws IOException, StripeException {
         //validation
-        buyerServiceImpl.documentValidation(bindingResult, buyerSaveDto);
-        buyerServiceImpl.phoneValidation(bindingResult, buyerSaveDto.getPhone());
+        buyerService.documentValidation(bindingResult, buyerSaveDto);
+        buyerService.phoneValidation(bindingResult, buyerSaveDto.getPhone());
+        if(!bindingResult.hasErrors()){
+            buyerService.emailValidation(bindingResult, buyerSaveDto.getEmail(), buyerSaveDto.getId());
+        }
         if(bindingResult.hasErrors()){
             Map<String, String> errors = new HashMap<>();
             for (FieldError error : bindingResult.getFieldErrors()) {
@@ -107,7 +117,7 @@ public class BuyerController {
         }
 
         //action
-        buyerServiceImpl.save(buyerSaveDto.build());
+        buyerService.save(buyerSaveDto.build());
         return mapper.writeValueAsString(null);
     }
 
@@ -118,8 +128,11 @@ public class BuyerController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        buyerServiceImpl.documentValidation(bindingResult, buyerSaveDto);
-        buyerServiceImpl.phoneValidation(bindingResult, buyerSaveDto.getPhone());
+        buyerService.documentValidation(bindingResult, buyerSaveDto);
+        buyerService.phoneValidation(bindingResult, buyerSaveDto.getPhone());
+        if(!bindingResult.hasErrors()){
+            buyerService.emailValidation(bindingResult, buyerSaveDto.getEmail(), buyerSaveDto.getId());
+        }
         if(bindingResult.hasErrors()){
             Map<String, String> errors = new HashMap<>();
             for (FieldError error : bindingResult.getFieldErrors()) {
@@ -129,7 +142,7 @@ public class BuyerController {
         }
 
         //action
-        buyerServiceImpl.update(buyerSaveDto.build());
+        buyerService.update(buyerSaveDto.build());
         return mapper.writeValueAsString(null);
     }
 
@@ -138,7 +151,7 @@ public class BuyerController {
     public String getBuyerById(
             Long id
     ) throws JsonProcessingException {
-        BuyerUploadDto buyerUploadDto = buyerServiceImpl.findById(id).buildUploadDto();
+        BuyerUploadDto buyerUploadDto = buyerService.findById(id).buildUploadDto();
         return mapper.writeValueAsString(buyerUploadDto);
     }
 
@@ -147,7 +160,7 @@ public class BuyerController {
     public String deleteObjectById(
             Long id
     ) throws JsonProcessingException {
-        buyerServiceImpl.deleteById(id);
+        buyerService.deleteById(id);
         return mapper.writeValueAsString("success");
     }
 
@@ -158,14 +171,14 @@ public class BuyerController {
     public String getUserPermissionsById(
             Long id
     ) throws JsonProcessingException {
-        List<String> permissions = userServiceImpl.getUserPermissionsById(id);
+        List<String> permissions = userService.getUserPermissionsById(id);
         return mapper.writeValueAsString(permissions);
     }
 
     @GetMapping("/getAllAgencies")
     @ResponseBody
     public String getAllAgencies(Long agencyId) throws JsonProcessingException {
-        return mapper.writeValueAsString(agencyServiceImpl.findAllByDeletedFalseOrId(agencyId));
+        return mapper.writeValueAsString(agencyService.findAllByDeletedFalse(agencyId));
     }
 
     @GetMapping("/getRealtorsByAgenciesId")
@@ -175,12 +188,12 @@ public class BuyerController {
             Long realtorId
     ) throws JsonProcessingException {
         return mapper.writeValueAsString(
-                realtorServiceImpl.findAllByAgencyIdOrRealtorId(agencyId, realtorId));
+                realtorService.findAllByAgencyIdOrRealtorId(agencyId, realtorId));
     }
 
     @GetMapping("/getAllManagers")
     @ResponseBody
     public String getAllManagers(Long managerId) throws JsonProcessingException {
-        return mapper.writeValueAsString(userServiceImpl.findManagers(managerId));
+        return mapper.writeValueAsString(userService.findManagers(managerId));
     }
 }

@@ -2,6 +2,8 @@ package com.example.NewBuildingFinance.controllers.settings;
 
 import com.example.NewBuildingFinance.dto.auth.UserDto;
 import com.example.NewBuildingFinance.entities.auth.User;
+import com.example.NewBuildingFinance.service.auth.user.UserService;
+import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyService;
 import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,8 +27,9 @@ import java.util.Map;
 @AllArgsConstructor
 @RequestMapping("/settings")
 public class UserController {
-    private final InternalCurrencyServiceImpl currencyService;
-    private final UserServiceImpl userServiceImpl;
+    private final InternalCurrencyService internalCurrencyService;
+    private final UserService userService;
+
     private final ObjectMapper mapper;
 
     @GetMapping( "/users" )
@@ -34,8 +37,8 @@ public class UserController {
             Model model
     ) throws JsonProcessingException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", currencyService.findAll());
+        User user = userService.loadUserByUsername(authentication.getName());
+        model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("user", user);
         return "users";
     }
@@ -47,10 +50,10 @@ public class UserController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        if (userServiceImpl.checkPhone(userDto.getPhone())) {
+        if (userService.checkPhone(userDto.getPhone())) {
             bindingResult.addError(new FieldError("userDto", "phone", "Phone must be valid"));
         }
-        if (userServiceImpl.checkEmail(userDto.getUsername())) {
+        if (userService.checkEmail(userDto.getUsername())) {
             bindingResult.addError(new FieldError("userDto", "username", "Email is already registered"));
         }
         if(bindingResult.hasErrors()){
@@ -62,7 +65,7 @@ public class UserController {
         }
 
         //action
-        userServiceImpl.save(userDto.build());
+        userService.save(userDto.build());
         return mapper.writeValueAsString(null);
     }
 
@@ -74,11 +77,11 @@ public class UserController {
     ) throws IOException {
         //validation
         if (!userDto.getLatestUsername().equals(userDto.getUsername())) {
-            if (userServiceImpl.checkEmail(userDto.getUsername())) {
+            if (userService.checkEmail(userDto.getUsername())) {
                 bindingResult.addError(new FieldError("userDto", "username", "Email is already registered"));
             }
         }
-        if (userServiceImpl.checkPhone(userDto.getPhone())) {
+        if (userService.checkPhone(userDto.getPhone())) {
             bindingResult.addError(new FieldError("userDto", "phone", "Phone must be valid"));
         }
         if(bindingResult.hasErrors()){
@@ -90,7 +93,7 @@ public class UserController {
         }
 
         //action
-        userServiceImpl.update(userDto.build());
+        userService.update(userDto.build());
         return mapper.writeValueAsString(null);
     }
 
@@ -99,8 +102,7 @@ public class UserController {
     public String changeUserActiveById(
             Long id
     ) throws JsonProcessingException {
-        System.out.println(id);
-        userServiceImpl.changeUserActiveById(id);
+        userService.changeUserActiveById(id);
         return mapper.writeValueAsString(null);
     }
     @GetMapping("/getUsers")
@@ -111,7 +113,7 @@ public class UserController {
             String field,
             String direction
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(userServiceImpl.findSortingPage(
+        return mapper.writeValueAsString(userService.findSortingPage(
                 page, size, field, direction));
     }
 
@@ -120,7 +122,7 @@ public class UserController {
     public String getUserById(
             Long id
     ) throws JsonProcessingException {
-        User user = userServiceImpl.findById(id);
+        User user = userService.findById(id);
         return mapper.writeValueAsString(user);
     }
 
@@ -129,7 +131,7 @@ public class UserController {
     public String deleteUserById(
             Long id
     ) throws JsonProcessingException {
-        userServiceImpl.deleteById(id);
+        userService.deleteById(id);
         return mapper.writeValueAsString("success");
     }
 
@@ -138,8 +140,8 @@ public class UserController {
     public String resendInvitation(
             Long id
     ) throws JsonProcessingException {
-        User user = userServiceImpl.findById(id);
-        userServiceImpl.sendRegistrationEmail(user);
+        User user = userService.findById(id);
+        userService.sendRegistrationEmail(user);
         return mapper.writeValueAsString("success");
     }
 }

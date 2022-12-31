@@ -4,7 +4,10 @@ import com.example.NewBuildingFinance.dto.object.ObjectDto;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.object.Object;
 import com.example.NewBuildingFinance.entities.object.StatusObject;
+import com.example.NewBuildingFinance.service.auth.user.UserService;
+import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyService;
 import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
+import com.example.NewBuildingFinance.service.object.ObjectService;
 import com.example.NewBuildingFinance.service.object.ObjectServiceImpl;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -30,9 +33,9 @@ import java.util.Map;
 @AllArgsConstructor
 @RequestMapping("/objects")
 public class ObjectController {
-    private final InternalCurrencyServiceImpl currencyService;
-    private final ObjectServiceImpl objectServiceImpl;
-    private final UserServiceImpl userServiceImpl;
+    private final InternalCurrencyService internalCurrencyService;
+    private final ObjectService objectService;
+    private final UserService userService;
     private final ObjectMapper mapper;
 
     @GetMapping()
@@ -40,8 +43,8 @@ public class ObjectController {
             Model model
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", currencyService.findAll());
+        User user = userService.loadUserByUsername(authentication.getName());
+        model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("user", user);
         return "objects";
     }
@@ -54,7 +57,7 @@ public class ObjectController {
             String field,
             String direction
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(objectServiceImpl.findSortingPage(
+        return mapper.writeValueAsString(objectService.findSortingPage(
                 page, size, field, direction));
     }
 
@@ -65,11 +68,11 @@ public class ObjectController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        if (objectServiceImpl.checkPercentages(objectDto.getAgency(), objectDto.getManager())){
+        if (objectService.checkPercentages(objectDto.getAgency(), objectDto.getManager())){
             bindingResult.addError(new FieldError("objectDto", "agency", "The sum of percentages must be less than 100"));
             bindingResult.addError(new FieldError("objectDto", "manager", "The sum of percentages must be less than 100"));
         }
-        System.out.println(objectDto);
+        objectService.validationCreateWithDatabase(bindingResult, objectDto);
         if(bindingResult.hasErrors()){
             Map<String, String> errors = new HashMap<>();
             for (FieldError error : bindingResult.getFieldErrors()) {
@@ -79,7 +82,7 @@ public class ObjectController {
         }
 
         //action
-        objectServiceImpl.save(objectDto.build());
+        objectService.save(objectDto.build());
         return mapper.writeValueAsString(null);
     }
 
@@ -90,11 +93,11 @@ public class ObjectController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        if (objectServiceImpl.checkPercentages(objectDto.getAgency(), objectDto.getManager())){
+        if (objectService.checkPercentages(objectDto.getAgency(), objectDto.getManager())){
             bindingResult.addError(new FieldError("objectDto", "agency", "The sum of percentages must be less than 100"));
             bindingResult.addError(new FieldError("objectDto", "manager", "The sum of percentages must be less than 100"));
         }
-        System.out.println(objectDto);
+        objectService.validationUpdateWithDatabase(bindingResult, objectDto);
         if(bindingResult.hasErrors()){
             Map<String, String> errors = new HashMap<>();
             for (FieldError error : bindingResult.getFieldErrors()) {
@@ -104,7 +107,7 @@ public class ObjectController {
         }
 
         //action
-        objectServiceImpl.update(objectDto.build());
+        objectService.update(objectDto.build());
         return mapper.writeValueAsString(null);
     }
 
@@ -123,7 +126,7 @@ public class ObjectController {
     public String getObjectById(
             Long id
     ) throws JsonProcessingException {
-        Object object = objectServiceImpl.findById(id);
+        Object object = objectService.findById(id);
         return mapper.writeValueAsString(object);
     }
 
@@ -132,7 +135,7 @@ public class ObjectController {
     public String deleteObjectById(
             Long id
     ) throws JsonProcessingException {
-        objectServiceImpl.deleteById(id);
+        objectService.deleteById(id);
         return mapper.writeValueAsString("success");
     }
 }

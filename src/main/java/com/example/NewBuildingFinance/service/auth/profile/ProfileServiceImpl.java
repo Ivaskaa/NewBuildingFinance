@@ -2,7 +2,7 @@ package com.example.NewBuildingFinance.service.auth.profile;
 
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.repository.auth.UserRepository;
-import com.example.NewBuildingFinance.service.staticService.StaticServiceImpl;
+import com.example.NewBuildingFinance.service.staticService.StaticService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -20,7 +20,7 @@ import java.util.UUID;
 public class ProfileServiceImpl implements UserDetailsService, ProfileService{
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
-    private final StaticServiceImpl service;
+    private final StaticService staticService;
 
     @Override
     public User update(User userForm, MultipartFile file) throws IOException {
@@ -42,10 +42,10 @@ public class ProfileServiceImpl implements UserDetailsService, ProfileService{
         if(file != null && !file.getOriginalFilename().isEmpty()) {
             fileName = (UUID.randomUUID() + "." + file.getOriginalFilename());
             if(user.getPhoto() != null && !user.getPhoto().equals("")) {
-                service.deletePhoto("users", user.getPhoto());
+                staticService.deletePhoto("users", user.getPhoto());
             }
             user.setPhoto(fileName);
-            service.savePhoto("users", file, fileName);
+            staticService.savePhoto("users", file, fileName);
         }
         userRepository.save(user);
         log.info("success");

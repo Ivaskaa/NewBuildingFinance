@@ -3,8 +3,7 @@ package com.example.NewBuildingFinance.service.realtor;
 import com.example.NewBuildingFinance.entities.agency.Agency;
 import com.example.NewBuildingFinance.entities.agency.Realtor;
 import com.example.NewBuildingFinance.repository.RealtorRepository;
-import com.example.NewBuildingFinance.service.agency.AgencyServiceImpl;
-import com.example.NewBuildingFinance.service.staticService.StaticServiceImpl;
+import com.example.NewBuildingFinance.service.staticService.StaticService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -22,7 +21,7 @@ import java.util.List;
 public class RealtorServiceImpl implements RealtorService{
     private final RealtorRepository realtorRepository;
 
-    private final StaticServiceImpl staticService;
+    private final StaticService staticService;
 
     @Override
     public Page<Realtor> findPageByAgencyId(

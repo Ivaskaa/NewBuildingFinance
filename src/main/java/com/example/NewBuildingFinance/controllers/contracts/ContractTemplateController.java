@@ -2,7 +2,10 @@ package com.example.NewBuildingFinance.controllers.contracts;
 
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.contract.ContractTemplate;
+import com.example.NewBuildingFinance.service.auth.user.UserService;
+import com.example.NewBuildingFinance.service.contractTemplate.ContractTemplateService;
 import com.example.NewBuildingFinance.service.contractTemplate.ContractTemplateServiceImpl;
+import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyService;
 import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,9 +28,10 @@ import java.util.Map;
 @AllArgsConstructor
 @RequestMapping("/contracts/templates")
 public class ContractTemplateController {
-    private final UserServiceImpl userServiceImpl;
-    private final InternalCurrencyServiceImpl currencyService;
-    private final ContractTemplateServiceImpl contractTemplateServiceImpl;
+    private final UserService userService;
+    private final InternalCurrencyService internalCurrencyService;
+    private final ContractTemplateService contractTemplateService;
+
     private final ObjectMapper mapper;
 
     @GetMapping()
@@ -35,8 +39,8 @@ public class ContractTemplateController {
             Model model
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", currencyService.findAll());
+        User user = userService.loadUserByUsername(authentication.getName());
+        model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("user", user);
         return "contractTemplate";
     }
@@ -46,7 +50,7 @@ public class ContractTemplateController {
     public String getContractTemplates(
             Long contractTemplateId
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(contractTemplateServiceImpl.findAllDeletedFalseOrById(contractTemplateId));
+        return mapper.writeValueAsString(contractTemplateService.findAllDeletedFalseOrById(contractTemplateId));
     }
 
     @PostMapping("/addContractTemplate")
@@ -65,7 +69,7 @@ public class ContractTemplateController {
         }
 
         //action
-        contractTemplateServiceImpl.save(contractTemplate);
+        contractTemplateService.save(contractTemplate);
         return mapper.writeValueAsString(null);
     }
 
@@ -85,7 +89,7 @@ public class ContractTemplateController {
         }
 
         //action
-        contractTemplateServiceImpl.update(contractTemplate);
+        contractTemplateService.update(contractTemplate);
         return mapper.writeValueAsString(null);
     }
 
@@ -94,7 +98,7 @@ public class ContractTemplateController {
     public String setMainContractTemplate(
             Long id
     ) throws JsonProcessingException {
-        contractTemplateServiceImpl.changeMain(id);
+        contractTemplateService.changeMain(id);
         return mapper.writeValueAsString(null);
     }
 
@@ -103,7 +107,7 @@ public class ContractTemplateController {
     public String getContractTemplateById(
             Long id
     ) throws JsonProcessingException {
-        ContractTemplate object = contractTemplateServiceImpl.findById(id);
+        ContractTemplate object = contractTemplateService.findById(id);
         return mapper.writeValueAsString(object);
     }
 
@@ -112,7 +116,7 @@ public class ContractTemplateController {
     public String deleteContractTemplateById(
             Long id
     ) throws JsonProcessingException {
-        contractTemplateServiceImpl.deleteById(id);
+        contractTemplateService.deleteById(id);
         return mapper.writeValueAsString(null);
     }
 }

@@ -2,9 +2,9 @@ package com.example.NewBuildingFinance.service.statistic;
 
 import com.example.NewBuildingFinance.dto.statistic.StatisticCashRegisterDto;
 import com.example.NewBuildingFinance.dto.statistic.flats.StatisticFlatPaymentBarChartDto;
+import com.example.NewBuildingFinance.dto.statistic.flats.StatisticFlatsDto;
 import com.example.NewBuildingFinance.dto.statistic.flats.StatisticFlatsSearchDto;
 import com.example.NewBuildingFinance.dto.statistic.flats.StatisticFlatsTableDto;
-import com.example.NewBuildingFinance.dto.statistic.flats.StatisticFlatsDto;
 import com.example.NewBuildingFinance.dto.statistic.planFact.StatisticPlanFactDto;
 import com.example.NewBuildingFinance.dto.statistic.planFact.StatisticPlanFactTableDto;
 import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
@@ -18,8 +18,8 @@ import com.example.NewBuildingFinance.others.specifications.FlatStatisticSpecifi
 import com.example.NewBuildingFinance.repository.CashRegisterRepository;
 import com.example.NewBuildingFinance.repository.FlatPaymentRepository;
 import com.example.NewBuildingFinance.repository.FlatRepository;
-import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
-import com.example.NewBuildingFinance.service.staticService.StaticServiceImpl;
+import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyService;
+import com.example.NewBuildingFinance.service.staticService.StaticService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -40,19 +40,19 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @Log4j2
 @AllArgsConstructor
-public class StatisticServiceImpl {
+public class StatisticServiceImpl implements StatisticService{
     private final FlatRepository flatRepository;
     private final FlatPaymentRepository flatPaymentRepository;
     private final CashRegisterRepository cashRegisterRepository;
 
-    private final InternalCurrencyServiceImpl internalCurrencyService;
-    private final StaticServiceImpl staticService;
+    private final InternalCurrencyService internalCurrencyService;
+    private final StaticService staticService;
 
+    @Override
     public StatisticPlanFactDto getMainMonthlyStatistic(
             Long objectId,
             String dateStartString,
@@ -174,7 +174,7 @@ public class StatisticServiceImpl {
         statisticPlanFactDto.setBoxOnSaleFlats(boxOnSaleFlats);
         return statisticPlanFactDto;
     }
-
+    @Override
     public Page<StatisticFlatsTableDto> getFlatPaymentStatistic(StatisticFlatsSearchDto searchDto){
         log.info("get statistic page. page: {}, size: {} field: {}, direction: {}",
                 searchDto.getPage() - 1, searchDto.getSize(),
@@ -184,22 +184,23 @@ public class StatisticServiceImpl {
                 .and(FlatStatisticSpecification.likeObjectId(searchDto.getObjectId()))
                 .and(FlatStatisticSpecification.likePrice(searchDto.getPriceStart(), searchDto.getPriceFin()))
                 .and(FlatStatisticSpecification.likeSalePrice(searchDto.getSalePriceStart(), searchDto.getSalePriceFin()))
-//                .and(FlatStatisticSpecification.likeFact(searchDto.getFactStart(), searchDto.getFactFin()))
-//                .and(FlatStatisticSpecification.likeRemains(searchDto.getRemainsStart(), searchDto.getRemainsFin()))
-//                .and(FlatStatisticSpecification.likeDebt(searchDto.getDebtStart(), searchDto.getDebtFin()))
+                .and(FlatStatisticSpecification.betweenFact(searchDto.getFactStart(), searchDto.getFactFin()))
+                .and(FlatStatisticSpecification.betweenRemains(searchDto.getRemainsStart(), searchDto.getRemainsFin()))
+                .and(FlatStatisticSpecification.betweenDebt(searchDto.getDebtStart(), searchDto.getDebtFin()))
                 .and(FlatStatisticSpecification.likeStatus(searchDto.getStatus()))
                 .and(FlatStatisticSpecification.likeContractId(searchDto.getContractId()))
                 .and(FlatStatisticSpecification.likeBuyer(searchDto.getBuyer()))
                 .and(FlatStatisticSpecification.likeRealtor(searchDto.getRealtor()))
+                .and(FlatStatisticSpecification.likeSale(searchDto.getSale()))
                 .and(FlatStatisticSpecification.deletedFalse());
-//                .and(FlatStatisticSpecification.likeSale(searchDto.getSale()));
+
         Sort sort = staticService.sort(searchDto.getSortingField(), searchDto.getSortingDirection());
         Pageable pageable = PageRequest.of(searchDto.getPage() - 1, searchDto.getSize(), sort);
         Page<StatisticFlatsTableDto> statisticFlatPayments = flatRepository.findAll(specification, pageable).map(Flat::buildStatisticTableDto);
         log.info("success get statistic page.");
         return statisticFlatPayments;
     }
-
+    @Override
     public Pair<Date, Date> getMinDateAndMaxDate() {
         List<FlatPayment> flatPayments = flatPaymentRepository.findAll();
         Date first = new Date(99999999999999L);
@@ -223,7 +224,7 @@ public class StatisticServiceImpl {
         return Pair.of(first, second);
     }
 
-
+    @Override
     public StatisticCashRegisterDto getCashRegisterBoxes() {
         StatisticCashRegisterDto statisticCashRegisterDto = new StatisticCashRegisterDto();
 
@@ -237,18 +238,23 @@ public class StatisticServiceImpl {
         long spendingUsd = 0L;
         long spendingEur = 0L;
 
-        List<CashRegister> cashRegisters = cashRegisterRepository.findAll();
-        for(CashRegister cashRegister : cashRegisters){
-            if(cashRegister.getStatus().equals(StatusCashRegister.COMPLETED)) {
-                if (cashRegister.getEconomic().equals(Economic.INCOME)) {
-                    double income = cashRegister.getPrice() * cashRegister.getAdmissionCourse();
-                    incomeUah += Math.round(income);
-                } else {
-                    double spending = cashRegister.getPrice() * cashRegister.getAdmissionCourse();
-                    spendingUah += Math.round(spending);
+        try {
+            List<CashRegister> cashRegisters = cashRegisterRepository.findAll();
+            for (CashRegister cashRegister : cashRegisters) {
+                if (cashRegister.getStatus().equals(StatusCashRegister.COMPLETED)) {
+                    if (cashRegister.getEconomic().equals(Economic.INCOME)) {
+                        double income = cashRegister.getPrice() * cashRegister.getAdmissionCourse();
+                        incomeUah += Math.round(income);
+                    } else {
+                        double spending = cashRegister.getPrice() * cashRegister.getAdmissionCourse();
+                        spendingUah += Math.round(spending);
+                    }
                 }
             }
+        } catch (Exception ignored){
+
         }
+
         factUah = incomeUah - spendingUah;
         List<InternalCurrency> internalCurrencies = internalCurrencyService.findAll();
 
@@ -283,7 +289,7 @@ public class StatisticServiceImpl {
 
         return statisticCashRegisterDto;
     }
-
+    @Override
     public StatisticFlatsDto getFlatBoxes() {
         StatisticFlatsDto statistics = new StatisticFlatsDto();
         List<Flat> flats = flatRepository.findAllByDeletedFalse();
@@ -328,7 +334,7 @@ public class StatisticServiceImpl {
         statistics.setBoxArrears(boxArrears);
         return statistics;
     }
-
+    @Override
     public List<StatisticFlatPaymentBarChartDto> getFlatPaymentsByFlatId(Long flatId) {
         Sort sort = Sort.by(Sort.Direction.valueOf("ASC"), "date");
         List<StatisticFlatPaymentBarChartDto> statistic =

@@ -82,13 +82,23 @@ public class Flat {
             "where fp.flat_id = id\n" +
             "and fp.deleted = false)")
     private Double entered;
-    @Formula("(select f.sale_price - (select sum(fp.actually)\n" +
+    @Formula("(select f.sale_price - (select sum(ifnull(fp.actually, 0))\n" +
             "                       from flat_payments fp\n" +
             "                       where fp.flat_id = id\n" +
             "                       group by fp.flat_id)\n" +
             "from flats f\n" +
             "where f.id = id)")
     private Double remains;
+    @Formula("(select sum(fp.planned - fp.actually)\n" +
+            "        from flat_payments fp\n" +
+            "        where fp.actually is not null\n" +
+            "        and fp.flat_id = id\n" +
+            "        group by fp.flat_id)")
+    private Double debt;
+    @Formula("(select f.price - f.sale_price\n" +
+            "        from flats f\n" +
+            "        where f.id = id)")
+    private Double sale;
 
 
     public FlatTableDto buildTableDto(){
@@ -125,18 +135,7 @@ public class Flat {
         statisticFlat.setPrice(price);
         statisticFlat.setSalePrice(salePrice);
 
-        Double fact = 0d;
-        Double remains = 0d;
-        Double debt = 0d;
-        for(FlatPayment flatPayment : flatPayments){
-            if(flatPayment.isPaid()){
-                fact += flatPayment.getActually();
-                debt += flatPayment.getPlanned() - flatPayment.getActually();
-            } else {
-                remains += flatPayment.getPlanned();
-            }
-        }
-        statisticFlat.setFact(fact);
+        statisticFlat.setFact(entered);
         statisticFlat.setRemains(remains);
         statisticFlat.setDebt(debt);
 

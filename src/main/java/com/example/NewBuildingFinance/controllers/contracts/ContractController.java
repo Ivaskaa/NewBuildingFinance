@@ -8,12 +8,19 @@ import com.example.NewBuildingFinance.entities.contract.ContractStatus;
 import com.example.NewBuildingFinance.entities.contract.ContractTemplate;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.object.Object;
+import com.example.NewBuildingFinance.service.auth.user.UserService;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
+import com.example.NewBuildingFinance.service.buyer.BuyerService;
 import com.example.NewBuildingFinance.service.buyer.BuyerServiceImpl;
+import com.example.NewBuildingFinance.service.contract.ContractService;
 import com.example.NewBuildingFinance.service.contract.ContractServiceImpl;
+import com.example.NewBuildingFinance.service.contractTemplate.ContractTemplateService;
 import com.example.NewBuildingFinance.service.contractTemplate.ContractTemplateServiceImpl;
+import com.example.NewBuildingFinance.service.flat.FlatService;
 import com.example.NewBuildingFinance.service.flat.FlatServiceImpl;
+import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyService;
 import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
+import com.example.NewBuildingFinance.service.object.ObjectService;
 import com.example.NewBuildingFinance.service.object.ObjectServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,13 +45,14 @@ import java.util.*;
 @AllArgsConstructor
 @RequestMapping("/contracts")
 public class ContractController {
-    private final UserServiceImpl userServiceImpl;
-    private final BuyerServiceImpl buyerServiceImpl;
-    private final InternalCurrencyServiceImpl internalCurrencyServiceImpl;
-    private final ContractServiceImpl contractServiceImpl;
-    private final ContractTemplateServiceImpl contractTemplateServiceImpl;
-    private final FlatServiceImpl flatServiceImpl;
-    private final ObjectServiceImpl objectServiceImpl;
+    private final UserService userService;
+    private final BuyerService buyerService;
+    private final InternalCurrencyService internalCurrencyService;
+    private final ContractService contractService;
+    private final ContractTemplateService contractTemplateService;
+    private final FlatService flatService;
+    private final ObjectService objectService;
+
     private final ObjectMapper mapper;
 
     @GetMapping()
@@ -52,9 +60,9 @@ public class ContractController {
             Model model
     ){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("objects", objectServiceImpl.findAll());
-        model.addAttribute("currencies", internalCurrencyServiceImpl.findAll());
+        User user = userService.loadUserByUsername(authentication.getName());
+        model.addAttribute("objects", objectService.findAll());
+        model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("user", user);
         return "contract/contracts";
     }
@@ -66,8 +74,8 @@ public class ContractController {
             Model model
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", internalCurrencyServiceImpl.findAll());
+        User user = userService.loadUserByUsername(authentication.getName());
+        model.addAttribute("currencies", internalCurrencyService.findAll());
         model.addAttribute("contractId", id);
         model.addAttribute("flatId", Objects.requireNonNullElse(flatId, 0));
         model.addAttribute("user", user);
@@ -90,7 +98,7 @@ public class ContractController {
             String buyerName,
             String comment
     ) throws JsonProcessingException, ParseException {
-        return mapper.writeValueAsString(contractServiceImpl.findSortingAndSpecificationPage(
+        return mapper.writeValueAsString(contractService.findSortingAndSpecificationPage(
                 page, size, field, direction,
                 id,
                 dateStart, dateFin,
@@ -107,11 +115,11 @@ public class ContractController {
             BindingResult bindingResult
     ) throws IOException, ParseException {
         //validation
-        contractServiceImpl.checkDocument(bindingResult, contractSaveDto);
-        if(contractServiceImpl.checkRealtor(contractSaveDto.getFlatId())){
+        contractService.documentValidation(bindingResult, contractSaveDto);
+        if(contractService.checkRealtor(contractSaveDto.getFlatId())){
             bindingResult.addError(new FieldError("contractSaveDto", "flatId", "No selected realtor for this flat"));
         }
-        if(contractServiceImpl.checkFlatPayments(contractSaveDto.getFlatId())){
+        if(contractService.checkFlatPayments(contractSaveDto.getFlatId())){
             bindingResult.addError(new FieldError("contractSaveDto", "flatId", "The payment of flat not full planned"));
         }
         if(bindingResult.hasErrors()){
@@ -122,7 +130,7 @@ public class ContractController {
             return mapper.writeValueAsString(errors);
         }
         //action
-        ContractUploadDto contract = contractServiceImpl.save(contractSaveDto);
+        ContractUploadDto contract = contractService.save(contractSaveDto);
         return mapper.writeValueAsString(contract);
     }
 
@@ -133,11 +141,11 @@ public class ContractController {
             BindingResult bindingResult
     ) throws IOException, ParseException {
         //validation
-        contractServiceImpl.checkDocument(bindingResult, contractSaveDto);
-        if(contractServiceImpl.checkRealtor(contractSaveDto.getFlatId())){
+        contractService.documentValidation(bindingResult, contractSaveDto);
+        if(contractService.checkRealtor(contractSaveDto.getFlatId())){
             bindingResult.addError(new FieldError("contractSaveDto", "flatId", "No selected realtor for this flat"));
         }
-        if(contractServiceImpl.checkFlatPayments(contractSaveDto.getFlatId())){
+        if(contractService.checkFlatPayments(contractSaveDto.getFlatId())){
             bindingResult.addError(new FieldError("contractSaveDto", "flatId", "The payment of flat not full planned"));
         }
         if(bindingResult.hasErrors()){
@@ -149,7 +157,7 @@ public class ContractController {
         }
 
         //action
-        contractServiceImpl.update(contractSaveDto);
+        contractService.update(contractSaveDto);
         return mapper.writeValueAsString(null);
     }
 
@@ -158,7 +166,7 @@ public class ContractController {
     public String getContractById(
             Long id
     ) throws JsonProcessingException {
-        ContractUploadDto contract = contractServiceImpl.findById(id);
+        ContractUploadDto contract = contractService.findById(id);
         return mapper.writeValueAsString(contract);
     }
 
@@ -167,11 +175,11 @@ public class ContractController {
             @PathVariable(required = false) Long id
     ) throws Exception {
         //validation
-        if(contractServiceImpl.checkContract(id)){
+        if(contractService.checkContract(id)){
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         //action
-        ResponseEntity<byte[]> response = contractServiceImpl.getPdf(id);
+        ResponseEntity<byte[]> response = contractService.getPdf(id);
         return response;
     }
 
@@ -182,7 +190,7 @@ public class ContractController {
     public String deleteContractById(
             Long id
     ) throws JsonProcessingException {
-        contractServiceImpl.deleteById(id);
+        contractService.deleteById(id);
         return mapper.writeValueAsString(null);
     }
 
@@ -193,7 +201,7 @@ public class ContractController {
     @GetMapping("/getAllOnSaleObjects")
     @ResponseBody
     public String getObjects(Long objectId) throws JsonProcessingException {
-        List<Object> objects = objectServiceImpl.findAllOnSaleOrObjectId(objectId);
+        List<Object> objects = objectService.findAllOnSaleOrObjectId(objectId);
         return mapper.writeValueAsString(objects);
     }
 
@@ -203,7 +211,7 @@ public class ContractController {
             Long id,
             Long flatId
     ) throws JsonProcessingException {
-        List<Flat> flats = flatServiceImpl.getFlatsWithoutContractByObjectId(id, flatId);
+        List<Flat> flats = flatService.getFlatsWithoutContractByObjectId(id, flatId);
         return mapper.writeValueAsString(flats);
     }
 
@@ -212,7 +220,7 @@ public class ContractController {
     public String getBuyersByName(
             String q
     ) throws JsonProcessingException {
-        List<Buyer> buyers = buyerServiceImpl.findByName(q);
+        List<Buyer> buyers = buyerService.findByName(q);
         return mapper.writeValueAsString(buyers);
     }
 
@@ -231,7 +239,7 @@ public class ContractController {
     public String getContractTemplates(
             Long contractTemplateId
     ) throws JsonProcessingException {
-        List<ContractTemplate> contractTemplates = contractTemplateServiceImpl.findAllDeletedFalseOrById(contractTemplateId);
+        List<ContractTemplate> contractTemplates = contractTemplateService.findAllDeletedFalseOrById(contractTemplateId);
         return mapper.writeValueAsString(contractTemplates);
     }
 
@@ -242,7 +250,7 @@ public class ContractController {
     public String getBuyerById(
             Long id
     ) throws JsonProcessingException {
-        Buyer buyer = buyerServiceImpl.findById(id);
+        Buyer buyer = buyerService.findById(id);
         return mapper.writeValueAsString(buyer);
     }
 
@@ -251,7 +259,7 @@ public class ContractController {
     public String getFlatById(
             Long id
     ) throws JsonProcessingException {
-        Flat flat = flatServiceImpl.findById(id);
+        Flat flat = flatService.findById(id);
         return mapper.writeValueAsString(flat);
     }
 

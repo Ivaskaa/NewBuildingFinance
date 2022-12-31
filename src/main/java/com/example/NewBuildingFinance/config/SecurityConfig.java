@@ -36,13 +36,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/objects/**").hasAuthority("OBJECTS")
                     .antMatchers("/contracts/**").hasAuthority("CONTRACTS")
                     .antMatchers("/settings/**").hasAuthority("SETTINGS")
-                    .antMatchers("/api/v1/auth/**").hasAuthority("API")
                 .and()
                     //Настройка для входа в систему
                     .formLogin()
                     .loginPage("/login")
                     //Перенарпавление на главную страницу после успешного входа
-                    .defaultSuccessUrl("/profile")
+                    .defaultSuccessUrl("/profile/")
                     .permitAll()
                 .and()
                     .logout()
@@ -51,7 +50,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .deleteCookies("JSESSIONID") // не можна видаляти при remember me
                 .and()
                     .rememberMe()
-                    .key("uniqueAndSecret").tokenValiditySeconds(1209600); // 2 тижні
+                    .key("uniqueAndSecret").tokenValiditySeconds(1209600); // 2 week
     }
 
     @Autowired

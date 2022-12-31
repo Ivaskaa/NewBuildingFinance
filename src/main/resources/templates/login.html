@@ -59,8 +59,10 @@
     <br>
     <h1>Login</h1>
 
-    <form method="post" action="login" class="mt-5" enctype="multipart/form-data">
+    <p style="color: red" th:if="${param.error}">Invalid username and password</p>
+    <p style="color: green" th:if="${param.logout}">You have been logged out</p>
 
+    <form method="post" th:action="@{/login}" class="mt-5" enctype="multipart/form-data">
         <div class="container">
             <label for="username">Username</label>
             <input id="username" type="text" placeholder="Enter Username" name="username" required class="form-control mt-2">

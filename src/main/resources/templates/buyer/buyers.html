@@ -745,6 +745,17 @@
     paginationButton();
   }
 
+  function changeDocument(){
+    if(document.getElementById('passportButton').checked){
+      $("#passport").show();
+      $("#idcard").hide();
+    }
+    if(document.getElementById('idCardButton').checked){
+      $("#idcard").show();
+      $("#passport").hide();
+    }
+  }
+
   function changeSize(){
     size = $('#sizeSelect').val();
     currentPage = 1;

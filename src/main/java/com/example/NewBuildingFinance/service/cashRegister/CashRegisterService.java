@@ -155,4 +155,6 @@ public interface CashRegisterService {
      * @return if cash register exists return true
      */
     boolean checkCashRegister(Long id);
+
+    void deleteCashRegistersById(Long id);
 }

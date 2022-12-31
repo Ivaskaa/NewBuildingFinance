@@ -1,6 +1,7 @@
 package com.example.NewBuildingFinance.controllers;
 
 import com.example.NewBuildingFinance.entities.auth.User;
+import com.example.NewBuildingFinance.service.auth.user.UserService;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -13,7 +14,7 @@ import java.text.ParseException;
 @AllArgsConstructor
 @RequestMapping("/registration")
 public class RegistrationController {
-    private final UserServiceImpl userServiceImpl;
+    private final UserService userService;
 
     @GetMapping()
     public String registerUser(
@@ -24,7 +25,7 @@ public class RegistrationController {
             model.addAttribute("tokenFailedMessage", "Your token validation failed");
             return "auth/registration";
         }
-        User user = userServiceImpl.findUserByToken(token);
+        User user = userService.findUserByToken(token);
         if(user == null){
             model.addAttribute("tokenFailedMessage", "Your token validation failed");
             return "auth/registration";
@@ -44,15 +45,12 @@ public class RegistrationController {
             String password,
             String repeatPassword,
             Model model
-    ) throws ParseException {
-        System.out.println(token);
-        System.out.println(password);
-        System.out.println(repeatPassword);
+    ) {
         if(token == null || token.isEmpty()){
             model.addAttribute("tokenFailedMessage", "Your token validation failed");
             return "auth/registration";
         }
-        User user = userServiceImpl.findUserByToken(token);
+        User user = userService.findUserByToken(token);
         if(user == null){
             model.addAttribute("tokenFailedMessage", "Your token validation failed");
             return "auth/registration";
@@ -61,8 +59,8 @@ public class RegistrationController {
             model.addAttribute("passwordMessage", "Passwords must be equals");
             return "auth/registration";
         }
-        userServiceImpl.savePassword(user, password);
-        userServiceImpl.deleteToken(token);
+        userService.savePassword(user, password);
+        userService.deleteToken(token);
         return "redirect:/login";
     }
 }

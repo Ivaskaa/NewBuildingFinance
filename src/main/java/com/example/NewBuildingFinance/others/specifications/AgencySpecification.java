@@ -2,15 +2,14 @@ package com.example.NewBuildingFinance.others.specifications;
 
 import com.example.NewBuildingFinance.entities.agency.Agency;
 import com.example.NewBuildingFinance.entities.agency.Agency_;
+import com.example.NewBuildingFinance.entities.agency.Realtor;
 import com.example.NewBuildingFinance.entities.agency.Realtor_;
 import com.example.NewBuildingFinance.entities.buyer.Buyer_;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.flat.Flat_;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -88,15 +87,17 @@ public class AgencySpecification {
         if (count == null) {
             return null;
         }
-        return (root, query, cb) -> {
-            // fixme
-            Join<Object, Object> agencyRealtor = root.join(Agency_.REALTORS, JoinType.INNER);
-            Join<Object, Object> agencyRealtorFlat = agencyRealtor.join(Realtor_.FLATS, JoinType.INNER);
 
-            return cb.equal(
-                        cb.count(
-                                query.subquery(Realtor_.class).select(agencyRealtor.get(Realtor_.FLATS))
-                        ), count);
+        return (root, query, cb) -> {
+
+            Subquery<Long> sub = query.subquery(Long.class);
+            Root<Realtor> subRoot = sub.from(Realtor.class);
+
+            SetJoin<Realtor, Flat> subJoin = subRoot.joinSet(Realtor_.FLATS, JoinType.INNER);
+            sub.select(cb.count(subJoin.get(Flat_.ID)));
+            sub.where(cb.and(cb.isNotNull(subJoin.get(Flat_.CONTRACT)), cb.equal(root.get(Agency_.ID), subRoot.get(Realtor_.AGENCY).get(Agency_.ID))));
+
+            return cb.equal(sub, count);
         };
     }
 

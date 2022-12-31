@@ -9,7 +9,7 @@ import com.example.NewBuildingFinance.entities.object.Object;
 import com.example.NewBuildingFinance.others.specifications.FlatSpecification;
 import com.example.NewBuildingFinance.repository.FlatRepository;
 import com.example.NewBuildingFinance.repository.ObjectRepository;
-import com.example.NewBuildingFinance.service.staticService.StaticServiceImpl;
+import com.example.NewBuildingFinance.service.staticService.StaticService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.poi.ss.usermodel.*;
@@ -32,10 +32,14 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotNull;
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @Service
 @Log4j2
@@ -44,7 +48,7 @@ public class FlatServiceImpl implements FlatService{
     private final FlatRepository flatRepository;
     private final ObjectRepository objectRepository;
 
-    private final StaticServiceImpl staticService;
+    private final StaticService staticService;
 
     @Override
     public Page<FlatTableDto> findSortingAndSpecificationPage(
@@ -667,6 +671,7 @@ public class FlatServiceImpl implements FlatService{
         return flat;
     }
 
+    @Override
     public List<Pair<StatusFlat, String>> getStatusesByFlatId(@NotNull Long flatId) {
 
         List<Pair<StatusFlat, String>> list = new ArrayList<>();
@@ -721,7 +726,11 @@ public class FlatServiceImpl implements FlatService{
         return flats;
     }
 
-    public boolean validationWithoutDatabase(@NotNull BindingResult bindingResult, @NotNull FlatSaveDto flatSaveDto) {
+    @Override
+    public boolean validationWithoutDatabase(
+            @NotNull BindingResult bindingResult,
+            @NotNull FlatSaveDto flatSaveDto
+    ) {
         boolean isValid = true;
         if(flatSaveDto.getPrice() != null && flatSaveDto.getSalePrice() != null){
             if(flatSaveDto.getPrice() < flatSaveDto.getSalePrice()){
@@ -740,7 +749,11 @@ public class FlatServiceImpl implements FlatService{
         return isValid;
     }
 
-    public boolean validationCreateWithDatabase(@NotNull BindingResult bindingResult, @NotNull FlatSaveDto flatSaveDto) {
+    @Override
+    public boolean validationCreateWithDatabase(
+            @NotNull BindingResult bindingResult,
+            @NotNull FlatSaveDto flatSaveDto
+    ) {
         boolean isValid = true;
         if(flatSaveDto.getNumber() != null && flatSaveDto.getObjectId() != null) {
             Flat flat = flatRepository.findFlatInObject(flatSaveDto.getNumber(), flatSaveDto.getObjectId());
@@ -752,7 +765,11 @@ public class FlatServiceImpl implements FlatService{
         return isValid;
     }
 
-    public boolean validationUpdateWithDatabase(BindingResult bindingResult, FlatSaveDto flatSaveDto) {
+    @Override
+    public boolean validationUpdateWithDatabase(
+            @NotNull BindingResult bindingResult,
+            @NotNull FlatSaveDto flatSaveDto
+    ) {
         boolean isValid = true;
         Integer flatNumber = flatRepository.findFlatNumberById(flatSaveDto.getId());
         if(flatNumber == null){

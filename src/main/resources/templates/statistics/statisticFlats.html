@@ -10,6 +10,7 @@
     <div th:replace="blocks/links"></div>
     <script th:src="@{/js/app.js}"></script>
     <link rel="stylesheet" th:href="@{/css/popup.css}">
+    <link rel="stylesheet" th:href="@{/css/tableSort.css}">
 </head>
 
 <body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
@@ -107,8 +108,9 @@
                         <label>
                             <input id="flatNumber" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 100px">
                         </label>
-                        <div onclick="sort('number')">
+                        <div onclick="sort(this, 'number')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Flat</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -118,8 +120,9 @@
                                 <option th:each="el : ${objects}" th:value="${el.id}" th:text="${el.house} + '(' + ${el.section} + ')'"></option>
                             </select>
                         </label>
-                        <div onclick="sort('object.house and object.section')">
+                        <div onclick="sort(this, 'object.house and object.section')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Object</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -129,8 +132,9 @@
                         <label>
                             <input id="flatPriceFin" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 60px">
                         </label>
-                        <div onclick="sort('price')">
+                        <div onclick="sort(this, 'price')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Price</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -140,8 +144,9 @@
                         <label>
                             <input id="flatSalePriceFin" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 60px">
                         </label>
-                        <div onclick="sort('salePrice')">
+                        <div onclick="sort(this, 'salePrice')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Sale price</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -151,8 +156,9 @@
                         <label>
                             <input id="factFin" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 60px">
                         </label>
-                        <div onclick="sort('fact')">
+                        <div onclick="sort(this, 'entered')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Fact</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -162,8 +168,9 @@
                         <label>
                             <input id="remainsFin" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 60px">
                         </label>
-                        <div onclick="sort('remains')">
+                        <div onclick="sort(this, 'remains')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Remains</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -173,8 +180,9 @@
                         <label>
                             <input id="debtFin" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 60px">
                         </label>
-                        <div onclick="sort('debt')">
+                        <div onclick="sort(this, 'debt')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Debt</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -184,40 +192,45 @@
                                 <option th:each="el : ${status}" th:value="${el.first}" th:text="${el.second}"></option>
                             </select>
                         </label>
-                        <div onclick="sort('status')">
+                        <div onclick="sort(this, 'status')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Status</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
                         <label>
                             <input id="contractId" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 60px">
                         </label>
-                        <div onclick="sort('contract.id')">
+                        <div onclick="sort(this, 'contract.id')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Contract</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
                         <label>
                             <input id="buyer" oninput="search()" type="text" class="form-control" style="width: 100px">
                         </label>
-                        <div onclick="sort('buyer.surname and buyer.name')">
+                        <div onclick="sort(this, 'buyer.surname and buyer.name')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Buyer</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
                         <label>
                             <input id="realtor" oninput="search()" type="text" class="form-control" style="width: 100px">
                         </label>
-                        <div onclick="sort('realtor.surname and realtor.name')">
+                        <div onclick="sort(this, 'realtor.surname and realtor.name')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Realtor</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
                         <label>
                             <input id="sale" oninput="search()" type="number" min="1" max="10000000" class="form-control" style="width: 60px">
                         </label>
-                        <div onclick="sort('price - salePrice')">
+                        <div onclick="sort(this, 'sale')">
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Sale</p>
+                            <div></div>
                         </div>
                     </th>
                     <th scope="col">
@@ -356,6 +369,12 @@
             if(object.contractId == null){
                 object.contractId = "None";
             }
+            // let fact = object?.fact ?? 0;
+            // let remains = object?.remains ?? 0;
+            // let debt = object?.debt ?? 0;
+            let fact = object?.fact ?? 0;
+            let remains = object?.remains ?? 0;
+            let debt = object?.debt ?? 0;
             $("#list").append($("" +
                 "<tr>" +
                 "<td>" +
@@ -371,13 +390,13 @@
                 "<p>" + object.salePrice + "</p>" +
                 "</td>" +
                 "<td>" +
-                "<p>" + object.fact + "</p>" +
+                "<p>" + fact + "</p>" +
                 "</td>" +
                 "<td>" +
-                "<p>" + object.remains + "</p>" +
+                "<p>" + remains + "</p>" +
                 "</td>" +
                 "<td>" +
-                "<p>" + object.debt + "</p>" +
+                "<p>" + debt + "</p>" +
                 "</td>" +
                 "<td>" +
                 "<p>" + object.status + "</p>" +
@@ -556,16 +575,6 @@
                 console.log('error /getUserPermissionsById');
             }
         });
-    }
-
-    function sort(field){
-        if(sortingDirection === 'ASC'){
-            sortingDirection = 'DESC';
-        } else {
-            sortingDirection = 'ASC';
-        }
-        sortingField = field;
-        updatePage();
     }
     
     function changeSize(){

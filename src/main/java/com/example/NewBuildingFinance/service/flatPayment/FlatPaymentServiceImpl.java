@@ -4,7 +4,7 @@ import com.example.NewBuildingFinance.dto.flat.FlatPaymentTableDto;
 import com.example.NewBuildingFinance.entities.flat.Flat;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
 import com.example.NewBuildingFinance.repository.FlatPaymentRepository;
-import com.example.NewBuildingFinance.service.flat.FlatServiceImpl;
+import com.example.NewBuildingFinance.service.flat.FlatService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -20,7 +20,7 @@ import java.util.List;
 @AllArgsConstructor
 public class FlatPaymentServiceImpl implements FlatPaymentService{
     private final FlatPaymentRepository flatPaymentRepository;
-    private final FlatServiceImpl flatServiceImpl;
+    private final FlatService flatService;
 
     @Override
     public Page<FlatPaymentTableDto> findPage(
@@ -94,7 +94,7 @@ public class FlatPaymentServiceImpl implements FlatPaymentService{
                 return false;
             }
             List<FlatPayment> flatPaymentList = flatPaymentRepository.findAllByFlatIdAndDeletedFalse(flatId);
-            Flat flat = flatServiceImpl.findById(flatId);
+            Flat flat = flatService.findById(flatId);
             Double flatPrice = flat.getSalePrice();
             for (FlatPayment flatPayment : flatPaymentList) {
                 flatPrice -= flatPayment.getPlanned();
@@ -109,7 +109,7 @@ public class FlatPaymentServiceImpl implements FlatPaymentService{
     @Override
     public boolean checkPlanedEdit(Long id, Double planned, Long flatId) {
         List<FlatPayment> flatPaymentList = flatPaymentRepository.findAllByFlatIdAndDeletedFalse(flatId);
-        Flat flat = flatServiceImpl.findById(flatId);
+        Flat flat = flatService.findById(flatId);
         Double flatPrice = flat.getSalePrice();
         for(FlatPayment flatPayment : flatPaymentList){
             if(!flatPayment.getId().equals(id)) {
@@ -119,19 +119,6 @@ public class FlatPaymentServiceImpl implements FlatPaymentService{
         flatPrice -= planned;
         return flatPrice < 0;
     }
-
-//    @Override
-//    public List<FlatPayment> getAllByFlatIdAndDeletedFalse(Long flatId, Long flatPaymentId) {
-//        List<FlatPayment> flatPayments;
-//        if(flatPaymentId == null) {
-//            log.info("get flat payments with paid false by flat id : {}", flatId);
-//            flatPayments = flatPaymentRepository.findAllByFlatIdAndDeletedFalse(flatId);
-//        } else {
-//            flatPayments = flatPaymentRepository.findAllByFlatIdAndDeletedFalseOrFlatIdAndId(flatId, flatId, flatPaymentId);
-//        }
-//        log.info("success get flat payments with paid false by flat id");
-//        return flatPayments;
-//    }
 
     @Override
     public List<FlatPayment> getAllByFlatIdPaidFalseAndDeletedFalse(Long flatId, Long flatPaymentId) {

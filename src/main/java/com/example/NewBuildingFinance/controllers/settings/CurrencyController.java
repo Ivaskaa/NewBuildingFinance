@@ -3,7 +3,10 @@ package com.example.NewBuildingFinance.controllers.settings;
 import com.example.NewBuildingFinance.dto.CurrencyDto;
 import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.currency.InternalCurrency;
+import com.example.NewBuildingFinance.service.auth.user.UserService;
+import com.example.NewBuildingFinance.service.currency.CurrencyService;
 import com.example.NewBuildingFinance.service.currency.CurrencyServiceImpl;
+import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyService;
 import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
 import com.example.NewBuildingFinance.service.auth.user.UserServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,9 +29,10 @@ import java.util.Map;
 @AllArgsConstructor
 @RequestMapping("/settings")
 public class CurrencyController {
-    private final InternalCurrencyServiceImpl internalCurrencyServiceImpl;
-    private final CurrencyServiceImpl currencyServiceImpl;
-    private final UserServiceImpl userServiceImpl;
+    private final InternalCurrencyService internalCurrencyService;
+    private final CurrencyService currencyService;
+    private final UserService userService;
+
     private final ObjectMapper mapper;
 
     @GetMapping("/currency")
@@ -36,9 +40,9 @@ public class CurrencyController {
             Model model
     ) throws JsonProcessingException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userServiceImpl.loadUserByUsername(authentication.getName());
-        model.addAttribute("currencies", internalCurrencyServiceImpl.findAll());
-        model.addAttribute("currency", currencyServiceImpl.getAll());
+        User user = userService.loadUserByUsername(authentication.getName());
+        model.addAttribute("currencies", internalCurrencyService.findAll());
+        model.addAttribute("currency", currencyService.getAll());
         model.addAttribute("user", user);
         return "currency";
     }
@@ -46,7 +50,7 @@ public class CurrencyController {
     @GetMapping("/getCurrencies")
     @ResponseBody
     public String getCurrencies() throws JsonProcessingException {
-        return mapper.writeValueAsString(internalCurrencyServiceImpl.findAll());
+        return mapper.writeValueAsString(internalCurrencyService.findAll());
     }
 
     @PostMapping("/updateCurrency")
@@ -65,7 +69,7 @@ public class CurrencyController {
         }
 
         //action
-        internalCurrencyServiceImpl.update(currencyDto.build());
+        internalCurrencyService.update(currencyDto.build());
         return mapper.writeValueAsString(null);
     }
 
@@ -74,7 +78,7 @@ public class CurrencyController {
     public String getCurrencyById(
             Long id
     ) throws JsonProcessingException {
-        InternalCurrency currency = internalCurrencyServiceImpl.findById(id);
+        InternalCurrency currency = internalCurrencyService.findById(id);
         return mapper.writeValueAsString(currency);
     }
 }

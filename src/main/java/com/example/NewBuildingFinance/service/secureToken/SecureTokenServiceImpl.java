@@ -32,7 +32,7 @@ public class SecureTokenServiceImpl implements SecureTokenService {
         String tokenValue = new String(Base64.encodeBase64URLSafe(DEFAULT_TOKEN_GENERATOR.generateKey()), US_ASCII); // this is a sample, you can adapt as per your security need
         SecureToken secureToken = new SecureToken();
         secureToken.setToken(tokenValue);
-        secureToken.setExpireAt(LocalDateTime.now().plusSeconds(getTokenValidityInSeconds()));
+        secureToken.setExpireAt(LocalDateTime.now().plusSeconds(tokenValidityInSeconds));
         this.saveSecureToken(secureToken);
         log.info("success create secure token");
         return secureToken;
@@ -46,16 +46,6 @@ public class SecureTokenServiceImpl implements SecureTokenService {
     @Override
     public SecureToken findByToken(String token) {
         return secureTokenRepository.findByToken(token);
-    }
-
-    @Override
-    public int getTokenValidityInSeconds() {
-        return tokenValidityInSeconds;
-    }
-
-    @Override
-    public void save(SecureToken secureToken) {
-        secureTokenRepository.save(secureToken);
     }
 
     @Override

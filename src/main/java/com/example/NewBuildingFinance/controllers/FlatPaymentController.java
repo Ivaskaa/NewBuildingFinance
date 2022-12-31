@@ -2,6 +2,7 @@ package com.example.NewBuildingFinance.controllers;
 
 import com.example.NewBuildingFinance.dto.flat.FlatPaymentDto;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
+import com.example.NewBuildingFinance.service.flatPayment.FlatPaymentService;
 import com.example.NewBuildingFinance.service.flatPayment.FlatPaymentServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,7 +21,7 @@ import java.util.Map;
 @AllArgsConstructor
 @RequestMapping("/flats")
 public class FlatPaymentController {
-    private final FlatPaymentServiceImpl flatPaymentServiceImpl;
+    private final FlatPaymentService flatPaymentService;
     private final ObjectMapper mapper;
 
     @GetMapping("/getPaymentsByFlatId")
@@ -33,7 +34,7 @@ public class FlatPaymentController {
 
             Long flatId
     ) throws JsonProcessingException {
-        return mapper.writeValueAsString(flatPaymentServiceImpl.findPage(
+        return mapper.writeValueAsString(flatPaymentService.findPage(
                 page, size, field, direction, flatId));
     }
 
@@ -44,10 +45,10 @@ public class FlatPaymentController {
             BindingResult bindingResult
     ) throws IOException {
         //validation
-        if (flatPaymentServiceImpl.checkNumber(flatPaymentDto.getNumber(), flatPaymentDto.getFlatId())) {
+        if (flatPaymentService.checkNumber(flatPaymentDto.getNumber(), flatPaymentDto.getFlatId())) {
             bindingResult.addError(new FieldError("flatPaymentDto", "number", "This number already exists"));
         }
-        if(flatPaymentServiceImpl.checkPlaned(flatPaymentDto.getPlanned(), flatPaymentDto.getFlatId())){
+        if(flatPaymentService.checkPlaned(flatPaymentDto.getPlanned(), flatPaymentDto.getFlatId())){
             bindingResult.addError(new FieldError("flatPaymentDto", "planned", "The sum of planned payment can`t exceed sale price"));
         }
         if(flatPaymentDto.getPlanned() != null && flatPaymentDto.getPlanned() == 0){
@@ -63,7 +64,7 @@ public class FlatPaymentController {
 
 
         //action
-        flatPaymentServiceImpl.save(flatPaymentDto.build());
+        flatPaymentService.save(flatPaymentDto.build());
         return mapper.writeValueAsString(null);
     }
 
@@ -75,13 +76,13 @@ public class FlatPaymentController {
     ) throws IOException {
         //validation
         System.out.println(flatPaymentDto);
-        FlatPayment flatPayment = flatPaymentServiceImpl.findById(flatPaymentDto.getId());
+        FlatPayment flatPayment = flatPaymentService.findById(flatPaymentDto.getId());
         if(!flatPayment.getNumber().equals(flatPaymentDto.getNumber())) {
-            if (flatPaymentServiceImpl.checkNumber(flatPaymentDto.getNumber(), flatPaymentDto.getFlatId())) {
+            if (flatPaymentService.checkNumber(flatPaymentDto.getNumber(), flatPaymentDto.getFlatId())) {
                 bindingResult.addError(new FieldError("flatPaymentDto", "number", "This number already exists"));
             }
         }
-        if(flatPaymentServiceImpl.checkPlanedEdit(flatPaymentDto.getId(), flatPaymentDto.getPlanned(), flatPaymentDto.getFlatId())){
+        if(flatPaymentService.checkPlanedEdit(flatPaymentDto.getId(), flatPaymentDto.getPlanned(), flatPaymentDto.getFlatId())){
             bindingResult.addError(new FieldError("flatPaymentDto", "planned", "The planned payment of the apartment is incomplete"));
         }
         if(flatPaymentDto.getPlanned() != null && flatPaymentDto.getPlanned() == 0){
@@ -96,7 +97,7 @@ public class FlatPaymentController {
         }
 
         //action
-        flatPaymentServiceImpl.update(flatPaymentDto.build());
+        flatPaymentService.update(flatPaymentDto.build());
         return mapper.writeValueAsString(null);
     }
 
@@ -105,7 +106,7 @@ public class FlatPaymentController {
     public String getPaymentById(
             Long id
     ) throws JsonProcessingException {
-        FlatPayment flatPayment = flatPaymentServiceImpl.findById(id);
+        FlatPayment flatPayment = flatPaymentService.findById(id);
         return mapper.writeValueAsString(flatPayment);
     }
 
@@ -114,7 +115,7 @@ public class FlatPaymentController {
     public String deletePaymentById(
             Long id
     ) throws JsonProcessingException {
-        flatPaymentServiceImpl.deleteById(id);
+        flatPaymentService.deleteById(id);
         return mapper.writeValueAsString("success");
     }
 }

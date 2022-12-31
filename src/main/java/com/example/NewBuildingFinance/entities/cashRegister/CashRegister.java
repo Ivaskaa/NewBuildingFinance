@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Formula;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.*;
@@ -69,7 +70,59 @@ public class CashRegister {
     @JsonBackReference
     private Realtor realtor;
 
-    private String counterparty; // контрагент
+    @Formula("(select if(cr.flat_payment_id is not null,\n" +
+            "               (select (select (select b.name\n" +
+            "                                from buyers b\n" +
+            "                                where b.id = f.buyer_id)\n" +
+            "                        from flats f\n" +
+            "                        where f.id = fp.flat_id)\n" +
+            "                from flat_payments fp\n" +
+            "                where fp.id = cr.flat_payment_id),\n" +
+            "               if(cr.realtor_id is not null,\n" +
+            "                   (select r.name\n" +
+            "                    from realtors r\n" +
+            "                    where r.id = cr.realtor_id),\n" +
+            "                   if(cr.user_id is not null,\n" +
+            "                       (select u.name\n" +
+            "                        from users u\n" +
+            "                        where u.id = cr.user_id),\n" +
+            "                       if(cr.article = 'MONEY_FOR_DIRECTOR',\n" +
+            "                         (select us.name\n" +
+            "                          from users us\n" +
+            "                          where us.role_id = 1),\n" +
+            "                         cr.other_payment_name))))\n" +
+            "from cash_registers cr\n" +
+            "where cr.id = id)")
+    private String counterpartyName;
+
+    @Formula("(select if(cr.flat_payment_id is not null,\n" +
+            "                 (select (select (select b.surname\n" +
+            "                                  from buyers b\n" +
+            "                                  where b.id = f.buyer_id)\n" +
+            "                          from flats f\n" +
+            "                          where f.id = fp.flat_id)\n" +
+            "                  from flat_payments fp\n" +
+            "                  where fp.id = cr.flat_payment_id),\n" +
+            "                 if(cr.realtor_id is not null,\n" +
+            "                    (select r.surname\n" +
+            "                     from realtors r\n" +
+            "                     where r.id = cr.realtor_id),\n" +
+            "                    if(cr.user_id is not null,\n" +
+            "                       (select u.surname\n" +
+            "                        from users u\n" +
+            "                        where u.id = cr.user_id),\n" +
+            "                        if(cr.article = 'MONEY_FOR_DIRECTOR',\n" +
+            "                            (select us.surname\n" +
+            "                             from users us\n" +
+            "                             where us.role_id = 1),\n" +
+            "                           cr.other_payment_surname))))\n" +
+            "from cash_registers cr\n" +
+            "where cr.id = id)")
+    private String counterpartySurname;
+
+    private String otherPaymentName;
+    private String otherPaymentSurname;
+
     private Double admissionCourse;
     private String comment;
     private boolean deleted = false;
@@ -89,7 +142,7 @@ public class CashRegister {
                     object.getHouse() + "(" +
                     object.getSection() + ")");
         }
-        cashRegister.setCounterparty(counterparty);
+        cashRegister.setCounterparty(counterpartyName + " " + counterpartySurname);
         return cashRegister;
     }
 
@@ -168,7 +221,7 @@ public class CashRegister {
             cashRegister.setAgencyId(realtor.getAgency().getId());
             cashRegister.setRealtorId(realtor.getId());
         } else {
-            cashRegister.setCounterparty(counterparty);
+            cashRegister.setCounterparty(counterpartyName + " " + counterpartySurname);
         }
         cashRegister.setArticle(article);
         if(object != null) {
@@ -184,27 +237,5 @@ public class CashRegister {
         cashRegister.setComment(comment);
         return cashRegister;
     }
-
-    @Override
-    public String toString() {
-        return "CashRegister{" +
-                "id=" + id +
-                ", number=" + number +
-                ", date=" + date +
-                ", economic=" + economic +
-                ", status=" + status +
-                ", object=" + object +
-                ", flatPayment=" + flatPayment +
-                ", article=" + article +
-                ", price=" + price +
-                ", currency=" + currency +
-                ", manager=" + manager +
-                ", realtor=" + realtor +
-                ", counterparty='" + counterparty + '\'' +
-                ", admissionCourse=" + admissionCourse +
-                ", comment='" + comment + '\'' +
-                '}';
-    }
-
 
 }

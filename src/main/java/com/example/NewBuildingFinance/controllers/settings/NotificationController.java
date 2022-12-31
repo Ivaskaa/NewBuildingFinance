@@ -1,6 +1,7 @@
 package com.example.NewBuildingFinance.controllers.settings;
 
 import com.example.NewBuildingFinance.entities.notification.Notification;
+import com.example.NewBuildingFinance.service.notification.NotificationService;
 import com.example.NewBuildingFinance.service.notification.NotificationServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,21 +19,21 @@ import java.util.List;
 @AllArgsConstructor
 @RequestMapping("/settings")
 public class NotificationController {
-    private final NotificationServiceImpl notificationServiceImpl;
+    private final NotificationService notificationService;
     private final ObjectMapper mapper;
 
     @GetMapping("/notification/{id}")
     public String notification(
             @PathVariable(required = false) Long id
     ) throws ParseException {
-        Notification notification = notificationServiceImpl.setReviewed(id);
+        Notification notification = notificationService.setReviewed(id);
         return "redirect:" + notification.getUrl();
     }
 
     @GetMapping( "/getNotifications" )
     @ResponseBody
     public String getNotifications() throws JsonProcessingException {
-        List<Notification> notifications = notificationServiceImpl.findAll();
+        List<Notification> notifications = notificationService.findAll();
         return mapper.writeValueAsString(notifications);
     }
 }

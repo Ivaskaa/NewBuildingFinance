@@ -4,26 +4,19 @@ import com.example.NewBuildingFinance.dto.cashRegister.CashRegisterTableDto;
 import com.example.NewBuildingFinance.dto.cashRegister.CashRegisterTableDtoForFlat;
 import com.example.NewBuildingFinance.dto.cashRegister.IncomeUploadDto;
 import com.example.NewBuildingFinance.dto.cashRegister.SpendingUploadDto;
-import com.example.NewBuildingFinance.entities.agency.Realtor;
-import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.entities.cashRegister.Article;
 import com.example.NewBuildingFinance.entities.cashRegister.CashRegister;
 import com.example.NewBuildingFinance.entities.cashRegister.Economic;
 import com.example.NewBuildingFinance.entities.cashRegister.StatusCashRegister;
-import com.example.NewBuildingFinance.entities.currency.InternalCurrency;
 import com.example.NewBuildingFinance.entities.flat.FlatPayment;
-import com.example.NewBuildingFinance.others.mail.context.AbstractEmailContextBuyerFlatPayment;
 import com.example.NewBuildingFinance.others.mail.MailThread;
+import com.example.NewBuildingFinance.others.mail.context.EmailContextBuyerFlatPayment;
 import com.example.NewBuildingFinance.others.specifications.CashRegisterSpecification;
 import com.example.NewBuildingFinance.repository.CashRegisterRepository;
 import com.example.NewBuildingFinance.repository.FlatPaymentRepository;
-import com.example.NewBuildingFinance.repository.RealtorRepository;
-import com.example.NewBuildingFinance.repository.auth.UserRepository;
-import com.example.NewBuildingFinance.service.internalCurrency.InternalCurrencyServiceImpl;
-import com.example.NewBuildingFinance.service.mail.MailServiceImpl;
-import com.example.NewBuildingFinance.service.setting.SettingServiceImpl;
-import com.example.NewBuildingFinance.service.staticService.StaticServiceImpl;
-import com.itextpdf.html2pdf.HtmlConverter;
+import com.example.NewBuildingFinance.service.mail.MailService;
+import com.example.NewBuildingFinance.service.setting.SettingService;
+import com.example.NewBuildingFinance.service.staticService.StaticService;
 import com.itextpdf.text.*;
 import com.itextpdf.text.html.simpleparser.HTMLWorker;
 import com.itextpdf.text.pdf.PdfPCell;
@@ -31,8 +24,6 @@ import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.apache.pdfbox.multipdf.PDFMergerUtility;
-import org.apache.pdfbox.pdfparser.XrefTrailerResolver;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -62,13 +53,10 @@ import java.util.stream.Stream;
 public class CashRegisterServiceImpl implements CashRegisterService{
     private final CashRegisterRepository cashRegisterRepository;
     private final FlatPaymentRepository flatPaymentRepository;
-    private final RealtorRepository realtorRepository;
-    private final UserRepository userRepository;
 
-    private final MailServiceImpl mailServiceImpl;
-    private final SettingServiceImpl settingService;
-    private final InternalCurrencyServiceImpl internalCurrencyService;
-    private final StaticServiceImpl staticService;
+    private final MailService mailService;
+    private final SettingService settingService;
+    private final StaticService staticService;
 
     @Override
     public Page<CashRegisterTableDto> findSortingAndSpecificationPage(
@@ -111,7 +99,7 @@ public class CashRegisterServiceImpl implements CashRegisterService{
 
     @Override
     public List<CashRegisterTableDtoForFlat> getCashRegistersByFlatId(Long id) {
-        List<CashRegister> cashRegisters = cashRegisterRepository.findAllByFlatId(id);
+        List<CashRegister> cashRegisters = cashRegisterRepository.findAllByFlatIdAndDeletedFalse(id);
         return cashRegisters.stream().map(CashRegister::buildForFlat).collect(Collectors.toList());
     }
 
@@ -122,15 +110,13 @@ public class CashRegisterServiceImpl implements CashRegisterService{
         if (income.getArticle().equals(Article.FLAT_PAYMENT)) {
             FlatPayment flatPayment = flatPaymentRepository.findById(cashRegister.getFlatPayment().getId()).orElse(null);
             if (flatPayment != null) {
-                cashRegister.setCounterparty(
-                        flatPayment.getFlat().getBuyer().getSurname() + " " +
-                        flatPayment.getFlat().getBuyer().getName());
-                flatPayment.setActually(cashRegister.getPrice() / internalCurrencyService.getUSD().getPrice() * cashRegister.getAdmissionCourse());
+                double result = Math.floor(cashRegister.getPrice() * cashRegister.getAdmissionCourse());
+                flatPayment.setActually(result);
                 flatPayment.setPaid(true);
                 flatPaymentRepository.save(flatPayment);
 
                 if(income.getStatus().equals(StatusCashRegister.COMPLETED)) {
-                    AbstractEmailContextBuyerFlatPayment emailContext = new AbstractEmailContextBuyerFlatPayment();
+                    EmailContextBuyerFlatPayment emailContext = new EmailContextBuyerFlatPayment();
                     emailContext.setTemplateLocation("email/email-buyer-notification"); // вказуєм з якої папки взяти html
                     emailContext.setSubject("Complete your registration");
                     emailContext.setFrom("no-reply@javadevjournal.com");
@@ -139,7 +125,7 @@ public class CashRegisterServiceImpl implements CashRegisterService{
                     emailContext.setTodayDate(new Date());
                     emailContext.setPlanned(flatPayment.getPlanned());
                     emailContext.setActually(flatPayment.getActually());
-                    new MailThread(mailServiceImpl, emailContext).start();
+                    new MailThread(mailService, emailContext).start();
                 }
             }
         }
@@ -162,17 +148,14 @@ public class CashRegisterServiceImpl implements CashRegisterService{
                     oldFlatPayment.setPaid(false);
                     flatPaymentRepository.save(oldFlatPayment);
                 }
-
-                cashRegisterAfterSave.setCounterparty(
-                        newFlatPayment.getFlat().getBuyer().getSurname() + " " +
-                                newFlatPayment.getFlat().getBuyer().getName());
-                newFlatPayment.setActually(cashRegisterAfterSave.getPrice() / internalCurrencyService.getUSD().getPrice() * cashRegisterAfterSave.getAdmissionCourse());
+                double result = Math.floor(cashRegisterAfterSave.getPrice() * cashRegisterAfterSave.getAdmissionCourse());
+                newFlatPayment.setActually(result);
                 newFlatPayment.setPaid(true);
                 flatPaymentRepository.save(newFlatPayment);
 
                 if(income.getStatus().equals(StatusCashRegister.COMPLETED)) {
                     if(settingService.getSettings().isSendEmailToBuyers()) {
-                        AbstractEmailContextBuyerFlatPayment emailContext = new AbstractEmailContextBuyerFlatPayment();
+                        EmailContextBuyerFlatPayment emailContext = new EmailContextBuyerFlatPayment();
                         emailContext.setTemplateLocation("email/email-buyer-notification"); // вказуєм з якої папки взяти html
                         emailContext.setSubject("Complete your registration");
                         emailContext.setFrom("no-reply@javadevjournal.com");
@@ -181,7 +164,7 @@ public class CashRegisterServiceImpl implements CashRegisterService{
                         emailContext.setTodayDate(new Date());
                         emailContext.setPlanned(newFlatPayment.getPlanned());
                         emailContext.setActually(newFlatPayment.getActually());
-                        new MailThread(mailServiceImpl, emailContext).start();
+                        new MailThread(mailService, emailContext).start();
                     }
                 }
             }
@@ -200,16 +183,6 @@ public class CashRegisterServiceImpl implements CashRegisterService{
     @Override
     public CashRegister saveSpending(CashRegister spending) {
         log.info("save spending: {}", spending);
-        if(spending.getArticle().equals(Article.COMMISSION_AGENCIES)){
-            Realtor realtor = realtorRepository.findById(spending.getRealtor().getId()).orElseThrow();
-            spending.setCounterparty(realtor.getSurname() + " " + realtor.getName());
-        } else if(spending.getArticle().equals(Article.COMMISSION_MANAGER)){
-            User user = userRepository.findById(spending.getManager().getId()).orElseThrow();
-            spending.setCounterparty(user.getSurname() + " " + user.getName());
-        } else if(spending.getArticle().equals(Article.MONEY_FOR_DIRECTOR)){
-            User user = userRepository.findById(1L).orElseThrow();
-            spending.setCounterparty(user.getSurname() + " " + user.getName());
-        }
         CashRegister cashRegister = cashRegisterRepository.save(spending);
         log.info("success save spending");
         return cashRegister;
@@ -218,16 +191,6 @@ public class CashRegisterServiceImpl implements CashRegisterService{
     @Override
     public SpendingUploadDto updateSpending(CashRegister spending) {
         log.info("update spending: {}", spending);
-        if(spending.getArticle().equals(Article.COMMISSION_AGENCIES)){
-            Realtor realtor = realtorRepository.findById(spending.getRealtor().getId()).orElseThrow();
-            spending.setCounterparty(realtor.getSurname() + " " + realtor.getName());
-        } else if(spending.getArticle().equals(Article.COMMISSION_MANAGER)){
-            User user = userRepository.findById(spending.getManager().getId()).orElseThrow();
-            spending.setCounterparty(user.getSurname() + " " + user.getName());
-        } else if(spending.getArticle().equals(Article.MONEY_FOR_DIRECTOR)){
-            User user = userRepository.findById(1L).orElseThrow();
-            spending.setCounterparty(user.getSurname() + " " + user.getName());
-        }
         CashRegister cashRegister = cashRegisterRepository.save(spending);
         log.info("success update spending");
         return cashRegister.buildSpendingUploadDto();
@@ -238,7 +201,6 @@ public class CashRegisterServiceImpl implements CashRegisterService{
         CashRegister cashRegister = cashRegisterRepository.findById(id).orElseThrow();
         if(cashRegister.getEconomic().equals(Economic.INCOME)){
             if (cashRegister.getArticle().equals(Article.FLAT_PAYMENT)){
-                cashRegister.setFlatPayment(null);
                 cashRegister.setObject(null);
                 FlatPayment oldFlatPayment = cashRegister.getFlatPayment();
                 if (oldFlatPayment != null) {
@@ -246,6 +208,7 @@ public class CashRegisterServiceImpl implements CashRegisterService{
                     oldFlatPayment.setPaid(false);
                     flatPaymentRepository.save(oldFlatPayment);
                 }
+                cashRegister.setFlatPayment(null);
             }
             cashRegister.setDeleted(true);
             log.info("success set cash_register.delete true for income");
@@ -322,7 +285,7 @@ public class CashRegisterServiceImpl implements CashRegisterService{
         document.add(new Chunk());
 
         if (income.getArticle().equals(Article.FLAT_PAYMENT)){
-            Paragraph paragraphSender = new Paragraph(new Chunk("Sender: " + income.getCounterparty(), font));
+            Paragraph paragraphSender = new Paragraph(new Chunk("Sender: " + income.getCounterpartySurname() + " " + income.getCounterpartyName(), font));
             paragraphSender.setAlignment(Element.ALIGN_LEFT);
             document.add(paragraphSender);
             document.add(new Chunk());
@@ -414,7 +377,7 @@ public class CashRegisterServiceImpl implements CashRegisterService{
         document.add(paragraphDate);
         document.add(new Chunk());
 
-        Paragraph paragraphSender = new Paragraph(new Chunk("Sender: " + spending.getCounterparty(), font));
+        Paragraph paragraphSender = new Paragraph(new Chunk("Sender: " + spending.getCounterpartySurname() + " " + spending.getCounterpartyName(), font));
         document.add(paragraphSender);
         document.add(new Chunk());
 

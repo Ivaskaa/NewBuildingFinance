@@ -24,4 +24,9 @@ public interface BuyerRepository extends JpaRepository<Buyer, Long>{
     @Query(value = "update newbuildingfinance.buyers set buyers.deleted = true where buyers.id = :id", nativeQuery = true)
     @Transactional
     void setDeleted(@Param("id") Long id);
+
+    @Query("select b from Buyer b where b.email like :email and b.id <> :id and b.deleted = false")
+    Buyer findByEmail(@Param("email") String email, @Param("id") Long id);
+
+    Buyer findByEmail(String email);
 }

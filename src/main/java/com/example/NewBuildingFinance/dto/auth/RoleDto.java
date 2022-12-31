@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,9 +29,9 @@ public class RoleDto {
         role.setId(id);;
         role.setName(name);
         if(permissions == null) {
-            role.setPermissions(new HashSet<>());
+            role.setPermissions(new ArrayList<>());
         } else {
-            role.setPermissions(permissions.stream().map(PermissionDto::build).collect(Collectors.toSet()));
+            role.setPermissions(permissions.stream().map(PermissionDto::build).collect(Collectors.toList()));
         }
         return role;
     }

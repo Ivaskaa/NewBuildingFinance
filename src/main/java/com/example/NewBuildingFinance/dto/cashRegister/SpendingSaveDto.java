@@ -27,7 +27,8 @@ public class SpendingSaveDto {
     private Long flatId;
     private Long managerId;
     private Long realtorId;
-    private String counterparty;
+    private String counterpartyName;
+    private String counterpartySurname;
     @NotNull(message = "Must not be empty")
     private Article article; // стаття
     @NotNull(message = "Must not be empty")
@@ -82,7 +83,8 @@ public class SpendingSaveDto {
                 cashRegister.setFlat(flat);
             }
         } else if(article.equals(Article.CONSTRUCTION_COSTS)){
-            cashRegister.setCounterparty(counterparty);
+            cashRegister.setOtherPaymentName(counterpartyName);
+            cashRegister.setOtherPaymentSurname(counterpartySurname);
         }
         cashRegister.setArticle(article);
         cashRegister.setPrice(price);
