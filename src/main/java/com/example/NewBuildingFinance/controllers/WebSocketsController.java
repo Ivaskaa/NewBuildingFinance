@@ -4,6 +4,7 @@ import com.example.NewBuildingFinance.dto.CurrencyDto;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class WebSocketsController {
@@ -20,5 +21,17 @@ public class WebSocketsController {
     @SendTo("/topic/notifications")
     public String notifications() throws Exception {
         return "success";
+    }
+
+
+    @MessageMapping("/hello")  // before that must input /app (check WebSocketConfig)
+    @SendTo("/topic/hello")
+    public String hello(String string) {
+        return string;
+    }
+
+    @GetMapping("/websockets")
+    public String agencies(){
+        return "websockets/index";
     }
 }

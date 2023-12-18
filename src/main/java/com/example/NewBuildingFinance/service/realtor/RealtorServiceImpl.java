@@ -59,7 +59,7 @@ public class RealtorServiceImpl implements RealtorService{
     public Realtor save(Realtor realtor, Long agencyId) {
         log.info("save realtor: {}", realtor);
         Agency agency = new Agency();
-        agency.setId(agencyId); // fixme create dto
+        agency.setId(agencyId);
         realtor.setAgency(agency);
         if(realtor.isDirector()){
             Realtor latestDirector = realtorRepository.findDirectorByAgencyId(agencyId);

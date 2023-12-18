@@ -1,15 +1,14 @@
 package com.example.NewBuildingFinance.others.specifications;
 
-import com.example.NewBuildingFinance.entities.agency.Agency;
-import com.example.NewBuildingFinance.entities.agency.Agency_;
-import com.example.NewBuildingFinance.entities.agency.Realtor_;
 import com.example.NewBuildingFinance.entities.buyer.Buyer_;
 import com.example.NewBuildingFinance.entities.contract.Contract_;
 import com.example.NewBuildingFinance.entities.flat.*;
 import com.example.NewBuildingFinance.entities.object.Object_;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -100,7 +99,6 @@ public class FlatStatisticSpecification {
         }
         Integer finalAdvanceStart = remainsStart.intValue();
         Integer finalAdvanceFin = remainsFin.intValue();
-
 
         return (root, query, cb) -> {
             Subquery<Integer> subFlatPayment = query.subquery(Integer.class);

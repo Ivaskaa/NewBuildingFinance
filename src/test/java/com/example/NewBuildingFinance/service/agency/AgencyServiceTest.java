@@ -24,13 +24,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class AgencyServiceTest {
     @Autowired
     private AgencyService agencyService;
-    @Autowired
-    private NotificationService notificationService;
-    @Autowired
-    private StaticService staticService;
 
     @MockBean
     private AgencyRepository agencyRepository;
+    @MockBean
+    private NotificationService notificationService;
 
     @Test
     void findSortingAndSpecificationPage() {
@@ -141,40 +139,96 @@ class AgencyServiceTest {
     void update() {
         Agency agency = new Agency();
         agency.setId(1L);
-        agency.setName("name");
-        agency.setDirectorPhone("phone");
-        agency.setDirectorName("name");
-        agency.setDirectorEmail("email");
+        agency.setName("nameUpdate");
+        agency.setName("descriptionUpdate");
         agency.setCountContracts(1);
 
         Agency agencyUpdate = new Agency();
         agencyUpdate.setId(1L);
-        agencyUpdate.setName("nameUpdate");
-        agencyUpdate.setDescription("descriptionUpdate");
+        agencyUpdate.setName("name");
+        agencyUpdate.setDescription("description");
+        agencyUpdate.setDirectorPhone("phone");
+        agencyUpdate.setDirectorName("name");
+        agencyUpdate.setDirectorEmail("email");
         agencyUpdate.setCountContracts(1);
 
         Mockito.doReturn(agencyUpdate)
                 .when(agencyRepository)
                 .save(agencyUpdate);
-
-        Mockito.doReturn(agency)
+        Mockito.doReturn(Optional.of(agencyUpdate))
                 .when(agencyRepository)
                 .findById(1L);
 
-        agencyService.update(agency);
+        agencyUpdate = agencyService.update(agency);
 
-//        Mockito.doReturn()
+        Mockito.verify(agencyRepository,
+                        Mockito.times(1))
+                .findById(1L);
+
+        Assertions.assertEquals(agency.getName(), agencyUpdate.getName());
+        Assertions.assertEquals(agency.getDescription(), agencyUpdate.getDescription());
     }
 
     @Test
     void deleteById() {
+        Long id = 1L;
+        agencyService.deleteById(id);
+
+        Mockito.verify(agencyRepository,
+                        Mockito.times(1))
+                .setDeleted(id);
     }
 
     @Test
     void findById() {
+        Agency agency = new Agency();
+        agency.setId(1L);
+        agency.setName("nameUpdate");
+        agency.setName("descriptionUpdate");
+        agency.setCountContracts(1);
+
+        Mockito.doReturn(Optional.of(agency))
+                .when(agencyRepository)
+                .findById(1L);
+
+        Long id = 1L;
+        agencyService.findById(id);
+
+        Mockito.verify(agencyRepository,
+                        Mockito.times(1))
+                .findById(id);
     }
 
     @Test
     void checkAgencyName() {
+        String name = "name";
+
+        Mockito.doReturn(null)
+                .when(agencyRepository)
+                .findByNameAndDeletedFalse(name);
+
+        boolean responseFalse = agencyService.checkAgencyName(name);
+
+        Mockito.verify(agencyRepository,
+                        Mockito.times(1))
+                .findByNameAndDeletedFalse(name);
+
+        Assertions.assertFalse(responseFalse);
+
+        String anotherName = "another name";
+
+        Agency agency = new Agency();
+
+        Mockito.doReturn(agency)
+                .when(agencyRepository)
+                .findByNameAndDeletedFalse(anotherName);
+
+        boolean responseTrue = agencyService.checkAgencyName(anotherName);
+
+        Mockito.verify(agencyRepository,
+                        Mockito.times(1))
+                .findByNameAndDeletedFalse(anotherName);
+
+        Assertions.assertTrue(responseTrue);
     }
 }
