@@ -6,6 +6,7 @@ import com.example.NewBuildingFinance.entities.auth.User;
 import com.example.NewBuildingFinance.others.mail.MailThread;
 import com.example.NewBuildingFinance.others.mail.context.EmailContextUserRegistration;
 import com.example.NewBuildingFinance.repository.auth.UserRepository;
+import com.example.NewBuildingFinance.service.chat.EncryptionService;
 import com.example.NewBuildingFinance.service.mail.MailService;
 import com.example.NewBuildingFinance.service.secureToken.SecureTokenService;
 import lombok.extern.log4j.Log4j2;
@@ -20,7 +21,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.KeyPair;
 import java.time.ZoneId;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,6 +39,8 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     private BCryptPasswordEncoder passwordEncoder;
     @Autowired
     private MailService mailService;
+    @Autowired
+    private EncryptionService encryptionService;
 
     @Value("${site.base.url.http}")
     private String baseURL;
@@ -45,7 +50,8 @@ public class UserServiceImpl implements UserDetailsService, UserService {
             Integer currentPage,
             Integer size,
             String sortingField,
-            String sortingDirection) {
+            String sortingDirection
+    ) {
         log.info("get users page: {}, field: {}, direction: {}", currentPage - 1, sortingField, sortingDirection);
         Sort sort = Sort.by(Sort.Direction.valueOf(sortingDirection), sortingField);
         Pageable pageable = PageRequest.of(currentPage - 1, size, sort);
@@ -72,10 +78,21 @@ public class UserServiceImpl implements UserDetailsService, UserService {
 
     @Override
     public User save(User user) {
-        log.info("save user: {}", user);
+        log.info("Saving user: {}", user);
+
+        // Генеруємо пару ключів
+        KeyPair keyPair = encryptionService.generateKeyPair();
+        String publicKey = Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded());
+        String privateKey = Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded());
+
+        // Зберігаємо у користувача
+        user.setPublicKey(publicKey);
+        user.setPrivateKey(privateKey);  // Можливо, варто зберігати зашифровано або в окремому безпечному сховищі
+
         userRepository.save(user);
-        sendRegistrationEmail(user); // create securityToken send email to User
-        log.info("success");
+        sendRegistrationEmail(user); // Надсилання email з securityToken
+
+        log.info("User successfully saved with generated keys.");
         return user;
     }
 

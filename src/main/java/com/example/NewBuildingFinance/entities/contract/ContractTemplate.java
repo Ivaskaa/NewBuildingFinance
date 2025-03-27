@@ -10,7 +10,7 @@ import javax.validation.constraints.Size;
 @Getter
 @Setter
 @Entity
-@Table(name = "contract_templates")
+@Table(name = "contract_template")
 public class ContractTemplate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,7 +19,7 @@ public class ContractTemplate {
     @Size(max = 50, message = "Must be less 50 characters")
     private String name;
     @NotEmpty(message = "Must not be empty")
-    @Size(max = 50000, message = "Must be less 50000 characters")
+    @Size(max = 5000, message = "Must be less 5000 characters")
     private String text;
     private boolean main = false;
     private boolean deleted = false;

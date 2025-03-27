@@ -24,4 +24,7 @@ public interface UserRepository extends JpaRepository<User, Long>{
     @Query(value = "update newbuildingfinance.users set users.deleted = true, users.active = false where users.id = :id", nativeQuery = true)
     @Transactional
     void setDeleted(@Param("id") Long id);
+
+    @Query("SELECT u FROM User u JOIN u.role.permissions p WHERE p.name = :permissionName AND u.active = true")
+    List<User> findUsersWithPermission(@Param("permissionName") String permissionName);
 }

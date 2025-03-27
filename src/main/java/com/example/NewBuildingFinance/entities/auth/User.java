@@ -48,6 +48,13 @@ public class User implements UserDetails {
     @JsonBackReference
     private Set<SecureToken> secureTokens;
 
+    // Додаємо ключі (важливо: приватний ключ треба зберігати зашифрованим або в іншому безпечному вигляді)
+    @Column(columnDefinition = "TEXT")
+    private String publicKey;
+
+    @Column(columnDefinition = "TEXT")
+    private String privateKey;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return role.getPermissions()

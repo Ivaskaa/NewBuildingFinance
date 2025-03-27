@@ -3,6 +3,7 @@ let contextApp = window.location.pathname.substring(0, window.location.pathname.
 let urlApp = window.location.protocol+"//"+ window.location.host + contextApp;
 
 let stompClient = null;
+let subscriptions = [];
 
 $(document).ready(function() {
     connect();
@@ -56,6 +57,10 @@ function sendCurrency() {
     stompClient.send("/app/currency", {}, JSON.stringify(object));
 }
 
+function addSubscription(destination, callback) {
+    subscriptions.push({ destination, callback });
+}
+
 function connect() {
     let socket = new SockJS('/websockets');
     stompClient = Stomp.over(socket);
@@ -68,6 +73,10 @@ function connect() {
             console.log('/notifications  ---  ' + data);
             getNotifications();
         });
+        subscriptions.forEach(sub => {
+            stompClient.subscribe(sub.destination, sub.callback);
+        });
+
     });
 }
 

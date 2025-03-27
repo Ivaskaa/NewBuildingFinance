@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chat</title>
+
+    <style th:replace="blocks/linkAdminLTE"></style>
+    <div th:replace="blocks/links"></div>
+    <script th:src="@{/js/app.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/popup.css}">
+</head>
+
+<body class="sidebar-mini layout-fixed control-sidebar-slide-open" style="height: auto;">
+<div class="wrapper">
+
+    <div th:replace="blocks/navbar"></div>
+    <div th:replace="blocks/sidebarContainer"></div>
+
+    <div class="content-wrapper">
+
+        <div class="content-header">
+            <div class="container-fluid">
+                <h1 class="m-0">Chat</h1>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container">
+                <div class="row justify-content-center mt-4">
+                    <div class="col-md-3">
+                        <!-- ЧАТИ -->
+                        <div class="card">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0">Мої чати</h5>
+                            </div>
+                            <div class="list-group" id="chat-list" style="max-height: 500px; overflow-y: auto;">
+                                <!-- Чати будуть тут -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-9">
+                        <!-- ВИБРАНИЙ ЧАТ -->
+                        <div class="card">
+                            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                <h3 class="card-title mb-0" id="chat-room-title">Кімната чату</h3>
+                                <button class="btn btn-sm btn-light" onclick="refreshMessages()">Оновити</button>
+                            </div>
+                            <div class="card-body" id="chat-box" style="height: 400px; overflow-y: scroll;">
+                                <!-- Повідомлення будуть завантажені тут -->
+                            </div>
+                            <div class="card-footer">
+                                <div class="input-group">
+                                    <input type="text" id="messageInput" class="form-control" placeholder="Введіть повідомлення...">
+                                    <button class="btn btn-primary" onclick="sendMessage()">Надіслати</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Форма для створення нового чату -->
+                        <div class="card mt-4">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">Створити новий чат</h5>
+                            </div>
+                            <div class="card-body">
+                                <input id="chatName" class="form-control" style="width: 100%"/>
+                                <select id="userSelect" class="form-control" style="width: 100%"></select>
+                                <button class="btn btn-success mt-2" onclick="createChat()">Створити чат</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<div th:replace="blocks/scriptAdminLTE"></div>
+
+<script>
+
+    // ----------------------------
+    // Допоміжні функції для роботи з криптографією
+    // ----------------------------
+
+    let currentChatAESKey = null;
+
+    // Перетворення рядка у ArrayBuffer
+    function str2ab(str) {
+        const buf = new ArrayBuffer(str.length);
+        const bufView = new Uint8Array(buf);
+        for (let i = 0; i < str.length; i++) {
+            bufView[i] = str.charCodeAt(i);
+        }
+        return buf;
+    }
+
+    // Імпорт приватного ключа (PKCS8, Base64)
+    async function importPrivateKey(pemKey) {
+        try {
+            console.log("Імпорт приватного ключа починається");
+            const binaryDerString = window.atob(pemKey);
+            const binaryDer = str2ab(binaryDerString);
+            const key = await window.crypto.subtle.importKey(
+                "pkcs8",
+                binaryDer,
+                {
+                    name: "RSA-OAEP",
+                    hash: "SHA-256"
+                },
+                true,
+                ["decrypt"]
+            );
+            console.log("Імпорт приватного ключа успішний", key);
+            return key;
+        } catch (err) {
+            console.error("Помилка імпорту приватного ключа:", err);
+            throw err;
+        }
+    }
+
+    // Розшифрування AES ключа, зашифрованого RSA (Base64)
+    async function decryptAESKey(encryptedAESKey, privateKey) {
+        try {
+            console.log("Розшифрування AES ключа починається");
+            const encryptedKeyBuffer = Uint8Array.from(window.atob(encryptedAESKey), c => c.charCodeAt(0));
+            console.log("Зашифрований AES ключ (Uint8Array):", encryptedKeyBuffer);
+
+            // Явно задаємо алгоритм з hash: "SHA-256" та порожнім label
+            const algorithm = { name: "RSA-OAEP", hash: "SHA-256", label: new Uint8Array(0) };
+            const decrypted = await window.crypto.subtle.decrypt(
+                algorithm,
+                privateKey,
+                encryptedKeyBuffer
+            );
+            console.log("AES ключ розшифровано, отримані байти:", new Uint8Array(decrypted));
+
+            // Імпортуємо отриманий AES ключ для подальшого використання в AES-GCM
+            const aesKey = await window.crypto.subtle.importKey(
+                "raw",
+                decrypted,
+                { name: "AES-GCM" },
+                true,
+                ["encrypt", "decrypt"]
+            );
+            console.log("AES ключ імпортовано успішно", aesKey);
+            return aesKey;
+        } catch (err) {
+            console.error("Помилка розшифрування AES ключа:", err);
+            throw err;
+        }
+    }
+
+    // Розшифрування повідомлення AES (AES/GCM)
+    async function decryptMessageAES(aesKey, encryptedMessage, ivBase64) {
+        try {
+            console.log("Розшифрування повідомлення починається");
+            const iv = Uint8Array.from(window.atob(ivBase64), c => c.charCodeAt(0));
+            console.log("IV:", iv);
+            const encryptedBuffer = Uint8Array.from(window.atob(encryptedMessage), c => c.charCodeAt(0));
+            console.log("Зашифроване повідомлення (Uint8Array):", encryptedBuffer);
+            const decrypted = await window.crypto.subtle.decrypt(
+                { name: "AES-GCM", iv: iv },
+                aesKey,
+                encryptedBuffer
+            );
+            const result = new TextDecoder().decode(decrypted);
+            console.log("Розшифроване повідомлення:", result);
+            return result;
+        } catch (err) {
+            console.error("Помилка розшифрування повідомлення:", err);
+            throw err;
+        }
+    }
+
+    async function encryptMessageAES(aesKey, message) {
+        try {
+            // Створюємо випадковий вектор ініціалізації (IV) довжиною 12 байт
+            const iv = window.crypto.getRandomValues(new Uint8Array(12));
+            const encodedMessage = new TextEncoder().encode(message);
+
+            // Шифруємо повідомлення AES-GCM
+            const ciphertext = await window.crypto.subtle.encrypt(
+                { name: "AES-GCM", iv: iv },
+                aesKey,
+                encodedMessage
+            );
+
+            // Конвертуємо зашифровані дані та IV в Base64 рядки для передачі
+            const encryptedMessage = btoa(String.fromCharCode(...new Uint8Array(ciphertext)));
+            const ivBase64 = btoa(String.fromCharCode(...iv));
+
+            console.log("Повідомлення зашифроване успішно");
+            return { encryptedText: encryptedMessage, iv: ivBase64 };
+        } catch (err) {
+            console.error("Помилка шифрування повідомлення:", err);
+            throw err;
+        }
+    }
+
+    async function loadChatAESKey() {
+        const response = await fetch(url + `/chats/${currentChatId}/aes-key`);
+        const encryptedAESKey = await response.json(); // отримуємо Base64 рядок
+        const privateKey = await importPrivateKey(userPrivateKey); // userPrivateKey має бути встановлений
+        currentChatAESKey = await decryptAESKey(encryptedAESKey, privateKey);
+    }
+
+</script>
+
+<script>
+    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 1));
+    let url = window.location.protocol + "//" + window.location.host + context;
+    let currentChatId = null;
+    const userId = '[[${userId}]]';
+    const userPrivateKey = '[[${privateKey}]]';  // Base64-кодований приватний ключ користувача
+
+    $(document).ready(function() {
+        loadChats();
+        initializeUserSelect();
+    });
+
+    // ----------------------------
+    // Існуючі функції для роботи з чатами та повідомленнями
+    // ----------------------------
+
+    // Завантажити список чатів
+    function loadChats() {
+        $.ajax({
+            type: 'get',
+            url: url + `/chats/${userId}`,
+            dataType: "json",
+            success: function (chats) {
+                let chatList = document.getElementById('chat-list');
+                chatList.innerHTML = '';
+                chats.forEach(chat => {
+                    let chatItem = document.createElement('a');
+                    chatItem.href = '#';
+                    chatItem.classList.add('list-group-item', 'list-group-item-action');
+                    chatItem.textContent = chat.name;
+                    chatItem.onclick = function() {
+                        currentChatId = chat.id;
+                        document.getElementById('chat-room-title').innerText = chat.name;
+                        highlightActiveChat(chat.id);
+                        loadMessages();
+                    };
+                    chatItem.setAttribute('data-chat-id', chat.id);
+                    chatList.appendChild(chatItem);
+                });
+                if (chats.length > 0) {
+                    currentChatId = chats[0].id;
+                    document.getElementById('chat-room-title').innerText = chats[0].name;
+                    highlightActiveChat(currentChatId);
+                    loadMessages();
+                }
+                connectWebSocket();
+            },
+            error: function() {
+                console.log('Error loading chats');
+            }
+        });
+    }
+
+    // Підсвітити активний чат
+    function highlightActiveChat(chatId) {
+        let chatItems = document.querySelectorAll('#chat-list a');
+        chatItems.forEach(item => {
+            if (parseInt(item.getAttribute('data-chat-id')) === chatId) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    }
+
+    async function loadMessages() {
+        if (!currentChatId) return;
+
+        // Спочатку завантажуємо та розшифровуємо AES ключ для чату, якщо ще не зроблено
+        if (!currentChatAESKey) {
+            await loadChatAESKey();
+        }
+
+        $.ajax({
+            type: 'get',
+            url: url + `/chats/${currentChatId}/messages`,
+            dataType: "json",
+            success: async function (messages) {
+                let chatBox = document.getElementById('chat-box');
+                chatBox.innerHTML = '';  // Очищаємо чат перед завантаженням нових повідомлень
+
+                // Для кожного повідомлення розшифровуємо текст
+                for (let message of messages) {
+                    let decryptedText;
+                    try {
+                        decryptedText = await decryptMessageAES(currentChatAESKey, message.content, message.iv);
+                    } catch (e) {
+                        console.error('Error decrypting message', e);
+                        decryptedText = "[Помилка розшифрування]";
+                    }
+
+                    // Визначаємо, чи це моє повідомлення
+                    const isMyMessage = +message.userId === +userId;
+                    const backgroundColor = isMyMessage ? '#e0f7fa' : '#f1f1f1';
+
+                    let messageDiv = document.createElement('div');
+                    messageDiv.classList.add('mb-2', 'p-2', 'rounded');
+                    messageDiv.style.backgroundColor = backgroundColor;
+                    messageDiv.style.display = 'flex';
+                    messageDiv.style.flexDirection = isMyMessage ? 'row' : 'row-reverse';
+                    messageDiv.style.alignItems = 'center';
+
+                    const messageDate = new Date(message.createdAt);
+                    const formattedDate = messageDate.toLocaleString();
+
+                    messageDiv.innerHTML = `
+                    <div style="max-width: 70%; word-wrap: break-word;">
+                        <strong>${message.senderName}:</strong> ${decryptedText}
+                        <br><small>${formattedDate}</small>
+                    </div>
+                `;
+                    chatBox.appendChild(messageDiv);
+                }
+                chatBox.scrollTop = chatBox.scrollHeight;
+            },
+            error: function() {
+                console.log('Error loading messages');
+            }
+        });
+    }
+
+    // Відправити повідомлення (на сервері повідомлення шифруються перед збереженням)
+    // function sendMessage() {
+    //     let messageContent = document.getElementById('messageInput').value;
+    //     if (!messageContent.trim() || !currentChatId) return;
+    //
+    //     $.ajax({
+    //         type: 'post',
+    //         url: url + `/chats/${currentChatId}/message`,
+    //         contentType: "application/json",
+    //         dataType: "json",
+    //         data: JSON.stringify({ text: messageContent }),
+    //         success: function () {
+    //             loadMessages();
+    //         },
+    //         error: function () {
+    //             console.log('Error sending message');
+    //         }
+    //     });
+    // }
+
+    async function sendMessage() {
+        let messageContent = document.getElementById('messageInput').value;
+        if (!messageContent.trim() || !currentChatId) return;
+
+        try {
+            // Шифруємо повідомлення за допомогою currentChatAESKey
+            const data = await encryptMessageAES(currentChatAESKey, messageContent);
+
+            // Відправляємо зашифроване повідомлення та IV на сервер
+            $.ajax({
+                type: 'post',
+                url: url + `/chats/${currentChatId}/message`,
+                contentType: "application/json",
+                dataType: "json",
+                data: JSON.stringify(data),
+                success: function () {
+                    loadMessages();
+                },
+                error: function () {
+                    console.log('Error sending message');
+                }
+            });
+        } catch (err) {
+            console.error("Error in sendMessage:", err);
+        }
+    }
+
+    // Оновити повідомлення
+    function refreshMessages() {
+        loadMessages();
+    }
+
+    // Ініціалізація Select2 для вибору користувача для створення чату
+    function initializeUserSelect() {
+        $('#userSelect').select2({
+            ajax: {
+                url: url + '/chats/available-users',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        searchTerm: params.term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.map(user => ({
+                            id: user.id,
+                            text: user.name + ' ' + user.surname
+                        }))
+                    };
+                }
+            },
+            placeholder: 'Search users'
+        });
+    }
+
+    function createChat() {
+        let selectedUserId = $('#userSelect').val();
+        let chatName = $('#chatName').val();
+        if (!selectedUserId || !chatName) {
+            alert('Please select a user and enter a chat name');
+            return;
+        }
+
+        $.ajax({
+            url: url + `/chats/create-with-user/${selectedUserId}?chatName=${encodeURIComponent(chatName)}`,
+            method: 'POST',
+            contentType: 'application/json',
+            success: function () {
+                loadChats();
+            },
+            error: function () {
+                console.log('Error creating chat');
+                alert('There was an error creating the chat');
+            }
+        });
+    }
+
+    function connectWebSocket() {
+        addSubscription('/topic/chat/' + currentChatId, function (data) {
+            loadMessages();
+        })
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+<script src="https://unpkg.com/imask"></script>
+<script th:src="@{/plugins/summernote/summernote-bs4.min.js}"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+</main>
+</body>
+</html>
