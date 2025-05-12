@@ -84,6 +84,11 @@
                     </th>
                     <th scope="col">
                         <div>
+                            <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Chats</p>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div>
                             <p style="margin: 5px; display: inline-block; box-sizing: border-box;">Delete</p>
                         </div>
                     </th>
@@ -253,6 +258,11 @@
                 "</div>" +
                 "</td>" +
                 "<td>" +
+                "<div class='form-check'>" +
+                "   <input id='chats" + object.id + "' class='form-check-input' type='checkbox'>" +
+                "</div>" +
+                "</td>" +
+                "<td>" +
                 "<button onclick='deleteObject(" + object.id + ")' class=\"btn btn-danger\" type=\"button\">Delete</button>" +
                 "</td>" +
                 "</tr>"
@@ -272,6 +282,7 @@
             let agreements = document.getElementById('agreements' + object.id)
             let settings = document.getElementById('settings' + object.id)
             let api = document.getElementById('api' + object.id)
+            let chats = document.getElementById('chats' + object.id)
             object.permissions.forEach((per) => {
                 if(per.name === 'STATISTICS'){
                     statistics.checked = true;
@@ -300,6 +311,9 @@
                 if(per.name === 'API'){
                     api.checked = true;
                 }
+                if(per.name === 'CHATS'){
+                    chats.checked = true;
+                }
             })
         })
     }
@@ -315,6 +329,7 @@
             let agreements = document.getElementById('agreements' + object.id)
             let settings = document.getElementById('settings' + object.id)
             let api = document.getElementById('api' + object.id)
+            let chats = document.getElementById('chats' + object.id)
             let myPermissions = [];
             if(statistics.checked === true){
                 myPermissions.push({id:1});
@@ -342,6 +357,9 @@
             }
             if(api.checked === true){
                 myPermissions.push({id:9});
+            }
+            if(chats.checked === true){
+                myPermissions.push({id:10});
             }
             object.permissions = myPermissions;
         })

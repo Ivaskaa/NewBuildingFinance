@@ -19,8 +19,6 @@
         <!-- Sidebar Menu -->
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-                <!-- Add icons to the links using the .nav-icon class
-                     with font-awesome or any other icon font library -->
                 <li th:each="permission : ${user.role.permissions}" th:if="${#strings.equals(permission.name, 'STATISTICS')}" class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-copy"></i>
@@ -81,6 +79,14 @@
                         <i class="nav-icon fas fa-columns"></i>
                         <p>
                             Objects
+                        </p>
+                    </a>
+                </li>
+                <li th:each="permission : ${user.role.permissions}" th:if="${#strings.equals(permission.name, 'CHATS')}" class="nav-item">
+                    <a th:href="@{/chats/}" class="nav-link">
+                        <i class="nav-icon fas fa-columns"></i>
+                        <p>
+                            Chats
                         </p>
                     </a>
                 </li>

@@ -210,8 +210,7 @@
 </script>
 
 <script>
-    let context = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 1));
-    let url = window.location.protocol + "//" + window.location.host + context;
+    let url = window.location.protocol + "//" + window.location.host;
     let currentChatId = null;
     const userId = '[[${userId}]]';
     const userPrivateKey = '[[${privateKey}]]';  // Base64-кодований приватний ключ користувача
